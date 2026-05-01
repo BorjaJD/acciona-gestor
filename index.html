@@ -92,6 +92,8 @@
   .p-Due-diligence{background:#e8e2f5;color:#4a3a70}
   .p-En-cierre{background:#f0e0e8;color:#6b2e4a}
   .p-Activo{background:#d8eae8;color:#2e5c54}
+  .p-WIP{background:#dceee2;color:#2e5c3e}
+  .p-Stand-By{background:#e8e2f5;color:#4a3a70}
   .p-Descartado{background:#f0ede8;color:#6b5a3e}
   .p-Cerrado{background:#f0dede;color:#6b2e2e}
   .prio-1{background:#f5e8e8;color:#8b3030;font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
@@ -106,6 +108,8 @@
   .estado-wrap.s-Recibido{background:#ebebea} .estado-wrap.s-Recibido .estado-select{color:#5a5a54}
   .estado-wrap.s-En-análisis{background:#dce6f0} .estado-wrap.s-En-análisis .estado-select{color:#2e4e6b}
   .estado-wrap.s-Due-diligence{background:#e8e2f5} .estado-wrap.s-Due-diligence .estado-select{color:#4a3a70}
+  .estado-wrap.s-WIP{background:#dceee2} .estado-wrap.s-WIP .estado-select{color:#2e5c3e}
+  .estado-wrap.s-Stand-By{background:#e8e2f5} .estado-wrap.s-Stand-By .estado-select{color:#4a3a70}
   .estado-wrap.s-Descartado{background:#f0ede8} .estado-wrap.s-Descartado .estado-select{color:#6b5a3e}
   .estado-wrap.s-Cerrado{background:#f0dede} .estado-wrap.s-Cerrado .estado-select{color:#6b2e2e}
   /* DETAIL PANEL */
@@ -552,7 +556,7 @@ const PRIO_LABELS = {1:'🔴 Alta',2:'🟡 Media',3:'🟢 Baja'};
 const BLOQUES_ORDER_DEFAULT = ['Desinversión','Pipeline','Desarrollo / Operación','Clientes / Gestión','Postventa'];
 let BLOQUES_ORDER = [...BLOQUES_ORDER_DEFAULT];
 let BLOQUES_LOCKED = new Set(); // locked bloques can't be dragged
-const ESTADOS = ['Recibido','En análisis','Due diligence','Descartado','Cerrado'];
+const ESTADOS = ['Recibido','En análisis','Due diligence','WIP','Stand By','Descartado','Cerrado'];
 
 const UBICACIONES_OPTS = [
   '',
@@ -1908,10 +1912,10 @@ function renderDashboard() {
   });
 
   // DONUT
-  var DONUT_COLORS={"Recibido":"#c9c7c0","En an\u00e1lisis":"#7a9cbf","Due diligence":"#9b8abf","Descartado":"#c8b89a","Cerrado":"#bf7a7a"};
+  var DONUT_COLORS={"Recibido":"#c9c7c0","En an\u00e1lisis":"#7a9cbf","Due diligence":"#9b8abf","WIP":"#7aab8a","Stand By":"#9b8abf","WIP":"#7aab8a","Stand By":"#9b8abf","Descartado":"#c8b89a","Cerrado":"#bf7a7a"};
   var donutData=ESTADOS.map(function(e){return {e:e,n:porEstado[e]||0,c:DONUT_COLORS[e]};}).filter(function(d){return d.n>0;});
   // DONUT — contar directamente sin depender de porEstado inicializado
-  var DONUT_COLORS={"Recibido":"#c9c7c0","En an\u00e1lisis":"#7a9cbf","Due diligence":"#9b8abf","Descartado":"#c8b89a","Cerrado":"#bf7a7a"};
+  var DONUT_COLORS={"Recibido":"#c9c7c0","En an\u00e1lisis":"#7a9cbf","Due diligence":"#9b8abf","WIP":"#7aab8a","Stand By":"#9b8abf","WIP":"#7aab8a","Stand By":"#9b8abf","Descartado":"#c8b89a","Cerrado":"#bf7a7a"};
   var donutMap={};
   projects.forEach(function(p){ donutMap[p.estado]=(donutMap[p.estado]||0)+1; });
   var donutData=Object.keys(donutMap).map(function(e){ return {e:e,n:donutMap[e],c:DONUT_COLORS[e]||"#aaa"}; }).sort(function(a,b){ return ESTADOS.indexOf(a.e)-ESTADOS.indexOf(b.e); });
@@ -1951,7 +1955,7 @@ function renderDashboard() {
   var CELL_FG={"1":"#8b3030","2":"#7a6020","3":"#306030"};
   var matrixHtml="<div style=\"display:grid;grid-template-columns:70px repeat(3,1fr);gap:3px;\">";
   matrixHtml+="<div></div><div style=\"text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:3px 0\">Alta</div><div style=\"text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:3px 0\">Media</div><div style=\"text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:3px 0\">Baja</div>";
-  var ABBR={"Recibido":"Recib.","En an\u00e1lisis":"An\u00e1lisis","Due diligence":"DD","Descartado":"Desc.","Cerrado":"Cerrado"};
+  var ABBR={"Recibido":"Recib.","En an\u00e1lisis":"An\u00e1lisis","Due diligence":"DD","WIP":"WIP","Stand By":"Stand By","Descartado":"Desc.","Cerrado":"Cerrado"};
   ESTADOS.forEach(function(s){
     matrixHtml+="<div style=\"font-size:10px;color:var(--text2);text-align:right;padding-right:6px;display:flex;align-items:center;justify-content:flex-end\">"+( ABBR[s]||s)+"</div>";
     [1,2,3].forEach(function(pr){
@@ -1965,7 +1969,7 @@ function renderDashboard() {
   matrixHtml+="</div>";
 
   // PIPELINE — tabla fusionada con UW + Estado
-  var ESTADO_DOT={"Due diligence":"#9b8abf","En an\u00e1lisis":"#7a9cbf","Recibido":"#c9c7c0","Descartado":"#c8b89a","Cerrado":"#bf7a7a"};
+  var ESTADO_DOT={"Due diligence":"#9b8abf","En an\u00e1lisis":"#7a9cbf","Recibido":"#c9c7c0","WIP":"#7aab8a","Stand By":"#9b8abf","WIP":"#7aab8a","Stand By":"#9b8abf","Descartado":"#c8b89a","Cerrado":"#bf7a7a"};
   var ops=projects.filter(function(p){return p.bloque==="Pipeline";});
   function hasUW(p){var e=p.eco||{};return !!(e.tirPct||e.margenPct||e.ventaEur||e.sueloEur);}
   var uwCount=ops.filter(hasUW).length;
