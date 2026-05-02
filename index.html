@@ -968,19 +968,20 @@ function renderUbicSection(p) {
     if(!url) return '';
     // Already embed
     if(url.includes('maps/embed')) return url;
-    // Extract query from standard Google Maps URL
     try {
-      // Handle https://maps.app.goo.gl short links - can't embed directly
-      if(url.includes('goo.gl') || url.includes('maps.app')) return 'SHORT_URL';
-      // Handle https://www.google.com/maps/place/...
+      // Short URL goo.gl — embed via place search using the short URL as query
+      if(url.includes('goo.gl') || url.includes('maps.app')) {
+        return 'https://maps.google.com/maps?q='+encodeURIComponent(url)+'&output=embed';
+      }
+      // Coordinates in URL @lat,lng
       const placeMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
       if(placeMatch) {
         return 'https://maps.google.com/maps?q='+placeMatch[1]+','+placeMatch[2]+'&z=16&output=embed';
       }
-      // Handle ?q= or /search/
+      // ?q= param
       const qMatch = url.match(/[?&]q=([^&]+)/);
       if(qMatch) return 'https://maps.google.com/maps?q='+qMatch[1]+'&output=embed';
-      // Handle /place/ name
+      // /place/ name
       const placeNameMatch = url.match(/\/place\/([^/@]+)/);
       if(placeNameMatch) return 'https://maps.google.com/maps?q='+encodeURIComponent(decodeURIComponent(placeNameMatch[1]))+'&output=embed';
     } catch(e){}
@@ -988,12 +989,11 @@ function renderUbicSection(p) {
   }
 
   const embedUrl = toEmbedUrl(mapUrl);
-  const isShortUrl = embedUrl === 'SHORT_URL';
 
   const mapDisplay = !mapUrl
     ? '<div class="ubic-map-placeholder">📍 Pega un enlace de Google Maps y pulsa "Mostrar"</div>'
-    : isShortUrl
-    ? '<div class="ubic-map-placeholder" style="color:#B45309">⚠️ Los enlaces cortos (goo.gl) no se pueden embeber directamente.<br>Ve a Google Maps → Compartir → Copiar enlace → usa la URL larga.</div>'
+    : !embedUrl
+    ? '<div class="ubic-map-placeholder" style="color:#B45309">No se pudo procesar la URL. Usa una URL de Google Maps.</div>'
     : '<iframe src="'+embedUrl+'" width="100%" height="100%" style="border:0" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
 
   const imgDisplay = imgData
@@ -1048,7 +1048,7 @@ function loadMap(id) {
 
   function toEmbed(url) {
     if(url.includes('maps/embed')) return url;
-    if(url.includes('goo.gl')||url.includes('maps.app')) return 'SHORT_URL';
+    if(url.includes('goo.gl')||url.includes('maps.app')) return 'https://maps.google.com/maps?q='+encodeURIComponent(url)+'&output=embed';
     try {
       const coord = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
       if(coord) return 'https://maps.google.com/maps?q='+coord[1]+','+coord[2]+'&z=16&output=embed';
@@ -1826,7 +1826,7 @@ function renderDealSheet() {
   function tirC(v){ const n=parseFloat(v); if(isNaN(n)) return ''; return n>=20?'tir':n>=10?'':'neg'; }
   function mgC(v){ const n=parseFloat(v); if(isNaN(n)) return ''; return n>=25?'tir':n>=10?'':'neg'; }
   let mapEmbed='';
-  if(p.mapUrl){try{const co=p.mapUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);if(co)mapEmbed='https://maps.google.com/maps?q='+co[1]+','+co[2]+'&z=15&output=embed';}catch(e){}}
+  if(p.mapUrl){try{const co=p.mapUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);if(co)mapEmbed='https://maps.google.com/maps?q='+co[1]+','+co[2]+'&z=15&output=embed';else if(url.includes('goo.gl')||url.includes('maps.app'))mapEmbed='https://maps.google.com/maps?q='+encodeURIComponent(url)+'&output=embed';}catch(e){}}
   const mapHtml=mapEmbed?'<div class="ds-map"><iframe src="'+mapEmbed+'" loading="lazy"></iframe></div>':'<div class="ds-map"><div class="ds-map-ph">Sin mapa</div></div>';
   const imgHtml=p.imgData?'<div class="ds-img"><img src="'+p.imgData+'"/></div>':'<div class="ds-img"><div style="font-size:11px;color:var(--text3);text-align:center;padding:16px">Sin imagen</div></div>';
   migrateAcciones(p);
