@@ -2487,6 +2487,17 @@ function sendEmailReport(){
   const body=encodeURIComponent('Hola,\n\nAdjunto el informe de portfolio de Acciona Real Estate a fecha '+fecha+'.\n\nSaludos');
   window.location.href='mailto:?subject='+subject+'&body='+body;
 
+// ─── INIT ──────────────────────────────────────────────────────
+document.getElementById('fecha-hoy').textContent=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+loadPersisted();
+loadBloques();
+migrateBloquesLegacy();
+projects.forEach(p=>migrateAcciones(p));
+checkSession();
+addMsg('system','Gestor listo · '+projects.length+' proyectos · Sincronizando con la nube...');
+render();
+// Load from Supabase (overrides localStorage with latest cloud data)
+loadFromSupabase();
 </script>
 </body>
 </html>
