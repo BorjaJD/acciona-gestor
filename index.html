@@ -432,7 +432,7 @@
       </div>
       <div>
         <div class="login-logo-text">ACCIONA</div>
-        <div class="login-logo-sub">Real Estate · Portfolio</div>
+        <div class="login-logo-sub">Inmobiliaria · Portfolio</div>
       </div>
     </div>
     <div class="login-title">Acceso privado</div>
@@ -443,7 +443,7 @@
     </div>
     <button class="login-btn" onclick="checkLogin()">Entrar →</button>
     <div class="login-error" id="login-error"></div>
-    <div class="login-footer">Acciona Real Estate · Uso interno</div>
+    <div class="login-footer">Acciona Inmobiliaria · Uso interno</div>
   </div>
 </div>
 
@@ -455,7 +455,7 @@
       <text x="17" y="19" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="white" letter-spacing="2">ACCIONA</text>
     </svg>
     <div style="border-left:1px solid rgba(255,255,255,0.15);height:26px;margin:0 4px"></div>
-    <div><div class="logo-name">Real Estate</div><div class="logo-sub">Portfolio · Proyectos</div></div>
+    <div><div class="logo-name">Inmobiliaria</div><div class="logo-sub">Portfolio · Proyectos</div></div>
   </div>
   <nav class="nav-tabs">
     <div class="nav-tab active" data-view="dashboard">Dashboard</div>
@@ -1416,7 +1416,7 @@ function renderResumen() {
   const cierre   = projects.filter(p=>p.estado==='En Cierre');
 
   let txt = '';
-  txt += 'ACCIONA REAL ESTATE — RESUMEN DE PORTFOLIO\n';
+  txt += 'ACCIONA Inmobiliaria — RESUMEN DE PORTFOLIO\n';
   txt += fecha + '\n';
   txt += dbl + '\n\n';
 
@@ -1454,7 +1454,7 @@ function renderResumen() {
   });
 
   txt += '\n' + dbl + '\n';
-  txt += 'Fin del resumen · Acciona Real Estate · ' + fecha + '\n';
+  txt += 'Fin del resumen · Acciona Inmobiliaria · ' + fecha + '\n';
 
   // Copy to clipboard button
   const copyBtn = '<button onclick="copyResumen()" style="padding:7px 16px;font-size:12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--accent);color:white;cursor:pointer;font-family:var(--font);font-weight:500;transition:opacity .15s" onmouseover="this.style.opacity=\'.85\'" onmouseout="this.style.opacity=\'1\'">📋 Copiar para pegar en email</button>';
@@ -1929,7 +1929,7 @@ function renderDealSheet() {
   return '<div class="ds-wrap">'+selector
     +'<div class="ds-sheet">'
     +'<div class="ds-header"><div><div class="ds-title">'+p.nombre.toUpperCase()+'</div><div class="ds-subtitle">'+(p.ubicacion||p.tipo||'')+(p.contraparte&&p.contraparte!=='—'?' · '+p.contraparte:'')+'</div></div>'
-    +'<div class="ds-logo-area"><svg width="110" height="28" viewBox="0 0 110 28" fill="none"><polygon points="0,23 7,5 14,23" fill="white" opacity=".9"/><polygon points="3.5,23 7,13 10.5,23" fill="rgba(255,255,255,0.2)"/><text x="18" y="21" font-family="Aptos,Segoe UI,sans-serif" font-size="14" font-weight="700" fill="white" letter-spacing="2">ACCIONA</text><text x="18" y="27" font-family="Aptos,Segoe UI,sans-serif" font-size="8" fill="rgba(255,255,255,0.45)" letter-spacing="1">REAL ESTATE</text></svg>'
+    +'<div class="ds-logo-area"><svg width="110" height="28" viewBox="0 0 110 28" fill="none"><polygon points="0,23 7,5 14,23" fill="white" opacity=".9"/><polygon points="3.5,23 7,13 10.5,23" fill="rgba(255,255,255,0.2)"/><text x="18" y="21" font-family="Aptos,Segoe UI,sans-serif" font-size="14" font-weight="700" fill="white" letter-spacing="2">ACCIONA</text><text x="18" y="27" font-family="Aptos,Segoe UI,sans-serif" font-size="8" fill="rgba(255,255,255,0.45)" letter-spacing="1">Inmobiliaria</text></svg>'
     +'<div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end"><span class="ds-pill" style="background:'+(eBg[p.estado]||'#eee')+';color:'+(eFg[p.estado]||'#333')+'">'+p.estado+'</span><span class="ds-pill" style="background:'+pBg+';color:'+pFg+'">'+pLbl+'</span></div></div></div>'
     +'<div class="ds-kpi-row">'
     +'<div class="ds-kpi"><div class="ds-kpi-label">TIR Proyecto</div><div class="ds-kpi-val '+tirC(eco.tirPct)+'">'+fp(eco.tirPct)+'</div><div class="ds-kpi-sub">rentabilidad</div></div>'
@@ -1966,7 +1966,7 @@ function renderDealSheet() {
     +'<div class="ds-row"><span class="ds-row-label">1ª Ocupación</span><span class="ds-row-val">'+fv(eco.fechaEntrega)+'</span></div>'
     +'<div class="ds-row"><span class="ds-row-label">Plazo obras</span><span class="ds-row-val">'+(eco.plazoMeses?eco.plazoMeses+' meses':'—')+'</span></div>'
     +'</div></div>'
-    +'<div class="ds-footer"><span class="ds-footer-txt">Acciona Real Estate · Deal Sheet · '+new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'})+'</span><span class="ds-footer-txt">Documento interno — uso confidencial</span></div>'
+    +'<div class="ds-footer"><span class="ds-footer-txt">Acciona Inmobiliaria · Deal Sheet · '+new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'})+'</span><span class="ds-footer-txt">Documento interno — uso confidencial</span></div>'
     +'</div></div>';
 }
 
@@ -2250,7 +2250,7 @@ function renderResumen() {
   const fecha=document.getElementById('fecha-hoy').textContent;
   const hr='─'.repeat(58),dbl='═'.repeat(58);
   const alta=projects.filter(p=>p.prioridad===1),activos=projects.filter(p=>!['Descartado','Cerrado'].includes(p.estado));
-  let txt='ACCIONA REAL ESTATE — RESUMEN DE PORTFOLIO\n'+fecha+'\n'+dbl+'\n\nSITUACIÓN GENERAL\n';
+  let txt='ACCIONA Inmobiliaria — RESUMEN DE PORTFOLIO\n'+fecha+'\n'+dbl+'\n\nSITUACIÓN GENERAL\n';
   txt+='  Total proyectos : '+projects.length+'\n  Activos          : '+activos.length+'\n  Prioridad Alta   : '+alta.length+'\n\n';
   BLOQUES_ORDER.forEach(b=>{const bp=projects.filter(p=>p.bloque===b);if(!bp.length)return;txt+=hr+'\n'+b.toUpperCase()+' ('+bp.length+')\n\n';bp.forEach(p=>{txt+='▸ '+p.nombre+'\n  '+p.estado+'  ·  '+['','Alta','Media','Baja'][p.prioridad]+'\n  → '+p.proxima+'\n\n';});});
   txt+=dbl+'\nFin · Acciona RE · '+fecha+'\n';
@@ -2306,7 +2306,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 function exportToExcel(){
   const fecha=document.getElementById('fecha-hoy').textContent;
   function x(v){if(v===null||v===undefined)return '';return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-  let rows='<row r="1" ht="28" customHeight="1"><c r="A1" t="inlineStr"><is><t>ACCIONA REAL ESTATE — Portfolio · '+x(fecha)+'</t></is></c></row>';
+  let rows='<row r="1" ht="28" customHeight="1"><c r="A1" t="inlineStr"><is><t>ACCIONA Inmobiliaria — Portfolio · '+x(fecha)+'</t></is></c></row>';
   rows+='<row r="2" ht="22" customHeight="1">'+['ID','Proyecto','Bloque','Estado','Prioridad','Tipo','Contraparte','Responsable','Avance','Próxima acción'].map((h,i)=>'<c r="'+String.fromCharCode(65+i)+'2" t="inlineStr"><is><t>'+x(h)+'</t></is></c>').join('')+'</row>';
   let rowNum=3,lastBloque=null;
   [...projects].sort((a,b)=>BLOQUES_ORDER.indexOf(a.bloque)-BLOQUES_ORDER.indexOf(b.bloque)).forEach(p=>{
@@ -2373,7 +2373,7 @@ document.addEventListener('DOMContentLoaded',()=>{const pwd=document.getElementB
 function sendEmailReport(){
   const fecha=document.getElementById('fecha-hoy').textContent;
   const subject=encodeURIComponent('Acciona RE — Portfolio '+fecha);
-  const body=encodeURIComponent('Hola,\n\nAdjunto el informe de portfolio de Acciona Real Estate a fecha '+fecha+'.\n\nSaludos');
+  const body=encodeURIComponent('Hola,\n\nAdjunto el informe de portfolio de Acciona Inmobiliaria a fecha '+fecha+'.\n\nSaludos');
   window.location.href='mailto:?subject='+subject+'&body='+body;
 }
 
