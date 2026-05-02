@@ -456,6 +456,7 @@
     <div class="nav-tab" data-view="dealsheet" style="border-left:1px solid rgba(255,255,255,0.12)">📄 Deal Sheet</div>
   </nav>
   <div class="topbar-right">
+    <span id="sb-indicator" style="font-size:11px;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:4px">☁ Conectando...</span>
     <span class="topbar-date" id="fecha-hoy"></span>
     <button class="btn-email" onclick="exportToExcel()" title="Exporta todos los datos actuales a Excel">⬇ Exportar Excel</button>
   </div>
@@ -551,6 +552,43 @@
 </div>
 
 <script>
+
+// ─── SUPABASE ──────────────────────────────────────────────────
+const SB_URL = 'https://kqmgwuclsznkxxxqjnby.supabase.co';
+const SB_KEY = 'sb_publishable_GQw0IVy7vLHvHS6HKscoGA_OhHu_jc9';
+
+async function sbSave(data) {
+  try {
+    const resp = await fetch(SB_URL+'/rest/v1/proyectos?id=eq.1', {
+      method: 'PATCH',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer '+SB_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({data: data, updated_at: new Date().toISOString()})
+    });
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    return true;
+  } catch(e) { console.error('Supabase save error:', e); return false; }
+}
+
+async function sbLoad() {
+  try {
+    const resp = await fetch(SB_URL+'/rest/v1/proyectos?id=eq.1&select=data', {
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer '+SB_KEY
+      }
+    });
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const rows = await resp.json();
+    if(rows && rows[0] && Array.isArray(rows[0].data)) return rows[0].data;
+  } catch(e) { console.error('Supabase load error:', e); }
+  return null;
+}
+
 // ─── DATA ─────────────────────────────────────────────────────
 const PRIO_LABELS = {1:'🔴 Alta',2:'🟡 Media',3:'🟢 Baja'};
 const BLOQUES_ORDER_DEFAULT = ['Desinversión','Pipeline','Desarrollo / Operación','Clientes / Gestión','Postventa'];
@@ -629,6 +667,13 @@ let S = {view:'dashboard',fBloque:'',fEstado:'',fPrio:'',fSearch:'',selId:null,s
 // ─── PERSIST ──────────────────────────────────────────────────
 function persist() {
   try { localStorage.setItem('acciona_v3', JSON.stringify(projects)); } catch(e) {}
+  // Save to Supabase async (fire and forget)
+  sbSave(projects).then(ok => {
+    if(ok) {
+      const ind = document.getElementById('sb-indicator');
+      if(ind) { ind.textContent = '☁ Guardado'; ind.style.color='#2e5c3e'; setTimeout(()=>{ if(ind) ind.textContent='☁ Online'; },2000); }
+    }
+  });
 }
 
 function loadPersisted() {
@@ -644,6 +689,20 @@ function loadPersisted() {
     }
   } catch(e) {}
   return false;
+}
+
+async function loadFromSupabase() {
+  const data = await sbLoad();
+  if(data && data.length > 0) {
+    projects.length = 0;
+    data.forEach(p => projects.push(p));
+    try { localStorage.setItem('acciona_v3', JSON.stringify(projects)); } catch(e) {}
+    migrateBloquesLegacy();
+    projects.forEach(p => migrateAcciones(p));
+    render();
+    const ind = document.getElementById('sb-indicator');
+    if(ind) { ind.textContent = '☁ Online'; ind.style.color='#2e5c3e'; }
+  }
 }
 
 
@@ -2241,8 +2300,10 @@ loadBloques();
 migrateBloquesLegacy();
 projects.forEach(p=>migrateAcciones(p));
 checkSession();
-addMsg('system','Gestor listo · '+projects.length+' proyectos · Cambios guardados automáticamente.');
+addMsg('system','Gestor listo · '+projects.length+' proyectos · Sincronizando con la nube...');
 render();
+// Load from Supabase (overrides localStorage with latest cloud data)
+loadFromSupabase();
 </script>
 </body>
 </html>
