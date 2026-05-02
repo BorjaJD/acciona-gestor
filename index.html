@@ -2486,23 +2486,7 @@ function sendEmailReport(){
   const subject=encodeURIComponent('Acciona RE — Portfolio '+fecha);
   const body=encodeURIComponent('Hola,\n\nAdjunto el informe de portfolio de Acciona Real Estate a fecha '+fecha+'.\n\nSaludos');
   window.location.href='mailto:?subject='+subject+'&body='+body;
-}
 
-// ─── INIT ──────────────────────────────────────────────────────
-try {
-  document.getElementById('fecha-hoy').textContent=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
-  loadPersisted();
-  loadBloques();
-  migrateBloquesLegacy();
-  projects.forEach(p=>migrateAcciones(p));
-  checkSession();
-  addMsg('system','Gestor listo · '+projects.length+' proyectos · Sincronizando con la nube...');
-  render();
-  loadFromSupabase();
-} catch(e) {
-  console.error('Init error:', e);
-  document.getElementById('main').innerHTML='<div style="padding:40px;color:#991b1b;font-size:13px"><strong>Error al iniciar:</strong><br><pre>'+e.message+'</pre></div>';
-}
 </script>
 </body>
 </html>
