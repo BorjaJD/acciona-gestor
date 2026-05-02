@@ -1093,9 +1093,9 @@ function renderUbicSection(p) {
 
   return '<div class="ubic-section">'
     +'<button class="ubic-toggle" onclick="toggleUbic(event)">'
-    +'<span class="ubic-arrow" id="ubic-arrow">▶</span> 📍 Ubicación e imagen'
+    +'<span class="ubic-arrow open" id="ubic-arrow">▶</span> 📍 Ubicación e imagen'
     +'</button>'
-    +'<div class="ubic-body" id="ubic-body">'
+    +'<div class="ubic-body open" id="ubic-body">'
     +'<div class="ubic-inner">'
     +'<div>'
     // Left — Map
@@ -1630,9 +1630,8 @@ function renderEconomico() {
   function fmtPctVal(v) {
     if(!v||v==='') return '<span style="color:var(--text3)">—</span>';
     const n=parseFloat(v); if(isNaN(n)) return v;
-    const bold=n>17.5?';font-weight:700':'';
-    const bold=n>13?';font-weight:700':'';
-    return '<span style="color:#1a1a18'+bold+'">'+n.toFixed(2).replace('.',',')+' %</span>';
+    const color=n>30?'#2e5c3e':n>15?'#7a5c2e':'#8b3030';
+    return '<span style="color:'+color+';font-weight:600">'+n.toFixed(2).replace('.',',')+' %</span>';
   }
   function fmtTIR(v) {
     if(!v||v==='') return '<span style="color:var(--text3)">—</span>';
@@ -1642,7 +1641,7 @@ function renderEconomico() {
   }
   function fmtYield(v) {
     if(!v||v==='') return '<span style="color:var(--text3)">—</span>';
-    const n=parseFloat(v); return '<span style="color:#1a1a18">'+(isNaN(n)?v:n.toFixed(2).replace('.',','))+' %</span>';
+    const n=parseFloat(v); return '<span style="font-weight:500">'+(isNaN(n)?v:n.toFixed(2).replace('.',','))+' %</span>';
   }
   function fmtDt(v) { return v||'<span style="color:var(--text3)">—</span>'; }
   function fmtTxt(v) { return v||'<span style="color:var(--text3)">—</span>'; }
