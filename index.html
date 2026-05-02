@@ -1,0 +1,2367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestor Proyectos — Acciona</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  @import url('https://fonts.googleapis.com/css2?family=Aptos:wght@400;500;600;700&display=swap');
+  :root{
+    --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;
+    --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
+    --text:#1a1a18;--text2:#6b6b63;--text3:#a09f97;
+    --accent:#1a3a2a;--accent-light:#e8f2ec;
+    --font:'Aptos','Segoe UI',system-ui,sans-serif;--r:8px;--rl:12px;
+  }
+  body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+  /* TOPBAR */
+  .topbar{display:flex;align-items:center;background:var(--accent);color:#fff;height:52px;flex-shrink:0}
+  .logo-area{padding:0 20px;display:flex;align-items:center;gap:10px;border-right:1px solid rgba(255,255,255,0.12);height:100%}
+  .logo-name{font-size:12px;font-weight:500;color:rgba(255,255,255,0.85)}
+  .logo-sub{font-size:11px;color:rgba(255,255,255,0.45)}
+  .nav-tabs{display:flex;height:100%;margin-left:8px}
+  .nav-tab{padding:0 18px;height:100%;display:flex;align-items:center;font-size:13px;color:rgba(255,255,255,0.65);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+  .nav-tab:hover{color:#fff;background:rgba(255,255,255,0.06)}
+  .nav-tab.active{color:#fff;border-bottom-color:rgba(255,255,255,0.8)}
+  .topbar-right{margin-left:auto;padding:0 18px;display:flex;align-items:center;gap:12px}
+  .topbar-date{font-size:11px;color:rgba(255,255,255,0.4)}
+  .btn-email{padding:5px 14px;font-size:12px;border-radius:6px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:#fff;cursor:pointer;font-family:var(--font);transition:background .15s}
+  .btn-email:hover{background:rgba(255,255,255,0.2)}
+  /* LAYOUT */
+  .app-body{display:flex;flex:1;overflow:hidden}
+  .main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;min-height:0}
+  .sidebar{width:340px;border-left:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface);flex-shrink:0;transition:width .2s}
+  .sidebar.collapsed{width:44px}
+  .sidebar.collapsed .ai-msgs,.sidebar.collapsed .ai-input-area,.sidebar.collapsed .hints{display:none}
+  .sidebar.collapsed .ai-sub,.sidebar.collapsed .ai-title{display:none}
+  .sidebar.collapsed .ai-dot{margin:0 auto}
+  /* KPIs */
+  .kpi-bar{display:flex;gap:1px;background:var(--border);border-bottom:1px solid var(--border);flex-shrink:0}
+  .kpi-cell{flex:1;padding:10px 16px;background:var(--surface)}
+  .kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:3px}
+  .kpi-value{font-size:22px;font-weight:600;line-height:1}
+  .kpi-sub{font-size:10px;color:var(--text3);margin-top:2px}
+  /* FILTERS */
+  .filters-bar{padding:9px 14px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;background:var(--surface);flex-shrink:0;flex-wrap:wrap}
+  .filters-bar input,.filters-bar select{font-size:12px;padding:6px 9px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none}
+  .filters-bar input{width:190px}
+  .filters-bar input:focus,.filters-bar select:focus{border-color:var(--accent)}
+  .count-badge{margin-left:auto;font-size:11px;color:var(--text3)}
+  .btn-del{background:none;border:1px solid #fee2e2;cursor:pointer;color:#991b1b;font-size:11px;font-weight:600;padding:3px 7px;border-radius:4px;font-family:var(--font);opacity:.7;transition:opacity .15s}
+  .btn-del:hover{opacity:1;background:#fee2e2}
+  .btn-import-xl{padding:7px 16px;font-size:12px;border-radius:var(--r);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);font-weight:500;white-space:nowrap;transition:opacity .15s;display:inline-flex;align-items:center;gap:6px}
+  .btn-import-xl:hover{opacity:.85}
+  .btn-add{padding:6px 14px;font-size:12px;border-radius:var(--r);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);font-weight:500;white-space:nowrap;transition:opacity .15s}
+  .btn-add:hover{opacity:.85}
+  /* TABLE */
+  .detail-panel::-webkit-scrollbar{width:5px}
+  .detail-panel::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.18);border-radius:3px}
+  .table-wrap{flex:1;overflow-y:auto;overflow-x:auto;min-height:0}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  thead th{position:sticky;top:0;z-index:2;background:var(--surface2);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+  thead th:hover{color:var(--text)}
+  .th-arr{font-size:9px;margin-left:3px;opacity:.5}
+  tbody td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tbody tr{cursor:pointer;transition:background .1s}
+  tbody tr:hover td{background:#f7f6f2}
+  tbody tr.selected td{background:var(--accent-light)}
+  /* GROUP HEADERS */
+  .section-row td{padding:0;border:none}
+  .group-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:grab;user-select:none;background:#222;transition:background .15s}
+  .group-header:hover{background:#2a2a2a}
+  .group-header.dragging{opacity:.5;cursor:grabbing}
+  .group-header.drag-over{background:#1a3a2a;box-shadow:inset 0 2px 0 #5a9e8f}
+  .group-drag-handle{color:rgba(255,255,255,0.25);font-size:12px;cursor:grab;flex-shrink:0;line-height:1}
+  .group-lock-btn{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.35);font-size:12px;padding:0 2px;line-height:1;flex-shrink:0;transition:color .15s}
+  .group-lock-btn:hover{color:rgba(255,255,255,0.8)}
+  .group-lock-btn.locked{color:#c8a96e}
+  .btn-reset-order{font-size:11px;padding:5px 10px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:var(--font);transition:all .15s;white-space:nowrap}
+  .btn-reset-order:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+  .group-chevron{font-size:10px;transition:transform .2s;display:inline-block;flex-shrink:0;color:rgba(255,255,255,0.45)}
+  .group-chevron.collapsed{transform:rotate(-90deg)}
+  .group-name{font-size:13px;font-weight:700;letter-spacing:.02em;flex:1;color:#fff}
+  .group-count{font-size:11px;font-weight:400;color:rgba(255,255,255,0.45);white-space:nowrap}
+  .section-row td{background:#222;border-bottom:1px solid #111}
+  /* PILLS */
+  /* PILLS */
+  .pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+  .p-Recibido{background:#ebebea;color:#5a5a54}
+  .p-En-análisis{background:#dce6f0;color:#2e4e6b}
+  .p-Negociación{background:#dceee2;color:#2e5c3e}
+  .p-Due-diligence{background:#e8e2f5;color:#4a3a70}
+  .p-En-cierre{background:#f0e0e8;color:#6b2e4a}
+  .p-Activo{background:#d8eae8;color:#2e5c54}
+  .p-WIP{background:#dceee2;color:#2e5c3e}
+  .p-Stand-By{background:#e8e2f5;color:#4a3a70}
+  .p-Descartado{background:#f0ede8;color:#6b5a3e}
+  .p-Cerrado{background:#f0dede;color:#6b2e2e}
+  .prio-1{background:#f5e8e8;color:#8b3030;font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
+  .prio-2{background:#f5f0e0;color:#7a6020;font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
+  .prio-3{background:#e8f0e8;color:#306030;font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
+  .bloque-tag{font-size:10px;color:var(--text3);padding:2px 5px;border:1px solid var(--border);border-radius:4px;white-space:nowrap}
+  /* ESTADO DROPDOWN */
+  .estado-select{appearance:none;-webkit-appearance:none;border:none;background:transparent;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:600;padding:2px 18px 2px 8px;border-radius:20px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 5px center;outline:none;transition:box-shadow .15s}
+  .estado-select:hover{box-shadow:0 0 0 2px rgba(0,0,0,0.12)}
+  .estado-select:focus{box-shadow:0 0 0 2px var(--accent)}
+  .estado-wrap{display:inline-block;border-radius:20px;overflow:hidden}
+  .estado-wrap.s-Recibido{background:#ebebea} .estado-wrap.s-Recibido .estado-select{color:#5a5a54}
+  .estado-wrap.s-En-análisis{background:#dce6f0} .estado-wrap.s-En-análisis .estado-select{color:#2e4e6b}
+  .estado-wrap.s-Due-diligence{background:#e8e2f5} .estado-wrap.s-Due-diligence .estado-select{color:#4a3a70}
+  .estado-wrap.s-WIP{background:#dceee2} .estado-wrap.s-WIP .estado-select{color:#2e5c3e}
+  .estado-wrap.s-Stand-By{background:#e8e2f5} .estado-wrap.s-Stand-By .estado-select{color:#4a3a70}
+  .estado-wrap.s-Descartado{background:#f0ede8} .estado-wrap.s-Descartado .estado-select{color:#6b5a3e}
+  .estado-wrap.s-Cerrado{background:#f0dede} .estado-wrap.s-Cerrado .estado-select{color:#6b2e2e}
+  /* DETAIL PANEL */
+  .detail-panel{border-bottom:1px solid var(--border);padding:14px 16px;background:var(--surface);flex-shrink:0;min-height:120px;max-height:55vh;overflow-y:auto;overflow-x:hidden;transition:max-height .2s,min-height .2s,padding .2s}
+  .detail-panel.minimised{min-height:0;max-height:0;padding:0;overflow:hidden}
+  .detail-panel.empty{display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;font-style:italic}
+  .detail-panel-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2);flex-shrink:0;cursor:pointer;user-select:none}
+  .detail-panel-bar:hover{background:#e8e7e2}
+  .detail-bar-title{font-size:12px;font-weight:600;color:var(--text2)}
+  .detail-min-btn{font-size:11px;color:var(--text3);padding:2px 8px;border-radius:4px;border:1px solid var(--border2);background:var(--surface);cursor:pointer;font-family:var(--font);transition:background .15s;line-height:1.4}
+  .detail-min-btn:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 18px}
+  .d-item label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);display:block;margin-bottom:2px}
+  .d-full{grid-column:1/-1}
+  .d-input{width:100%;font-size:12px;padding:4px 7px;border-radius:var(--r);border:1px solid transparent;background:transparent;color:var(--text);font-family:var(--font);outline:none;line-height:1.4;transition:border-color .15s,background .15s}
+  .d-input:hover{border-color:var(--border2);background:var(--surface2)}
+  .d-input:focus{border-color:var(--accent);background:#fff}
+  .d-textarea{width:100%;font-size:12px;padding:4px 7px;border-radius:var(--r);border:1px solid transparent;background:transparent;color:var(--text);font-family:var(--font);outline:none;line-height:1.5;resize:none;min-height:40px;transition:border-color .15s,background .15s}
+  .d-textarea:hover{border-color:var(--border2);background:var(--surface2)}
+  .d-textarea:focus{border-color:var(--accent);background:#fff}
+  .d-select{font-size:12px;padding:4px 7px;border-radius:var(--r);border:1px solid transparent;background:transparent;color:var(--text);font-family:var(--font);outline:none;cursor:pointer;width:100%;transition:border-color .15s,background .15s}
+  .d-select:hover{border-color:var(--border2);background:var(--surface2)}
+  .d-select:focus{border-color:var(--accent);background:#fff}
+  .d-prio-row{display:flex;gap:6px;margin-top:2px}
+  .prio-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);cursor:pointer;background:var(--surface2);color:var(--text2);font-family:var(--font);transition:all .12s}
+  .prio-btn.active-1{background:#FFEBEE;color:#C62828;border-color:#C62828;font-weight:700}
+  .prio-btn.active-2{background:#FFF8E1;color:#F57F17;border-color:#F57F17;font-weight:700}
+  .prio-btn.active-3{background:#E8F5E9;color:#2E7D32;border-color:#2E7D32;font-weight:700}
+  /* VIEW PANEL */
+  .view-panel{flex:1;overflow-y:auto;padding:22px}
+  .view-panel h2{font-size:15px;font-weight:600;margin-bottom:14px}
+  .view-pre{font-size:12px;line-height:1.7;font-family:'Courier New',monospace;background:var(--surface2);padding:18px;border-radius:var(--rl);border:1px solid var(--border);white-space:pre-wrap;word-break:break-word}
+  /* ECO SECTION */
+  .eco-section{margin-top:10px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+  .eco-toggle{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;background:var(--surface2);font-size:11px;font-weight:600;color:var(--accent);user-select:none;border:none;width:100%;text-align:left;font-family:var(--font)}
+  .eco-toggle:hover{background:#dceee3}
+  .eco-arrow{font-size:9px;transition:transform .2s;display:inline-block}
+  .eco-arrow.open{transform:rotate(90deg)}
+  .eco-body{display:none;padding:10px 12px;background:var(--surface)}
+  .eco-body.open{display:block}
+  .eco-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 12px}
+  .eco-item label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);display:block;margin-bottom:3px}
+  .eco-item input{width:100%;font-size:12px;padding:5px 8px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none}
+  .eco-item input:focus{border-color:var(--accent);background:#fff}
+  .eco-divider{grid-column:1/-1;height:1px;background:var(--border);margin:2px 0}
+  .eco-group-label{grid-column:1/-1;font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+  .eco-table-wrap{overflow-x:auto;overflow-y:visible;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);width:100%}
+  .eco-table-wrap::-webkit-scrollbar{height:10px}
+  .eco-table-wrap::-webkit-scrollbar-track{background:var(--surface2);border-radius:0 0 var(--r) var(--r)}
+  .eco-table-wrap::-webkit-scrollbar-thumb{background:#888;border-radius:5px;border:2px solid var(--surface2)}
+  .eco-table-wrap::-webkit-scrollbar-thumb:hover{background:#555}
+  .eco-calc-val{font-size:13px;font-weight:600;color:var(--accent);line-height:1.2}
+  .eco-calc-formula{font-size:9px;color:#6b9e80;letter-spacing:.02em}
+
+  /* ── CHECKLIST ACCIONES ──────────────────────────────────── */
+  .acciones-list{display:flex;flex-direction:column;gap:4px;margin-top:2px}
+  .accion-item{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:var(--r);border:1px solid transparent;background:var(--surface2);transition:border-color .15s}
+  .accion-item:hover{border-color:var(--border2)}
+  .accion-item.done{background:#f7f6f2;opacity:.7}
+  .accion-cb{width:15px;height:15px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;flex-shrink:0;appearance:none;-webkit-appearance:none;background:white;position:relative;transition:all .15s}
+  .accion-cb:checked{background:var(--accent);border-color:var(--accent)}
+  .accion-cb:checked::after{content:'✓';position:absolute;top:-1px;left:1px;font-size:10px;color:white;font-weight:700}
+  .accion-txt{flex:1;font-size:12px;border:none;background:transparent;color:var(--text);font-family:var(--font);outline:none;line-height:1.4;padding:0;min-width:0}
+  .accion-txt.done-txt{text-decoration:line-through;color:var(--text3)}
+  .accion-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:0 2px;line-height:1;flex-shrink:0;opacity:0;transition:opacity .15s}
+  .accion-item:hover .accion-del{opacity:1}
+  .accion-del:hover{color:#8b3030}
+  .btn-add-accion{display:flex;align-items:center;gap:5px;margin-top:4px;font-size:11px;color:var(--accent);cursor:pointer;background:none;border:1px dashed var(--border2);border-radius:var(--r);padding:5px 10px;font-family:var(--font);width:100%;transition:border-color .15s,background .15s}
+  .btn-add-accion:hover{border-color:var(--accent);background:var(--accent-light)}
+  .btn-add-accion:disabled{opacity:.4;cursor:not-allowed}
+  /* ── VIEWER COMMENTS ────────────────────────────────────── */
+  .viewer-comment-box{position:fixed;bottom:20px;right:20px;width:300px;background:white;border-radius:var(--rl);box-shadow:0 4px 20px rgba(0,0,0,0.15);border:1px solid var(--border);z-index:999;overflow:hidden}
+  .viewer-comment-header{padding:10px 14px;background:var(--accent);color:white;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+  .viewer-comment-body{padding:10px}
+  .viewer-comment-textarea{width:100%;height:80px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--font);font-size:12px;padding:8px;resize:vertical;outline:none;color:var(--text)}
+  .viewer-comment-textarea:focus{border-color:var(--accent)}
+  .viewer-save-btn{margin-top:6px;padding:5px 14px;font-size:12px;border-radius:var(--r);border:none;background:var(--accent);color:white;cursor:pointer;font-family:var(--font);font-weight:500;width:100%}
+  /* Privacy mode */
+  .private-val{filter:blur(4px);user-select:none;pointer-events:none;transition:filter .2s}
+  body.privacy-off .private-val{filter:none}
+  .ds-wrap{flex:1;overflow-y:auto;background:#f0efe9;display:flex;flex-direction:column}
+  .ds-toolbar{padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+  .ds-selector{font-size:13px;padding:7px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;min-width:280px}
+  .ds-selector:focus{border-color:var(--accent)}
+  .ds-export-btn{padding:7px 16px;font-size:12px;border-radius:var(--r);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);font-weight:500;white-space:nowrap}
+  .ds-export-btn:hover{opacity:.85}
+  .ds-empty{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--text3);font-size:13px}
+  .ds-sheet{margin:20px auto;width:calc(100% - 40px);max-width:1100px;background:white;border-radius:var(--rl);overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,0.08)}
+  .ds-header{background:var(--accent);padding:22px 28px;display:flex;align-items:flex-start;justify-content:space-between}
+  .ds-title{color:white;font-size:22px;font-weight:700;letter-spacing:.03em;line-height:1.2}
+  .ds-subtitle{color:rgba(255,255,255,0.55);font-size:12px;margin-top:5px;text-transform:uppercase;letter-spacing:.1em}
+  .ds-logo-area{text-align:right;flex-shrink:0}
+  .ds-logo{color:white;font-size:15px;font-weight:700;letter-spacing:2px}
+  .ds-logo-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:2px}
+  .ds-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:3px solid var(--accent)}
+  .ds-kpi{padding:14px 18px;border-right:1px solid #eee;background:white}
+  .ds-kpi:last-child{border-right:none}
+  .ds-kpi-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:4px}
+  .ds-kpi-val{font-size:21px;font-weight:700;line-height:1;color:var(--accent)}
+  .ds-kpi-val.tir{color:#2e5c3e}
+  .ds-kpi-val.neg{color:#8b3030}
+  .ds-kpi-sub{font-size:10px;color:var(--text3);margin-top:3px}
+  .ds-body{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid #eee}
+  .ds-col{padding:18px 20px;border-right:1px solid #eee}
+  .ds-col:last-child{border-right:none}
+  .ds-col-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--accent)}
+  .ds-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid #f5f4f0;font-size:12px}
+  .ds-row-label{color:var(--text2)}
+  .ds-row-val{font-weight:600;color:var(--text);text-align:right}
+  .ds-map{width:100%;height:175px;border-radius:var(--r);overflow:hidden;border:1px solid #eee;position:relative;background:#f5f4f0;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .ds-map iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .ds-map-ph{font-size:11px;color:var(--text3);text-align:center}
+  .ds-img{width:100%;height:175px;border-radius:var(--r);overflow:hidden;border:1px solid #eee;background:#f5f4f0;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .ds-img img{width:100%;height:100%;object-fit:cover;display:block}
+  .ds-narrative{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px}
+  .ds-check{display:flex;align-items:flex-start;gap:7px;padding:4px 0;font-size:12px;color:var(--text2);line-height:1.4;border-bottom:1px solid #f5f4f0}
+  .ds-check.done{color:var(--text3);text-decoration:line-through}
+  .ds-check-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+  .ds-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+  .ds-footer{padding:10px 22px;background:#f7f6f2;border-top:1px solid #eee;display:flex;align-items:center;justify-content:space-between}
+  .ds-footer-txt{font-size:10px;color:var(--text3)}
+  @media print{
+    body *:not(.ds-sheet,.ds-sheet *){display:none!important}
+    .ds-sheet{position:fixed;top:0;left:0;width:100vw;max-width:100vw;margin:0;box-shadow:none;border-radius:0}
+    .ds-export-btn,.ds-toolbar{display:none!important}
+  }
+
+  /* ── UBICACIÓN & DOCUMENTACIÓN ─────────────────────────── */
+  .ubic-toggle{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;background:var(--surface2);font-size:11px;font-weight:600;color:var(--accent);user-select:none;border:none;width:100%;text-align:left;font-family:var(--font)}
+  .ubic-toggle:hover{background:#dceee3}
+  .ubic-arrow{font-size:9px;transition:transform .2s;display:inline-block}
+  .ubic-arrow.open{transform:rotate(90deg)}
+  .ubic-body{display:none;background:var(--surface)}
+  .ubic-body.open{display:block}
+  .ubic-inner{padding:12px 14px}
+  .ubic-inner > div:first-child{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+  .ubic-map-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px}
+  .ubic-map-input{flex:1;font-size:12px;padding:6px 10px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none}
+  .ubic-map-input:focus{border-color:var(--accent);background:#fff}
+  .ubic-map-btn{padding:6px 12px;font-size:11px;border-radius:var(--r);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);white-space:nowrap;flex-shrink:0}
+  .ubic-map-btn:hover{opacity:.85}
+  .ubic-col-label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:5px}
+  .ubic-map-frame{width:100%;height:260px;border-radius:var(--r);border:1px solid var(--border);overflow:hidden;background:var(--surface2);display:flex;align-items:center;justify-content:center;position:relative}
+  .ubic-map-frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+  .ubic-map-placeholder{font-size:12px;color:var(--text3);text-align:center;padding:20px;line-height:1.6}
+  .ubic-img-wrap{display:flex;flex-direction:column;gap:0}
+  .ubic-img-area{border:2px dashed var(--border2);border-radius:var(--r);cursor:pointer;transition:border-color .15s;position:relative;height:260px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;overflow:hidden}
+  .ubic-img-area:hover{border-color:var(--accent)}
+  .ubic-img-area.has-img{border-style:solid;border-color:var(--border)}
+  .ubic-img-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .ubic-img-preview{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block}
+  .ubic-img-label{font-size:12px;color:var(--text3);pointer-events:none;text-align:center;padding:0 12px}
+  .ubic-img-del{font-size:11px;color:#fff;cursor:pointer;background:rgba(0,0,0,0.55);border:none;font-family:var(--font);padding:4px 10px;border-radius:20px;position:absolute;bottom:8px;right:8px;z-index:2;transition:background .15s}
+  .ubic-img-del:hover{background:rgba(153,27,27,0.85)}
+  /* AI SIDEBAR */
+  .ai-header{padding:13px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;flex-shrink:0}
+  .ai-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0}
+  .ai-title{font-size:13px;font-weight:600}
+  .ai-sub{font-size:11px;color:var(--text3)}
+  .ai-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+  .msg{padding:8px 11px;border-radius:var(--rl);font-size:12px;line-height:1.5;max-width:92%}
+  .msg-system{background:var(--surface2);color:var(--text2);border:1px solid var(--border);align-self:flex-start}
+  .msg-user{background:var(--accent);color:#fff;align-self:flex-end}
+  .msg-ai{background:var(--surface);border:1px solid var(--border);color:var(--text);align-self:flex-start}
+  .msg-thinking{color:var(--text3);font-style:italic}
+  .ai-input-area{padding:11px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0}
+  .ai-row{display:flex;gap:8px}
+  .ai-input-area textarea{flex:1;font-size:12px;resize:none;height:60px;border-radius:var(--rl);border:1px solid var(--border2);padding:8px 11px;background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;line-height:1.5}
+  .ai-input-area textarea:focus{border-color:var(--accent)}
+  .ai-btn{padding:0 13px;font-size:12px;border-radius:var(--rl);border:1px solid var(--border2);background:var(--accent);color:#fff;cursor:pointer;align-self:flex-end;height:34px;font-family:var(--font);font-weight:500;transition:opacity .15s;white-space:nowrap}
+  .ai-btn:hover{opacity:.85}
+  .ai-btn:disabled{opacity:.4;cursor:not-allowed}
+  .hints{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+  .hint{font-size:10px;padding:3px 8px;border-radius:20px;border:1px solid var(--border2);color:var(--text2);cursor:pointer;background:var(--surface2);transition:background .1s;white-space:nowrap}
+  .hint:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:100;align-items:center;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--surface);border-radius:var(--rl);width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.18)}
+  .modal-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .modal-title{font-size:15px;font-weight:600}
+  .modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3);padding:2px 6px;border-radius:4px}
+  .modal-close:hover{background:var(--surface2);color:var(--text)}
+  .modal-body{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+  .modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .modal-field label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);display:block;margin-bottom:4px}
+  .modal-field input,.modal-field select,.modal-field textarea{width:100%;font-size:13px;padding:7px 10px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none}
+  .modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:var(--accent);background:#fff}
+  .modal-field textarea{resize:none;height:64px;line-height:1.5}
+  .modal-field.full{grid-column:1/-1}
+  .modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+  .btn-primary{padding:8px 18px;font-size:13px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);font-weight:500;transition:opacity .15s}
+  .btn-primary:hover{opacity:.85}
+  .btn-secondary{padding:8px 16px;font-size:13px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font);transition:background .15s}
+  .btn-secondary:hover{background:var(--surface2)}
+  /* ── LOGIN ──────────────────────────────────────────────── */
+  .login-overlay{display:flex;position:fixed;inset:0;background:#0d1f15;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:0}
+  .login-overlay.hidden{display:none}
+  .login-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%, rgba(26,58,42,0.8) 0%, transparent 70%), radial-gradient(ellipse at 70% 20%, rgba(45,90,61,0.4) 0%, transparent 60%);pointer-events:none}
+  .login-box{position:relative;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:44px 40px;width:380px;max-width:92vw;backdrop-filter:blur(20px);box-shadow:0 24px 64px rgba(0,0,0,0.5)}
+  .login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;justify-content:center}
+  .login-logo-mark{width:40px;height:40px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center}
+  .login-logo-text{color:white;font-size:20px;font-weight:700;letter-spacing:2px}
+  .login-logo-sub{color:rgba(255,255,255,0.4);font-size:12px;margin-top:2px}
+  .login-title{color:white;font-size:22px;font-weight:600;text-align:center;margin-bottom:6px}
+  .login-sub{color:rgba(255,255,255,0.4);font-size:13px;text-align:center;margin-bottom:28px}
+  .login-field{position:relative;margin-bottom:16px}
+  .login-field label{display:block;font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .login-field input{width:100%;padding:12px 14px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:white;font-size:14px;font-family:var(--font);outline:none;transition:border-color .2s}
+  .login-field input:focus{border-color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.1)}
+  .login-field input::placeholder{color:rgba(255,255,255,0.25)}
+  .login-btn{width:100%;padding:13px;background:#2D5A3D;border:none;border-radius:8px;color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:background .15s;margin-top:4px}
+  .login-btn:hover{background:#1a3a2a}
+  .login-error{color:#ff6b6b;font-size:12px;text-align:center;margin-top:10px;min-height:18px}
+  .login-footer{color:rgba(255,255,255,0.2);font-size:11px;text-align:center;margin-top:20px}
+  ::-webkit-scrollbar{width:5px;height:5px}
+  ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.14);border-radius:3px}
+
+  /* ── DASHBOARD ───────────────────────────────────────────── */
+  .dash{flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:18px;background:var(--bg)}
+  .dash-row{display:grid;gap:14px}
+  .dash-row-4{grid-template-columns:repeat(4,1fr)}
+  .dash-row-3{grid-template-columns:repeat(3,1fr)}
+  .dash-row-2{grid-template-columns:repeat(2,1fr)}
+  .dash-row-2b{grid-template-columns:1fr 1fr}
+  .dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+  .dash-card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+  /* KPI cards */
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:18px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;cursor:pointer;transition:box-shadow .15s}
+  .kpi-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.09)}
+  .kpi-card-accent{position:absolute;top:0;left:0;width:4px;height:100%;border-radius:var(--rl) 0 0 var(--rl)}
+  .kpi-card-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600}
+  .kpi-card-value{font-size:28px;font-weight:700;color:var(--text);line-height:1}
+  .kpi-card-sub{font-size:11px;color:var(--text3)}
+  .kpi-card-delta{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;align-self:flex-start;margin-top:2px}
+  /* SVG charts */
+  .chart-wrap{width:100%;position:relative}
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .bar-label{font-size:11px;color:var(--text2);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar-track{flex:1;height:20px;background:var(--surface2);border-radius:4px;overflow:hidden;position:relative}
+  .bar-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;padding-left:8px}
+  .bar-val{font-size:10px;font-weight:600;color:#fff;white-space:nowrap}
+  .bar-count{font-size:10px;color:var(--text3);width:24px;text-align:right;flex-shrink:0}
+  /* Donut */
+  .donut-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .donut-legend{display:grid;grid-template-columns:1fr 1fr;gap:5px 16px;width:100%}
+  .legend-item{display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 5px;border-radius:5px;transition:background .1s}
+  .legend-item:hover{background:var(--surface2)}
+  .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .legend-label{font-size:11px;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .legend-val{font-size:11px;font-weight:600;color:var(--text);min-width:16px;text-align:right}
+  .legend-pct{font-size:10px;color:var(--text3);min-width:30px;text-align:right}
+  /* Funnel */
+  .funnel-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .funnel-bar{height:28px;border-radius:4px;display:flex;align-items:center;padding:0 10px;transition:width .5s}
+  .funnel-label{font-size:11px;font-weight:600;color:#fff;white-space:nowrap}
+  .funnel-n{font-size:11px;color:var(--text3);width:20px;text-align:right;flex-shrink:0}
+  /* Priority matrix */
+  .matrix{display:grid;grid-template-columns:80px repeat(3,1fr);gap:4px}
+  .matrix-head{font-size:10px;text-align:center;color:var(--text3);font-weight:600;padding:4px;text-transform:uppercase;letter-spacing:.05em}
+  .matrix-side{font-size:10px;color:var(--text3);font-weight:600;display:flex;align-items:center;justify-content:flex-end;padding-right:8px}
+  .matrix-cell{border-radius:6px;padding:8px 4px;text-align:center;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:filter .15s}
+  .matrix-cell:hover{filter:brightness(.92)}
+  .matrix-cell-n{font-size:18px;font-weight:700;line-height:1}
+  .matrix-cell-sub{font-size:9px;margin-top:2px;opacity:.7}
+  /* Action list */
+  .action-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+  .action-item:last-child{border-bottom:none}
+  .action-item:hover{background:var(--surface2);margin:0 -18px;padding:8px 18px;border-radius:var(--r)}
+  .action-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+  .action-name{font-size:12px;font-weight:500;color:var(--text)}
+  .action-text{font-size:11px;color:var(--text2);margin-top:2px;line-height:1.4}
+  .action-meta{font-size:10px;color:var(--text3);margin-top:3px}
+
+  /* ECONOMIC DASHBOARD */
+  .eco-dashboard { flex:1; overflow-y:auto; overflow-x:auto; padding:20px; display:flex; flex-direction:column; gap:16px; min-width:0; }
+  .eco-dash-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  .eco-dash-title { font-size:15px; font-weight:600; color:var(--text); }
+  .eco-dash-sub { font-size:12px; color:var(--text3); }
+  .eco-summary-bar { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .eco-summary-cell { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:12px 14px; }
+  .eco-summary-cell .lbl { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--text3); margin-bottom:4px; }
+  .eco-summary-cell .val { font-size:18px; font-weight:600; color:var(--accent); line-height:1; }
+  .eco-summary-cell .sub { font-size:10px; color:var(--text3); margin-top:3px; }
+  .eco-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px; }
+  .eco-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); overflow:hidden; transition:box-shadow .15s; }
+  .eco-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.08); }
+  .eco-card-head { padding:12px 14px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; gap:10px; }
+  .eco-card-name { font-size:13px; font-weight:600; flex:1; line-height:1.3; }
+  .eco-card-meta { font-size:11px; color:var(--text3); margin-top:2px; }
+  .eco-card-body { padding:12px 14px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .eco-card-group { grid-column:1/-1; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text3); margin-top:4px; padding-bottom:4px; border-bottom:1px solid var(--border); }
+  .eco-card-group:first-child { margin-top:0; }
+  .eco-stat { }
+  .eco-stat .stat-label { font-size:10px; color:var(--text3); margin-bottom:2px; }
+  .eco-stat .stat-val { font-size:14px; font-weight:600; color:var(--text); line-height:1.2; }
+  .eco-stat .stat-val.empty { color:var(--text3); font-weight:400; font-size:12px; }
+  .eco-stat .stat-val.calculated { color:var(--accent); }
+  .eco-stat .stat-sub { font-size:10px; color:var(--text3); margin-top:1px; }
+  .eco-no-data { background:var(--surface2); border-radius:var(--r); padding:10px 12px; font-size:11px; color:var(--text3); font-style:italic; grid-column:1/-1; text-align:center; }
+  .eco-progress-bar { height:4px; background:var(--surface2); border-radius:2px; margin-top:6px; overflow:hidden; }
+  .eco-progress-fill { height:100%; background:var(--accent); border-radius:2px; transition:width .3s; }
+  .eco-card-footer { padding:8px 14px; background:var(--surface2); border-top:1px solid var(--border); display:flex; align-items:center; gap:6px; }
+  .eco-edit-btn { font-size:11px; color:var(--accent); cursor:pointer; text-decoration:underline; background:none; border:none; font-family:var(--font); padding:0; }
+  .eco-edit-btn:hover { opacity:.7; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-bg"></div>
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-mark">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <polygon points="2,20 12,2 22,20" fill="#1a3a2a"/>
+          <polygon points="6,20 12,10 18,20" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <div class="login-logo-text">ACCIONA</div>
+        <div class="login-logo-sub">Real Estate · Portfolio</div>
+      </div>
+    </div>
+    <div class="login-title">Acceso privado</div>
+    <div class="login-sub">Introduce la contraseña para continuar</div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="login-pwd" placeholder="••••••••••" onkeydown="if(event.key==='Enter')checkLogin()" autocomplete="current-password"/>
+    </div>
+    <button class="login-btn" onclick="checkLogin()">Entrar →</button>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-footer">Acciona Real Estate · Uso interno</div>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="logo-area">
+    <svg width="108" height="26" viewBox="0 0 108 26" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+      <polygon points="0,21 6.5,5 13,21" fill="white" opacity="0.95"/>
+      <polygon points="3,21 6.5,13 10,21" fill="#1a3a2a"/>
+      <text x="17" y="19" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="white" letter-spacing="2">ACCIONA</text>
+    </svg>
+    <div style="border-left:1px solid rgba(255,255,255,0.15);height:26px;margin:0 4px"></div>
+    <div><div class="logo-name">Real Estate</div><div class="logo-sub">Portfolio · Proyectos</div></div>
+  </div>
+  <nav class="nav-tabs">
+    <div class="nav-tab active" data-view="dashboard">Dashboard</div>
+    <div class="nav-tab" data-view="tabla">Tabla</div>
+    <div class="nav-tab" data-view="resumen">Resumen</div>
+    <div class="nav-tab" data-view="economico" style="border-left:1px solid rgba(255,255,255,0.12)">📊 Económico</div>
+    <div class="nav-tab" data-view="dealsheet" style="border-left:1px solid rgba(255,255,255,0.12)">📄 Deal Sheet</div>
+  </nav>
+  <div class="topbar-right">
+    <span id="sb-indicator" style="font-size:11px;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:4px">☁ Conectando...</span>
+    <span class="topbar-date" id="fecha-hoy"></span>
+    <span id="role-badge" style="font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.6)"></span>
+    <button id="privacy-btn" onclick="togglePrivacy()" title="Ocultar datos sensibles" style="font-size:11px;padding:4px 10px;border-radius:var(--r);border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);cursor:pointer;font-family:var(--font)">👁 Privado</button>
+    <button class="btn-email" onclick="exportToExcel()" title="Exporta todos los datos actuales a Excel">⬇ Exportar Excel</button>
+  </div>
+</div>
+
+<div class="app-body">
+  <div class="main-area" id="main"></div>
+  <div class="sidebar" id="ai-sidebar">
+    <div class="ai-header" style="cursor:pointer" onclick="toggleSidebar()">
+      <div class="ai-dot"></div>
+      <div style="flex:1"><div class="ai-title">Asistente IA</div><div class="ai-sub">Actualiza proyectos en lenguaje natural</div></div>
+      <button id="sidebar-toggle-btn" onclick="event.stopPropagation();toggleSidebar()" style="background:none;border:1px solid var(--border2);border-radius:4px;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 7px;font-family:var(--font);line-height:1.4;flex-shrink:0" title="Colapsar panel">◀</button>
+    </div>
+    <div class="ai-msgs" id="ai-msgs"></div>
+    <div class="ai-input-area">
+      <div class="ai-row">
+        <textarea id="ai-input" placeholder="Ej: Cambia el estado de Bensaude a Negociación…"></textarea>
+        <button class="ai-btn" id="ai-btn" onclick="sendAI()">Enviar ↗</button>
+      </div>
+      <div class="hints">
+        <span class="hint" onclick="setHint('¿Qué proyectos son prioridad Alta?')">Prioridad Alta</span>
+        <span class="hint" onclick="setHint('¿Qué proyectos están en Due diligence?')">Due diligence</span>
+        <span class="hint" onclick="setHint('Lista las próximas acciones urgentes')">Acciones urgentes</span>
+        <span class="hint" onclick="setHint('Resumen del bloque Desinversión')">Desinversión</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal nuevo proyecto -->
+<div id="viewer-comment-box" class="viewer-comment-box" style="display:none">
+  <div class="viewer-comment-header">
+    <span>&#x1F4AC; Mis comentarios</span>
+    <button onclick="document.getElementById('viewer-comment-box').style.display='none'" style="background:none;border:none;color:white;cursor:pointer;font-size:16px;line-height:1">&#xD7;</button>
+  </div>
+  <div class="viewer-comment-body">
+    <textarea id="viewer-comment-text" class="viewer-comment-textarea" placeholder="Escribe tus comentarios aqu&#xED;..."></textarea>
+    <button class="viewer-save-btn" onclick="saveViewerComment()">Guardar comentario</button>
+    <div id="viewer-comment-status" style="font-size:10px;color:var(--text3);text-align:center;margin-top:4px"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">➕ Nuevo proyecto / To-do</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-row">
+        <div class="modal-field full"><label>Nombre *</label><input id="m-nombre" type="text" placeholder="Ej. Proyecto Alcobendas"/></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field">
+          <label>Bloque *</label>
+          <select id="m-bloque">
+            <option value="">Seleccionar…</option>
+            <option value="Desinversión">Desinversión</option>
+            <option value="Pipeline">Pipeline</option>
+            <option value="Pipeline">Pipeline</option>
+            <option value="Desarrollo / Operación">Desarrollo / Operación</option>
+            <option value="Clientes / Gestión">Clientes / Gestión</option>
+            <option value="Postventa">Postventa</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label>Estado</label>
+          <select id="m-estado">
+            <option value="Pendiente">Pendiente</option>
+            <option value="En análisis">En análisis</option>
+            <option value="Negociación">Negociación</option>
+            <option value="Due diligence">Due diligence</option>
+            <option value="En Cierre">En Cierre</option>
+            <option value="Activo">Activo</option>
+            <option value="Descartado">Descartado</option>
+            <option value="Cerrado">Cerrado</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field"><label>Tipo</label><input id="m-tipo" type="text" placeholder="Ej. Resi, PBSA…"/></div>
+        <div class="modal-field"><label>Contraparte</label><input id="m-contraparte" type="text" placeholder="Ej. Argis, JLL…"/></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field">
+          <label>Prioridad</label>
+          <select id="m-prioridad">
+            <option value="2">🟡 Media</option>
+            <option value="1">🔴 Alta</option>
+            <option value="3">🟢 Baja</option>
+          </select>
+        </div>
+        <div class="modal-field"><label>Responsable</label><input id="m-responsable" type="text" placeholder="Ej. TPN + BJD"/></div>
+      </div>
+      <div class="modal-row"><div class="modal-field full"><label>Último avance</label><textarea id="m-avance" placeholder="Estado actual…"></textarea></div></div>
+      <div class="modal-row"><div class="modal-field full"><label>Próxima acción / To-do</label><textarea id="m-proxima" placeholder="Qué hay que hacer…"></textarea></div></div>
+      <div class="modal-row"><div class="modal-field full"><label>Notas</label><input id="m-notas" type="text" placeholder="Opcional…"/></div></div>
+      <div id="m-error" style="display:none;font-size:12px;color:#C62828;padding:4px 0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" onclick="addProject()">Crear proyecto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ─── SUPABASE ──────────────────────────────────────────────────
+const SB_URL = 'https://kqmgwuclsznkxxxqjnby.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxbWd3dWNsc3pua3h4eHFqbmJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2Njc1ODIsImV4cCI6MjA5MzI0MzU4Mn0.cTGeT031oW-nxa2dlCN6sI4CF4b28dPknjH2mxypf-Q';
+
+async function sbSave(data) {
+  try {
+    const resp = await fetch(SB_URL+'/rest/v1/proyectos?id=eq.1', {
+      method: 'PATCH',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer '+SB_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({data: data, updated_at: new Date().toISOString()})
+    });
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    return true;
+  } catch(e) { console.error('Supabase save error:', e); return false; }
+}
+
+async function sbLoad() {
+  try {
+    const resp = await fetch(SB_URL+'/rest/v1/proyectos?id=eq.1&select=data', {
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer '+SB_KEY
+      }
+    });
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const rows = await resp.json();
+    if(rows && rows[0] && Array.isArray(rows[0].data)) return rows[0].data;
+  } catch(e) { console.error('Supabase load error:', e); }
+  return null;
+}
+
+// ─── DATA ─────────────────────────────────────────────────────
+const PRIO_LABELS = {1:'🔴 Alta',2:'🟡 Media',3:'🟢 Baja'};
+const BLOQUES_ORDER_DEFAULT = ['Desinversión','Pipeline','Desarrollo / Operación','Clientes / Gestión','Postventa'];
+let BLOQUES_ORDER = [...BLOQUES_ORDER_DEFAULT];
+let BLOQUES_LOCKED = new Set(); // locked bloques can't be dragged
+const ESTADOS = ['Recibido','En análisis','Due diligence','WIP','Stand By','Descartado','Cerrado'];
+
+const UBICACIONES_OPTS = [
+  '',
+  // España — provincias
+  'Álava','Albacete','Alicante','Almería','Asturias','Ávila','Badajoz','Barcelona',
+  'Burgos','Cáceres','Cádiz','Cantabria','Castellón','Ciudad Real','Córdoba',
+  'Cuenca','Gerona','Granada','Guadalajara','Guipúzcoa','Huelva','Huesca',
+  'Islas Baleares','Jaén','La Coruña','La Rioja','Las Palmas','León','Lérida',
+  'Lugo','Madrid','Málaga','Murcia','Navarra','Orense','Palencia','Pontevedra',
+  'Salamanca','Santa Cruz de Tenerife','Segovia','Sevilla','Soria','Tarragona',
+  'Teruel','Toledo','Valencia','Valladolid','Vizcaya','Zamora','Zaragoza',
+  // Internacional
+  'México','Polonia','Portugal','Otros',
+];
+
+// Map ubicacion to country for charts
+function ubicToCountry(u) {
+  if(!u||u==='') return null;
+  if(u==='México') return 'México';
+  if(u==='Polonia') return 'Polonia';
+  if(u==='Portugal') return 'Portugal';
+  if(u==='Otros') return 'Otros';
+  return 'España'; // all provinces = España
+}
+const ECO_MONEY = ['sueloEur','sueloEurM2','ventaEur','ventaEurM2','construccionEur','construccionEurM2','edificabilidad','nViviendas'];
+
+// Always formats integers with thousand separators (es-ES) regardless of magnitude
+function fmtMiles(n) {
+  if(n===null||n===undefined||isNaN(n)) return '—';
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+let projects = [
+  {id:1,nombre:"Argis - Tetuán",bloque:"Desinversión",estado:"Due diligence",prioridad:1,tipo:"Resi",contraparte:"Argis",avance:"Firma prevista mayo (TBD). Jurídico preparando doc. Bustillo del Oro 22, Luis Missón 13, Panizo 29.",proxima:"Confirmar fecha firma. Iniciar proceso EPCV + Documentación",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
+  {id:2,nombre:"Argis - La Solana RUL 10+11",bloque:"Desinversión",estado:"Due diligence",prioridad:1,tipo:"Suelo",contraparte:"Argis",avance:"NBO Aceptada (31,5 M€) - 31/03/2026. DD iniciado.",proxima:"Firma CAE: Topografía + geotécnico. Solicitud documentación.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
+  {id:3,nombre:"Argis - Terrassa P3",bloque:"Desinversión",estado:"Due diligence",prioridad:1,tipo:"Resi",contraparte:"Argis",avance:"NBO Aceptada (26,5 M€) - 31/03/2026. DD iniciado.",proxima:"Montar carpeta DD. Revisión fotografías (Prisa). Calendario Acordado: Cierre 26 de junio",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
+  {id:4,nombre:"Cantueso",bloque:"Desinversión",estado:"En análisis",prioridad:2,tipo:"Suelo",contraparte:"n.a.",avance:"EGL tiene oferta por 3M€ - Argis la ha rechazado.",proxima:"Trabajar para obtener dos ofertas adicionales.",responsable:"EGL",notas:""},
+  {id:5,nombre:"Proyecto Trophy: Vistahermosa y Tenerife",bloque:"Desinversión",estado:"En análisis",prioridad:2,tipo:"Hotelero",contraparte:"JLL",avance:"Tenerife: varios inversores; forward purchase pide más tiempo. Vistahermosa: modelo con dificultades estacionalidad (NOI).",proxima:"Esperar actualización JLL - Modelo Vistahermosa. El fondo que lo está viendo como un FPA está On Hold",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
+  {id:15,nombre:"P4 Terrassa – Coliving",bloque:"Desinversión",estado:"En análisis",prioridad:2,tipo:"Flex",contraparte:"Ardian",avance:"—",proxima:"Modelo coliving. Reunión Ayuntamiento. DD estructura. Coordinar Acciona Construcción.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:""},
+  {id:16,nombre:"Zorrotzaurre",bloque:"Desinversión",estado:"Recibido",prioridad:3,tipo:"Resi",contraparte:"n.a.",avance:"En espera - Argis presentó oferta por xxM€",proxima:"Seguimiento + Confirmar si han hablado con JLL.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:""},
+  {id:22,nombre:"Loiu",bloque:"Desinversión",estado:"Recibido",prioridad:2,tipo:"Log",contraparte:"CBRE",avance:"Modelo en revisión.",proxima:"Revisión interna y dar seguimiento con CBRE",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + PN",notas:""},
+  {id:24,nombre:"A&G – Madrid Nuevo Norte + Suelos",bloque:"Desinversión",estado:"Recibido",prioridad:2,tipo:"Resi",contraparte:"A&G",avance:"En espera.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
+  {id:27,nombre:"Bensaude",bloque:"Desinversión",estado:"Due diligence",prioridad:1,tipo:"Suelo",contraparte:"VIZTA",avance:"Seguimiento obras urbanización.",proxima:"Confirmar próximo Steering Committee. Seguimiento email addenda al contrato.",responsable:"Desarrollo de Negocio / BJD",notas:""},
+  {id:6,nombre:"Fuente Fría",bloque:"Pipeline",estado:"En análisis",prioridad:1,tipo:"Resi",contraparte:"Offmarket",avance:"Actualización enviada por Borja el viernes.",proxima:"Enviar modelo de la LOI. Llegar > 42%. Citar en notaría; pago condicionado al % total escriturado.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:7,nombre:"PBSA Vallecas",bloque:"Pipeline",estado:"Due diligence",prioridad:1,tipo:"PBSA",contraparte:"Colliers + Praemia",avance:"ONV aceptada. DD iniciado. Encajes Morph presentados (650 hab.). NBO actualizada (excl. 6+5 sem., 50/50). NDA enviado a Addient.",proxima:"Seguimiento encaje MORPH + CDL. Vehiculizar FPA. Convenio Universidad. Llamada PRAEMIA semana 04/05.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:8,nombre:"HOSS",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Mix Used",contraparte:"Praemia",avance:"Reunión Felipe (Praemia) 16 abr. Aprobación Plan General prevista pleno fin de abril.",proxima:"Encaje + modelo: presentación JME. Independizar modelos. Confirmar yield AXA. Nota inversión PPT.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:9,nombre:"Eucalipto",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"Merlin",avance:"Encaje recibido.",proxima:"Nuevo encaje Morph – semana 27/04. Revisar encaje. Hay que tomar una decisión",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:10,nombre:"Suso y Yuso 34",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"Generali",avance:"Teresa Joven analizando edificio (c. 3.250 m² remanentes). C&W consultando indemnización supermercado.",proxima:"Recibir análisis Teresa Joven. Recibir estimación indemnización C&W.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:11,nombre:"Leonor / Plaza de los Cubos",bloque:"Pipeline",estado:"Recibido",prioridad:3,tipo:"Mix Used",contraparte:"Merlin",avance:"Modelo Excel enviado (v0). En espera documentación Merlin de CBRE.",proxima:"Pendiente documentación Merlin de CBRE.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:12,nombre:"Getxo",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"Telefónica",avance:"Análisis de oportunidad en curso.",proxima:"Preparar one-pager para JME.",responsable:"Desarrollo de Negocio / TPN + BJD + PN",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:13,nombre:"Gran Vía de Hortaleza",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"IBA Capital",avance:"Jones Day: uso residencial no aplicable. Posible hospedaje/apartahotel/flexliving con licencia directa.",proxima:"-",responsable:"Desarrollo de Negocio / TPN + BJD + Jurídico",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:14,nombre:"Sanxenxo",bloque:"Pipeline",estado:"En análisis",prioridad:1,tipo:"Resi",contraparte:"n.a.",avance:"Preparando propuesta de inversión y modelo.",proxima:"Revisar borrador semana 4 de mayo.",responsable:"Desarrollo de Negocio / TPN + BJD + PN",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:17,nombre:"Mateo Inurria [ALTER]",bloque:"Pipeline",estado:"Recibido",prioridad:3,tipo:"Resi",contraparte:"Alter",avance:"En espera - Pendientes de recibir confirmación de la propiedad.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:18,nombre:"Mateo Inurria [Mapfre]",bloque:"Pipeline",estado:"Recibido",prioridad:3,tipo:"Resi",contraparte:"Mapfre",avance:"En espera - Mapfre ha renovado el contrato de alquiler.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:25,nombre:"Rojas Santa Tecla",bloque:"Pipeline",estado:"Recibido",prioridad:2,tipo:"Resi",contraparte:"Bestinver",avance:"Preparando el modelo hasta una TIR Proyecto 11%-13% financiando construcción",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:26,nombre:"Nestlé – MPPG + Encaje + Modelo",bloque:"Desarrollo / Operación",estado:"Recibido",prioridad:2,tipo:"Cliente",contraparte:"Teresa Joven / PJM",avance:"Encaje en elaboración (Batlle). Honorarios recibidos de Batlle. Pendiente enviar propuesta Nestlé.",proxima:"Preparar actualización del modelo / Seguimiento MPpG",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:""},
+  {id:20,nombre:"Mónica – Reporting",bloque:"Clientes / Gestión",estado:"Recibido",prioridad:2,tipo:"Reporting",contraparte:"JAT",avance:"En espera.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
+  {id:21,nombre:"Case Study – Terrassa",bloque:"Clientes / Gestión",estado:"Recibido",prioridad:2,tipo:"Case Study",contraparte:"Mónica",avance:"En proceso.",proxima:"Pendiente maqueta. Revisión fotografías (Prisa).",responsable:"Desarrollo de Negocio / TPN",notas:""},
+  {id:23,nombre:"Suelo Adeje",bloque:"Clientes / Gestión",estado:"Recibido",prioridad:2,tipo:"Mix Used",contraparte:"KISS FM",avance:"En espera.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
+  {id:28,nombre:"AEG",bloque:"Postventa",estado:"Recibido",prioridad:2,tipo:"Ushuaia",contraparte:"Obras",avance:"Sustitución Cerraduras. Coordinación Parking. Informe Comercialización.",proxima:"Seguimiento",responsable:"MGG",notas:""},
+  {id:31,nombre:"AEG PBSA",bloque:"Postventa",estado:"Recibido",prioridad:2,tipo:"PBSA",contraparte:"Ardian + Rockfield",avance:"Tramitar acta de entrega.",proxima:"Seguimiento.",responsable:"MGG",notas:""},
+  {id:32,nombre:"Atalayuela – Aval defectos",bloque:"Postventa",estado:"Recibido",prioridad:2,tipo:"Logístico",contraparte:"Aberdeen",avance:"Tramitando marcado CE puertas de entrada",proxima:"Gestionar aval de defectos.",responsable:"BJD",notas:""},
+  {id:33,nombre:"Méndez Álvaro",bloque:"Postventa",estado:"Recibido",prioridad:2,tipo:"Resi",contraparte:"Greystar",avance:"Pendiente devolución del aval",proxima:"Seguimiento ventanas núcleos + devolución aval.",responsable:"BJD",notas:""},
+  {id:34,nombre:"Museo del Niño",bloque:"Postventa",estado:"Recibido",prioridad:2,tipo:"Dotacional",contraparte:"Acciona Cultura",avance:"Se está buscando potencial implantación para un nuevo museo",proxima:"Preparando email: Dotacionales donde estamos / Alcobendas no descartado, Ayto. envía fichas urbanísticas",responsable:"MAG / Emi",notas:""},
+];
+
+// ─── STATE ────────────────────────────────────────────────────
+let S = {view:'dashboard',fBloque:'',fEstado:'',fPrio:'',fSearch:'',selId:null,sortCols:[{col:'bloque',dir:1}],aiHist:[],pendingDel:null,collapsedGroups:new Set(),detailMin:false};
+
+// ─── PERSIST ──────────────────────────────────────────────────
+function persist() {
+  try { localStorage.setItem('acciona_v3', JSON.stringify(projects)); } catch(e) {}
+  // Save to Supabase async (fire and forget)
+  sbSave(projects).then(ok => {
+    if(ok) {
+      const ind = document.getElementById('sb-indicator');
+      if(ind) { ind.textContent = '☁ Guardado'; ind.style.color='#2e5c3e'; setTimeout(()=>{ if(ind) ind.textContent='☁ Online'; },2000); }
+    }
+  });
+}
+
+function loadPersisted() {
+  try {
+    const raw = localStorage.getItem('acciona_v3');
+    if(raw) {
+      const saved = JSON.parse(raw);
+      if(Array.isArray(saved) && saved.length > 0) {
+        projects.length = 0;
+        saved.forEach(p => projects.push(p));
+        return true;
+      }
+    }
+  } catch(e) {}
+  return false;
+}
+
+async function loadFromSupabase() {
+  const data = await sbLoad();
+  if(data && data.length > 0) {
+    projects.length = 0;
+    data.forEach(p => projects.push(p));
+    try { localStorage.setItem('acciona_v3', JSON.stringify(projects)); } catch(e) {}
+    migrateBloquesLegacy();
+    projects.forEach(p => migrateAcciones(p));
+    render();
+    const ind = document.getElementById('sb-indicator');
+    if(ind) { ind.textContent = '☁ Online'; ind.style.color='#2e5c3e'; }
+  }
+}
+
+
+// ─── NAV ──────────────────────────────────────────────────────
+document.querySelectorAll('.nav-tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active'); S.view = t.dataset.view; render();
+}));
+
+// ─── HELPERS ──────────────────────────────────────────────────
+function getFiltered() {
+  return projects.filter(p => {
+    if (S.fBloque && p.bloque !== S.fBloque) return false;
+    if (S.fEstado && p.estado !== S.fEstado) return false;
+    if (S.fPrio && p.prioridad !== parseInt(S.fPrio)) return false;
+    if (S.fSearch) { const q=S.fSearch.toLowerCase(); if (!p.nombre.toLowerCase().includes(q)&&!p.responsable.toLowerCase().includes(q)&&!p.tipo.toLowerCase().includes(q)&&!(p.contraparte||'').toLowerCase().includes(q)) return false; }
+    return true;
+  }).sort((a,b) => {
+    for(const {col,dir} of S.sortCols) {
+      let av = col==='prioridad' ? a.prioridad : String(a[col]||'');
+      let bv = col==='prioridad' ? b.prioridad : String(b[col]||'');
+      const cmp = col==='prioridad' ? (av-bv)*dir : av.localeCompare(bv,'es')*dir;
+      if(cmp !== 0) return cmp;
+    }
+    return 0;
+  });
+}
+
+function pillP(p) { return '<span class="prio-'+p+'">'+PRIO_LABELS[p]+'</span>'; }
+
+function estadoDropdown(id, estado) {
+  const cls = estado.replace(/ /g,'-');
+  const opts = ESTADOS.map(e => '<option value="'+e+'"'+(e===estado?' selected':'')+'>'+e+'</option>').join('');
+  return '<div class="estado-wrap s-'+cls+'" data-id="'+id+'"><select class="estado-select" onchange="changeEstado('+id+',this.value)" onclick="event.stopPropagation()">'+opts+'</select></div>';
+}
+
+function changeEstado(id, nuevoEstado) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  p.estado = nuevoEstado; persist();
+  const cls = nuevoEstado.replace(/ /g,'-');
+  document.querySelectorAll('.estado-wrap[data-id="'+id+'"]').forEach(wrap => {
+    wrap.className = 'estado-wrap s-'+cls;
+    const sel = wrap.querySelector('.estado-select'); if(sel) sel.value = nuevoEstado;
+  });
+}
+
+// ─── FORMATS ──────────────────────────────────────────────────
+function formatMiles(raw) {
+  if (!raw) return '';
+  const n = parseInt(String(raw).replace(/\./g,'').replace(/,/g,''), 10);
+  return isNaN(n) ? raw : n.toLocaleString('es-ES');
+}
+function fmtEco(val) { return val || ''; }
+
+function calcEco(p) {
+  const edif = parseInt(String(p.edificabilidad||'').replace(/\./g,''), 10);
+  const nviv = parseInt(String(p.nViviendas||'').replace(/\./g,''), 10);
+  const eco = p.eco || {};
+  const sEur = parseInt(String(eco.sueloEur||'').replace(/\./g,''), 10);
+  const vEur = parseInt(String(eco.ventaEur||'').replace(/\./g,''), 10);
+  return {
+    sueloEurM2: (!isNaN(sEur)&&!isNaN(edif)&&edif>0) ? Math.round(sEur/edif) : null,
+    ventaPorUnidad: (!isNaN(vEur)&&!isNaN(nviv)&&nviv>0) ? Math.round(vEur/nviv) : null
+  };
+}
+
+function calcField(val, formula, domId) {
+  const fmt = val !== null ? val.toLocaleString('es-ES') : '—';
+  return '<div class="eco-calc" id="'+domId+'"><span class="eco-calc-val">'+fmt+'</span><span class="eco-calc-formula">'+formula+'</span></div>';
+}
+
+function ecoInput(id, campo, val, placeholder) {
+  const isMoney = ECO_MONEY.includes(campo);
+  const shown = isMoney ? formatMiles(val) : fmtEco(val);
+  return '<input type="text" placeholder="'+placeholder+'" value="'+shown+'"'
+    +' onfocus="this.value=this.value.replace(/\\./g,\'\')"'
+    +' onblur="if('+isMoney+'){const n=parseInt(this.value.replace(/\\./g,\'\').replace(/,/g,\'\'),10);if(!isNaN(n))this.value=n.toLocaleString(\'es-ES\');}"'
+    +' oninput="saveEco('+id+',\''+campo+'\',this.value.replace(/\\./g,\'\').replace(/,/g,\'\'));updateCalcFields('+id+')"'
+    +' onclick="event.stopPropagation()" />';
+}
+
+function updateCalcFields(id) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  const c = calcEco(p);
+  const sm2 = document.getElementById('calc-sm2-'+id);
+  const vun = document.getElementById('calc-vun-'+id);
+  if(sm2) sm2.querySelector('.eco-calc-val').textContent = c.sueloEurM2!==null ? c.sueloEurM2.toLocaleString('es-ES') : '—';
+  if(vun) vun.querySelector('.eco-calc-val').textContent = c.ventaPorUnidad!==null ? c.ventaPorUnidad.toLocaleString('es-ES') : '—';
+}
+
+// ─── SAVE ─────────────────────────────────────────────────────
+function autoGrow(el) { el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+
+function saveField(id, campo, valor) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  p[campo] = valor; persist();
+  if(campo==='nombre') document.querySelectorAll('tr[data-id="'+id+'"] .cell-nombre').forEach(el=>el.textContent=valor);
+  if(campo==='prioridad') document.querySelectorAll('tr[data-id="'+id+'"] .cell-prio').forEach(el=>el.innerHTML=pillP(parseInt(valor)));
+}
+
+function savePrio(id, val) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  p.prioridad = val; persist();
+  document.querySelectorAll('.prio-btn').forEach(btn => {
+    btn.className='prio-btn';
+    if(parseInt(btn.dataset.prio)===val) btn.classList.add('active-'+val);
+  });
+  document.querySelectorAll('tr[data-id="'+id+'"] .cell-prio').forEach(el=>el.innerHTML=pillP(val));
+}
+
+function saveEco(id, campo, valor) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  if(campo==='edificabilidad'||campo==='nViviendas') p[campo]=valor;
+  else if(p.eco) p.eco[campo]=valor;
+  persist();
+}
+
+// ─── KPIs ─────────────────────────────────────────────────────
+function renderKPIs() {
+  const t=projects.length, act=projects.filter(p=>!['Descartado','Cerrado'].includes(p.estado)).length,
+        dd=projects.filter(p=>['Due diligence','En cierre','Activo'].includes(p.estado)).length,
+        p1=projects.filter(p=>p.prioridad===1).length;
+  return '<div class="kpi-bar">'
+    +'<div class="kpi-cell"><div class="kpi-label">Total proyectos</div><div class="kpi-value">'+t+'</div><div class="kpi-sub">en portfolio</div></div>'
+    +'<div class="kpi-cell"><div class="kpi-label">Activos</div><div class="kpi-value">'+act+'</div><div class="kpi-sub">en seguimiento</div></div>'
+    +'<div class="kpi-cell"><div class="kpi-label">DD / Ejecución</div><div class="kpi-value">'+dd+'</div><div class="kpi-sub">avanzados</div></div>'
+    +'<div class="kpi-cell"><div class="kpi-label">Prioridad Alta</div><div class="kpi-value">'+p1+'</div><div class="kpi-sub">🔴 requieren atención</div></div>'
+    +'</div>';
+}
+
+// ─── DETAIL ───────────────────────────────────────────────────
+// ─── ACCIONES (checklist) ─────────────────────────────────────
+const MAX_ACCIONES = 5;
+
+function migrateAcciones(p) {
+  // If already has acciones array, skip
+  if(Array.isArray(p.acciones)) return;
+  // Migrate from proxima string: split by '. ' or '.' keeping text
+  const raw = (p.proxima||'').trim();
+  if(!raw || raw === '—') { p.acciones = []; return; }
+  const parts = raw.split(/\.\s+|\n/).map(s=>s.replace(/\.$/,'').trim()).filter(Boolean);
+  p.acciones = parts.slice(0,MAX_ACCIONES).map(t=>({t, d:false}));
+  // Keep proxima for backwards compat
+}
+
+function saveAccion(id, idx, campo, valor) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  migrateAcciones(p);
+  if(campo==='texto') p.acciones[idx].t = valor;
+  if(campo==='done') p.acciones[idx].d = valor;
+  // Sync proxima for export/AI
+  p.proxima = p.acciones.filter(a=>!a.d).map(a=>a.t).join('. ');
+  persist();
+}
+
+function addAccion(id) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  migrateAcciones(p);
+  if(p.acciones.length >= MAX_ACCIONES) return;
+  p.acciones.push({t:'', d:false}); persist();
+  // Re-render detail only
+  const dp = document.querySelector('.detail-panel');
+  if(dp) dp.outerHTML = renderDetail();
+  // Focus new input
+  setTimeout(()=>{
+    const inputs = document.querySelectorAll('.accion-txt');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  }, 50);
+}
+
+function delAccion(id, idx) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  migrateAcciones(p);
+  p.acciones.splice(idx,1);
+  p.proxima = p.acciones.filter(a=>!a.d).map(a=>a.t).join('. ');
+  persist();
+  const dp = document.querySelector('.detail-panel');
+  if(dp) dp.outerHTML = renderDetail();
+}
+
+function toggleAccion(id, idx) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  migrateAcciones(p);
+  p.acciones[idx].d = !p.acciones[idx].d;
+  p.proxima = p.acciones.filter(a=>!a.d).map(a=>a.t).join('. ');
+  persist();
+  // DOM patch: toggle classes without full re-render
+  const item = document.querySelector('.accion-item[data-idx="'+idx+'"]');
+  if(item) {
+    const done = p.acciones[idx].d;
+    item.classList.toggle('done', done);
+    const cb = item.querySelector('.accion-cb'); if(cb) cb.checked = done;
+    const txt = item.querySelector('.accion-txt'); if(txt) txt.classList.toggle('done-txt', done);
+  }
+}
+
+function renderAcciones(p) {
+  migrateAcciones(p);
+  const acciones = p.acciones || [];
+  // Sort: pending first, done last
+  const sorted = [...acciones.map((a,i)=>({...a,i}))].sort((a,b)=>a.d-b.d);
+  const items = sorted.map(a => {
+    const esc = a.t.replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    return '<div class="accion-item'+(a.d?' done':'')+'" data-idx="'+a.i+'">'
+      +'<input type="checkbox" class="accion-cb"'+(a.d?' checked':'')+' onclick="toggleAccion('+p.id+','+a.i+');event.stopPropagation()"/>'
+      +'<input type="text" class="accion-txt'+(a.d?' done-txt':'')+'" value="'+esc+'" placeholder="Escribe una acción…"'
+        +' oninput="saveAccion('+p.id+','+a.i+',\'texto\',this.value)" onclick="event.stopPropagation()"/>'
+      +'<button class="accion-del" onclick="delAccion('+p.id+','+a.i+');event.stopPropagation()" title="Eliminar">✕</button>'
+      +'</div>';
+  }).join('');
+  const canAdd = acciones.length < MAX_ACCIONES;
+  const addBtn = '<button class="btn-add-accion"'+(canAdd?'':' disabled')+' onclick="addAccion('+p.id+');event.stopPropagation()">'
+    +'<span style="font-size:14px;line-height:1">＋</span> Añadir acción'+(canAdd?' ('+acciones.length+'/'+MAX_ACCIONES+')':' (máx. '+MAX_ACCIONES+')')
+    +'</button>';
+  return '<div class="acciones-list">'+items+'</div>'+addBtn;
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('ai-sidebar');
+  const btn = document.getElementById('sidebar-toggle-btn');
+  if(!sidebar) return;
+  const collapsed = sidebar.classList.toggle('collapsed');
+  if(btn) btn.textContent = collapsed ? '▶' : '◀';
+}
+
+function toggleDetailMin() {
+  S.detailMin = !S.detailMin;
+  const panel = document.querySelector('.detail-panel');
+  const bar = document.querySelector('.detail-panel-bar');
+  if(panel) panel.classList.toggle('minimised', S.detailMin);
+  if(bar) {
+    const btn = bar.querySelector('.detail-min-btn');
+    const title = bar.querySelector('.detail-bar-title');
+    if(btn) btn.textContent = S.detailMin ? '▲ Expandir' : '▼ Minimizar';
+    if(title && S.selId) {
+      const p = projects.find(x=>x.id===S.selId);
+      if(p) title.textContent = S.detailMin ? p.nombre : 'Detalle del proyecto';
+    }
+  }
+}
+
+function renderDetail() {
+  const p = S.selId ? projects.find(x=>x.id===S.selId) : null;
+  if(!p) return '<div class="detail-panel empty'+(S.detailMin?' minimised':'')+'">Haz clic en un proyecto para ver el detalle completo</div>';
+  const bloqueOpts = BLOQUES_ORDER.map(b=>'<option value="'+b+'"'+(b===p.bloque?' selected':'')+'>'+b+'</option>').join('');
+  const prioBtns = [1,2,3].map(v=>'<button class="prio-btn'+(p.prioridad===v?' active-'+v:'')+'" data-prio="'+v+'" onclick="savePrio('+p.id+','+v+');event.stopPropagation()">'+PRIO_LABELS[v]+'</button>').join('');
+  let ecoSec = '';
+  if((p.bloque==='Pipeline'||p.bloque==='Pipeline') && p.eco) {
+    const c = calcEco(p);
+    ecoSec = '<div class="eco-section">'
+      +'<button class="eco-toggle" onclick="toggleEco(event)"><span class="eco-arrow" id="eco-arrow">▶</span> Datos económicos</button>'
+      +'<div class="eco-body" id="eco-body"><div class="eco-grid">'
+      +'<div class="eco-group-label">General</div>'
+      +'<div class="eco-item"><label>Edificabilidad m²</label>'+ecoInput(p.id,'edificabilidad',p.edificabilidad||'','ej. 8.500')+'</div>'
+      +'<div class="eco-item"><label>Nº viviendas</label>'+ecoInput(p.id,'nViviendas',p.nViviendas||'','ej. 120')+'</div>'
+      +'<div class="eco-item"></div><div class="eco-item"></div>'
+      +'<div class="eco-divider"></div>'
+      +'<div class="eco-group-label">Rentabilidad</div>'
+      +'<div class="eco-item"><label>TIR %</label>'+ecoInput(p.id,'tirPct',p.eco.tirPct||'','ej. 18,50')+'</div>'
+      +'<div class="eco-item"><label>TIR Alquiler %</label>'+ecoInput(p.id,'tirAlqPct',p.eco.tirAlqPct||'','ej. 5,20')+'</div>'
+      +'<div class="eco-item"><label>Margen €</label>'+ecoInput(p.id,'margenEur',p.eco.margenEur||'','ej. 2.500.000')+'</div>'
+      +'<div class="eco-item"><label>Margen %</label>'+ecoInput(p.id,'margenPct',p.eco.margenPct||'','ej. 22,00')+'</div>'
+      +'<div class="eco-divider"></div>'
+      +'<div class="eco-group-label">Suelo</div>'
+      +'<div class="eco-item"><label>Suelo €</label>'+ecoInput(p.id,'sueloEur',p.eco.sueloEur,'ej. 5.200.000')+'</div>'
+      +'<div class="eco-item"><label>Suelo €/m² <span style="color:#6b9e80;font-weight:400">(calc.)</span></label>'+calcField(c.sueloEurM2,'Suelo € ÷ Edificabilidad m²','calc-sm2-'+p.id)+'</div>'
+      +'<div class="eco-item"></div><div class="eco-item"></div>'
+      +'<div class="eco-divider"></div>'
+      +'<div class="eco-group-label">Construcción</div>'
+      +'<div class="eco-item"><label>Construcción €</label>'+ecoInput(p.id,'construccionEur',p.eco.construccionEur,'ej. 4.800.000')+'</div>'
+      +'<div class="eco-item"><label>Construcción €/m²</label>'+ecoInput(p.id,'construccionEurM2',p.eco.construccionEurM2,'ej. 1.450')+'</div>'
+      +'<div class="eco-item"><label>Plazo (meses)</label>'+ecoInput(p.id,'plazoMeses',p.eco.plazoMeses,'ej. 24')+'</div>'
+      +'<div class="eco-item"><label>Fecha entrega</label>'+ecoInput(p.id,'fechaEntrega',p.eco.fechaEntrega,'ej. T2 2028')+'</div>'
+      +'<div class="eco-divider"></div>'
+      +'<div class="eco-group-label">Venta</div>'
+      +'<div class="eco-item"><label>Venta €</label>'+ecoInput(p.id,'ventaEur',p.eco.ventaEur,'ej. 12.500.000')+'</div>'
+      +'<div class="eco-item"><label>Venta €/m²</label>'+ecoInput(p.id,'ventaEurM2',p.eco.ventaEurM2,'ej. 3.800')+'</div>'
+      +'<div class="eco-item"><label>Venta/unidad <span style="color:#6b9e80;font-weight:400">(calc.)</span></label>'+calcField(c.ventaPorUnidad,'Venta € ÷ Nº viviendas','calc-vun-'+p.id)+'</div>'
+      +'<div class="eco-item"></div>'
+      +'</div></div></div>';
+  }
+
+  return '<div class="detail-panel'+(S.detailMin?' minimised':'')+'">'
+    // Ubic + eco FIRST (only for Ops blocks)
+    + (p.bloque==='Pipeline'||p.bloque==='Pipeline' ? renderUbicSection(p) : '')
+    + ecoSec
+    // Then the fields grid
+    +'<div class="detail-grid" style="margin-bottom:6px;margin-top:8px">'
+    +'<div class="d-item d-full"><label>Proyecto</label><input class="d-input" style="font-size:14px;font-weight:600" value="'+p.nombre+'" oninput="saveField('+p.id+',\'nombre\',this.value)" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"><label>Estado</label>'+estadoDropdown(p.id,p.estado)+'</div>'
+    +'<div class="d-item"><label>Prioridad</label><div class="d-prio-row">'+prioBtns+'</div></div>'
+    +'<div class="d-item"><label>Bloque</label><select class="d-select" onchange="saveField('+p.id+',\'bloque\',this.value)" onclick="event.stopPropagation()">'+bloqueOpts+'</select></div>'
+    +'<div class="d-item"><label>Responsable</label><input class="d-input" value="'+p.responsable+'" oninput="saveField('+p.id+',\'responsable\',this.value)" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"><label>Tipo</label><input class="d-input" value="'+p.tipo+'" oninput="saveField('+p.id+',\'tipo\',this.value)" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"><label>Contraparte</label><input class="d-input" value="'+(p.contraparte||'')+'" placeholder="—" oninput="saveField('+p.id+',\'contraparte\',this.value)" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"><label>Ubicación</label><select class="d-select" onchange="saveField('+p.id+',\'ubicacion\',this.value)" onclick="event.stopPropagation()">'+UBICACIONES_OPTS.map(u=>'<option value="'+u+'"'+(u===(p.ubicacion||'')?'  selected':'')+'>'+u+'</option>').join('')+'</select></div>'
+    +'<div class="d-item d-full"><label>Último avance</label><textarea class="d-textarea" oninput="saveField('+p.id+',\'avance\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+p.avance+'</textarea></div>'
+    +'<div class="d-item d-full"><label>Seguimiento / Próximas acciones</label>'+renderAcciones(p)+'</div>'
+    +'<div class="d-item d-full"><label>Notas</label><textarea class="d-textarea" placeholder="Añade notas…" oninput="saveField('+p.id+',\'notas\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+p.notas+'</textarea></div>'
+    +'</div>'
+    +'</div>';
+}
+
+function toggleEco(e) {
+  e.stopPropagation();
+  const body=document.getElementById('eco-body'), arrow=document.getElementById('eco-arrow');
+  if(body){ body.classList.toggle('open'); arrow.classList.toggle('open'); }
+}
+
+function toggleUbic(e) {
+  e.stopPropagation();
+  const body=document.getElementById('ubic-body'), arrow=document.getElementById('ubic-arrow');
+  if(body){ body.classList.toggle('open'); arrow.classList.toggle('open'); }
+}
+
+function renderUbicSection(p) {
+  const mapUrl = p.mapUrl || '';
+  const imgData = p.imgData || '';
+
+  // Convert Google Maps share URL to embed URL
+  function toEmbedUrl(url) {
+    if(!url) return '';
+    url = url.trim();
+    // Already embed
+    if(url.includes('maps/embed')) return url;
+    try {
+      // Direct coordinates "40.4165, -3.7026" or "40.4165,-3.7026"
+      const coordDirect = url.match(/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/);
+      if(coordDirect) return 'https://maps.google.com/maps?q='+coordDirect[1]+','+coordDirect[2]+'&z=16&output=embed';
+      // Short URL goo.gl
+      if(url.includes('goo.gl') || url.includes('maps.app')) {
+        return 'https://maps.google.com/maps?q='+encodeURIComponent(url)+'&output=embed';
+      }
+      // Coordinates in URL @lat,lng
+      const placeMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if(placeMatch) return 'https://maps.google.com/maps?q='+placeMatch[1]+','+placeMatch[2]+'&z=16&output=embed';
+      // ?q= param
+      const qMatch = url.match(/[?&]q=([^&]+)/);
+      if(qMatch) return 'https://maps.google.com/maps?q='+qMatch[1]+'&output=embed';
+      // /place/ name
+      const placeNameMatch = url.match(/\/place\/([^/@]+)/);
+      if(placeNameMatch) return 'https://maps.google.com/maps?q='+encodeURIComponent(decodeURIComponent(placeNameMatch[1]))+'&output=embed';
+    } catch(e){}
+    return '';
+  }
+
+  const embedUrl = toEmbedUrl(mapUrl);
+
+  const mapDisplay = !mapUrl
+    ? '<div class="ubic-map-placeholder">📍 Pega coordenadas (ej. 40.4165, -3.7026) o URL de Google Maps</div>'
+    : !embedUrl
+    ? '<div class="ubic-map-placeholder" style="color:#B45309">No se pudo procesar la URL. Usa una URL de Google Maps.</div>'
+    : '<iframe src="'+embedUrl+'" width="100%" height="100%" style="border:0" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+
+  const imgDisplay = imgData
+    ? '<div class="ubic-img-area has-img" onclick="event.stopPropagation()">'
+      +'<img class="ubic-img-preview" src="'+imgData+'" alt="Imagen del proyecto"/>'
+      +'<input type="file" accept="image/*" onchange="saveImg('+p.id+',this)" onclick="event.stopPropagation()"/>'
+      +'<button class="ubic-img-del" onclick="deleteImg('+p.id+');event.stopPropagation()">✕ Eliminar</button>'
+      +'</div>'
+    : '<div class="ubic-img-area" onclick="event.stopPropagation()">'
+      +'<input type="file" accept="image/*" onchange="saveImg('+p.id+',this)" onclick="event.stopPropagation()"/>'
+      +'<div class="ubic-img-label">📷 Haz clic para subir una imagen<br><span style="font-size:10px;color:var(--text3)">JPG, PNG, GIF — máx. 5MB</span></div>'
+      +'</div>';
+
+  return '<div class="ubic-section">'
+    +'<button class="ubic-toggle" onclick="toggleUbic(event)">'
+    +'<span class="ubic-arrow open" id="ubic-arrow">▶</span> 📍 Ubicación e imagen'
+    +'</button>'
+    +'<div class="ubic-body open" id="ubic-body">'
+    +'<div class="ubic-inner">'
+    +'<div>'
+    // Left — Map
+    +'<div>'
+    +'<div class="ubic-col-label">Enlace Google Maps</div>'
+    +'<div class="ubic-map-row">'
+    +'<input class="ubic-map-input" id="ubic-map-input-'+p.id+'" type="text" placeholder="https://www.google.com/maps/place/..." value="'+mapUrl.replace(/"/g,'&quot;')+'" onclick="event.stopPropagation()"/>'
+    +'<button class="ubic-map-btn" onclick="loadMap('+p.id+');event.stopPropagation()">Mostrar</button>'
+    +'</div>'
+    +'<div class="ubic-map-frame" id="ubic-map-frame-'+p.id+'">'+mapDisplay+'</div>'
+    +'</div>'
+    // Right — Image
+    +'<div>'
+    +'<div class="ubic-col-label">Imagen / Render / Plano</div>'
+    +'<div style="height:32px"></div>'
+    +imgDisplay
+    +'</div>'
+    +'</div>'  // end grid
+    +'</div>'  // end ubic-inner
+    +'</div>'  // end ubic-body
+    +'</div>';  // end ubic-section
+}
+
+function loadMap(id) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  const input = document.getElementById('ubic-map-input-'+id);
+  if(!input) return;
+  const url = input.value.trim();
+  p.mapUrl = url; persist();
+  // Re-render just the map frame
+  const frame = document.getElementById('ubic-map-frame-'+id);
+  if(!frame) return;
+  if(!url) { frame.innerHTML='<div class="ubic-map-placeholder">📍 Pega un enlace de Google Maps y pulsa "Mostrar"</div>'; return; }
+
+  function toEmbed(url) {
+    if(url.includes('maps/embed')) return url;
+    if(url.includes('goo.gl')||url.includes('maps.app')) return 'https://maps.google.com/maps?q='+encodeURIComponent(url)+'&output=embed';
+    try {
+      const coord = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if(coord) return 'https://maps.google.com/maps?q='+coord[1]+','+coord[2]+'&z=16&output=embed';
+      const q = url.match(/[?&]q=([^&]+)/);
+      if(q) return 'https://maps.google.com/maps?q='+q[1]+'&output=embed';
+      const name = url.match(/\/place\/([^/@]+)/);
+      if(name) return 'https://maps.google.com/maps?q='+encodeURIComponent(decodeURIComponent(name[1]))+'&output=embed';
+    } catch(e){}
+    return '';
+  }
+
+  const embed = toEmbed(url);
+  if(embed==='SHORT_URL') {
+    frame.innerHTML='<div class="ubic-map-placeholder" style="color:#B45309">⚠️ Enlace corto no compatible. Usa la URL larga de Google Maps (Compartir → Copiar enlace).</div>';
+  } else if(embed) {
+    frame.innerHTML='<iframe src="'+embed+'" width="100%" height="100%" style="border:0" allowfullscreen loading="lazy"></iframe>';
+  } else {
+    frame.innerHTML='<div class="ubic-map-placeholder" style="color:#B45309">⚠️ No se pudo interpretar el enlace. Prueba con una URL completa de Google Maps.</div>';
+  }
+}
+
+function saveImg(id, input) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  const file = input.files[0]; if(!file) return;
+  if(file.size > 5*1024*1024) { alert('La imagen no puede superar 5MB'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    p.imgData = e.target.result;
+    persist();
+    // Re-render detail to show image
+    const dp = document.querySelector('.detail-panel');
+    if(dp) { const newHtml = renderDetail(); dp.outerHTML = newHtml; }
+  };
+  reader.readAsDataURL(file);
+}
+
+function deleteImg(id) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  if(!confirm('¿Eliminar la imagen?')) return;
+  p.imgData = ''; persist();
+  const dp = document.querySelector('.detail-panel');
+  if(dp) { dp.outerHTML = renderDetail(); }
+}
+
+// ─── TABLE ────────────────────────────────────────────────────
+function deleteProject(id, event) {
+  event.stopPropagation();
+  const p = projects.find(x=>x.id===id);
+  if(!p) return;
+  if(!confirm('¿Eliminar "'+p.nombre+'"? Esta acción no se puede deshacer.')) return;
+  const idx = projects.findIndex(x=>x.id===id);
+  projects.splice(idx, 1);
+  if(S.selId===id) S.selId=null;
+  persist();
+  render();
+}
+
+function setSortCol(col, shiftKey) {
+  const existing = S.sortCols.find(s=>s.col===col);
+  if(shiftKey) {
+    // Shift+click: add/toggle as secondary (or further) criterion
+    if(existing) { existing.dir *= -1; }
+    else { S.sortCols.push({col, dir:1}); }
+  } else {
+    // Normal click: if already primary, flip dir; otherwise reset to just this col
+    if(S.sortCols.length===1 && S.sortCols[0].col===col) { S.sortCols[0].dir *= -1; }
+    else { S.sortCols = [{col, dir:1}]; }
+  }
+  render();
+}
+function selectProject(id) {
+  S.selId = S.selId === id ? null : id;
+  // Update detail panel and table rows without full re-render
+  const dp = document.querySelector('.detail-panel');
+  if(dp) dp.outerHTML = renderDetail();
+  // Update selected row highlight
+  document.querySelectorAll('tbody tr[data-id]').forEach(tr => {
+    tr.classList.toggle('selected', parseInt(tr.dataset.id) === S.selId);
+  });
+  // Update bar title if minimised
+  const barTitle = document.querySelector('.detail-bar-title');
+  if(barTitle && S.selId) {
+    const p = projects.find(x=>x.id===S.selId);
+    if(p && S.detailMin) barTitle.textContent = p.nombre;
+  }
+}
+function toggleGroup(b) {
+  if(S.collapsedGroups.has(b)) S.collapsedGroups.delete(b);
+  else S.collapsedGroups.add(b);
+  renderTablaOnly();
+}
+
+function toggleLock(b, e) {
+  e.stopPropagation();
+  if(BLOQUES_LOCKED.has(b)) BLOQUES_LOCKED.delete(b);
+  else BLOQUES_LOCKED.add(b);
+  persistBloques();
+  renderTablaOnly();
+}
+
+function resetBloqueOrder() {
+  BLOQUES_ORDER = [...BLOQUES_ORDER_DEFAULT];
+  BLOQUES_LOCKED.clear();
+  persistBloques();
+  render();
+}
+
+function persistBloques() {
+  try {
+    localStorage.setItem('acciona_bloques_order', JSON.stringify(BLOQUES_ORDER));
+    localStorage.setItem('acciona_bloques_locked', JSON.stringify([...BLOQUES_LOCKED]));
+  } catch(e) {}
+}
+
+function migrateBloquesLegacy() {
+  const legacyMap = {
+    'Nuevas oportunidades':           'Pipeline',
+    'N. Oportunidades — En Estudio':  'Pipeline',
+    'N. Oportunidades — Recibido':    'Pipeline',
+    'Ops. — En Estudio':              'Pipeline',
+    'Ops. — Recibido':                'Pipeline',
+    'Operaciones | Estudio':          'Pipeline',
+    'Operaciones | Recibido':         'Pipeline',
+    'Obras / Postventa':              'Postventa',
+  };
+  const estadoMap = {
+    'Negociación':'Due diligence','En cierre':'Due diligence',
+    'Activo':'Due diligence','En Ejecución':'Due diligence','En Cierre':'Due diligence',
+    'Pendiente':'Recibido','En espera':'Recibido',
+  };
+  let changed = 0;
+  projects.forEach(p => {
+    if(legacyMap[p.bloque]) { p.bloque = legacyMap[p.bloque]; changed++; }
+    if(estadoMap[p.estado]) { p.estado = estadoMap[p.estado]; changed++; }
+  });
+  // Also reset saved bloque order if it contains old names
+  const savedOrder = localStorage.getItem('acciona_bloques_order');
+  if(savedOrder) {
+    try {
+      const parsed = JSON.parse(savedOrder);
+      const hasOld = parsed.some(b => legacyMap[b] !== undefined);
+      if(hasOld || parsed.includes('Operaciones | Estudio') || parsed.includes('Operaciones | Recibido')) {
+        localStorage.removeItem('acciona_bloques_order');
+        localStorage.removeItem('acciona_bloques_locked');
+        BLOQUES_ORDER = [...BLOQUES_ORDER_DEFAULT];
+        BLOQUES_LOCKED = new Set();
+      }
+    } catch(e) {}
+  }
+  if(changed > 0) { persist(); }
+}
+
+function loadBloques() {
+  try {
+    const order = localStorage.getItem('acciona_bloques_order');
+    const locked = localStorage.getItem('acciona_bloques_locked');
+    if(order) {
+      const parsed = JSON.parse(order);
+      // Only use saved order if it has same bloques
+      if(parsed.length === BLOQUES_ORDER_DEFAULT.length) BLOQUES_ORDER = parsed;
+    }
+    if(locked) BLOQUES_LOCKED = new Set(JSON.parse(locked));
+  } catch(e) {}
+}
+
+// Drag state
+let dragSrc = null;
+
+function onGroupDragStart(b, e) {
+  if(BLOQUES_LOCKED.has(b)) { e.preventDefault(); return; }
+  dragSrc = b;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => {
+    const el = document.querySelector('.group-header[data-bloque="'+b+'"]');
+    if(el) el.classList.add('dragging');
+  }, 0);
+}
+
+function onGroupDragOver(b, e) {
+  e.preventDefault();
+  if(!dragSrc || dragSrc === b || BLOQUES_LOCKED.has(b)) return;
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.group-header').forEach(h => h.classList.remove('drag-over'));
+  const el = document.querySelector('.group-header[data-bloque="'+b+'"]');
+  if(el) el.classList.add('drag-over');
+}
+
+function onGroupDrop(b, e) {
+  e.preventDefault();
+  if(!dragSrc || dragSrc === b || BLOQUES_LOCKED.has(b)) return;
+  const fromIdx = BLOQUES_ORDER.indexOf(dragSrc);
+  const toIdx = BLOQUES_ORDER.indexOf(b);
+  if(fromIdx < 0 || toIdx < 0) return;
+  BLOQUES_ORDER.splice(fromIdx, 1);
+  BLOQUES_ORDER.splice(toIdx, 0, dragSrc);
+  persistBloques();
+  dragSrc = null;
+  document.querySelectorAll('.group-header').forEach(h => { h.classList.remove('dragging'); h.classList.remove('drag-over'); });
+  renderTablaOnly();
+}
+
+function onGroupDragEnd() {
+  dragSrc = null;
+  document.querySelectorAll('.group-header').forEach(h => { h.classList.remove('dragging'); h.classList.remove('drag-over'); });
+}
+
+function renderTabla() {
+  const f = getFiltered();
+  const cols = [{key:'nombre',label:'Proyecto'},{key:'bloque',label:'Bloque'},{key:'estado',label:'Estado'},{key:'prioridad',label:'Prioridad'},{key:'tipo',label:'Tipo'},{key:'contraparte',label:'Contraparte'},{key:'responsable',label:'Responsable'}];
+  const ths = cols.map(c=>{ const si=S.sortCols.findIndex(s=>s.col===c.key); let arr=''; if(si>=0){arr=S.sortCols[si].dir===1?'↑':'↓'; if(S.sortCols.length>1) arr+='<sup style="font-size:8px;opacity:.7">'+(si+1)+'<\/sup>';} return '<th onclick="setSortCol(\''+c.key+'\',event.shiftKey)">'+c.label+'<span class="th-arr">'+arr+'<\/span><\/th>'; }).join('') + '<th style="width:36px"></th>';
+  let rows = '';
+  BLOQUES_ORDER.forEach(b => {
+    const bp = f.filter(p=>p.bloque===b); if(!bp.length) return;
+    const collapsed = S.collapsedGroups.has(b);
+    const totalB = projects.filter(p=>p.bloque===b).length;
+    const countTxt = bp.length+(bp.length!==totalB?' de '+totalB:'')+' proyecto'+(bp.length!==1?'s':'');
+    const locked = BLOQUES_LOCKED.has(b);
+    const bi = BLOQUES_ORDER.indexOf(b);
+    rows += '<tr class="section-row"><td colspan="8">'
+      +'<div class="group-header" data-bloque-idx="'+bi+'"'
+      +' draggable="'+(locked?'false':'true')+'"'
+      +' ondragstart="onGroupDragStart(BLOQUES_ORDER['+bi+'],event)"'
+      +' ondragover="onGroupDragOver(BLOQUES_ORDER['+bi+'],event)"'
+      +' ondrop="onGroupDrop(BLOQUES_ORDER['+bi+'],event)"'
+      +' ondragend="onGroupDragEnd()"'
+      +' onclick="toggleGroup(BLOQUES_ORDER['+bi+']);">'
+      +'<span class="group-drag-handle">'+(locked?'🔒':'⠿')+'</span>'
+      +'<span class="group-chevron'+(collapsed?' collapsed':'')+'">▼</span>'
+      +'<span class="group-name">'+b+'</span>'
+      +'<span class="group-count">'+countTxt+'</span>'
+      +'<button class="group-lock-btn'+(locked?' locked':'')+'" onclick="toggleLock(BLOQUES_ORDER['+bi+'],event)" title="'+(locked?'Desbloquear':'Bloquear')+'">'+(locked?'🔒':'🔓')+'</button>'
+      +'</div></td></tr>';
+    if(!collapsed) bp.forEach(p => {
+      const sel = S.selId===p.id?'selected':'';
+      rows += '<tr class="'+sel+'" data-id="'+p.id+'" onclick="selectProject('+p.id+')">'
+        +'<td class="cell-nombre" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;padding-left:28px" title="'+p.nombre+'">'+p.nombre+'</td>'
+        +'<td><span class="bloque-tag">'+p.bloque.split(' ')[0]+'</span></td>'
+        +'<td>'+estadoDropdown(p.id,p.estado)+'</td>'
+        +'<td class="cell-prio">'+pillP(p.prioridad)+'</td>'
+        +'<td style="font-size:11px;color:var(--text2);white-space:nowrap">'+p.tipo+'</td>'
+        +'<td style="font-size:11px;color:var(--text2);white-space:nowrap">'+(p.contraparte||'—')+'</td>'
+        +'<td style="font-size:11px;color:var(--text2);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+p.responsable+'">'+p.responsable+'</td>'
+        +'<td style="text-align:center;padding:0 4px" onclick="event.stopPropagation()"><button class="btn-del" onclick="deleteProject('+p.id+',event)">✕ Eliminar</button></td>'
+        +'</tr>';
+    });
+  });
+  return renderKPIs()
+    +'<div class="filters-bar">'
+    +'<input type="text" placeholder="Buscar proyecto, tipo, responsable…" value="'+S.fSearch+'" oninput="S.fSearch=this.value;renderTablaOnly();" />'
+    +'<select onchange="S.fBloque=this.value;renderTablaOnly();"><option value="">Todos los bloques</option>'
+    +BLOQUES_ORDER.map(b=>'<option value="'+b+'"'+(S.fBloque===b?' selected':'')+'>'+b+'</option>').join('')+'</select>'
+    +'<select onchange="S.fEstado=this.value;renderTablaOnly();"><option value="">Todos los estados</option>'
+    +ESTADOS.map(e=>'<option value="'+e+'"'+(S.fEstado===e?' selected':'')+'>'+e+'</option>').join('')+'</select>'
+    +'<select onchange="S.fPrio=this.value;renderTablaOnly();"><option value="">Todas las prioridades</option>'
+    +'<option value="1"'+(S.fPrio==='1'?' selected':'')+'>🔴 Alta</option>'
+    +'<option value="2"'+(S.fPrio==='2'?' selected':'')+'>🟡 Media</option>'
+    +'<option value="3"'+(S.fPrio==='3'?' selected':'')+'>🟢 Baja</option></select>'
+    +'<span class="count-badge">'+f.length+' / '+projects.length+' proyectos</span>'
+    +'<button class="btn-reset-order" onclick="resetBloqueOrder()" title="Volver al orden original">↺ Orden</button>'
+    +'<button class="btn-add" onclick="openModal()">＋ Nuevo</button>'
+    +'</div>'
+    +'<div class="detail-panel-bar" onclick="toggleDetailMin()">'
+    +'<span class="detail-bar-title">'+(S.selId&&S.detailMin ? (projects.find(x=>x.id===S.selId)||{}).nombre||'Detalle del proyecto' : 'Detalle del proyecto')+'</span>'
+    +'<button class="detail-min-btn" onclick="event.stopPropagation();toggleDetailMin()">'+(S.detailMin?'▲ Expandir':'▼ Minimizar')+'</button>'
+    +'</div>'
+    +renderDetail()
+    +'<div class="table-wrap"><table><thead><tr>'+ths+'</tr></thead><tbody>'+rows+'</tbody></table></div>';;
+}
+
+// ─── VIEWS ────────────────────────────────────────────────────
+function renderResumen() {
+  const fecha = document.getElementById('fecha-hoy').textContent;
+  const hr = '─'.repeat(58);
+  const dbl = '═'.repeat(58);
+
+  const activos  = projects.filter(p=>!['Descartado','Cerrado'].includes(p.estado));
+  const alta     = projects.filter(p=>p.prioridad===1);
+  const dd       = projects.filter(p=>p.estado==='Due diligence');
+  const ejec     = projects.filter(p=>p.estado==='Activo');
+  const neg      = projects.filter(p=>p.estado==='Negociación');
+  const cierre   = projects.filter(p=>p.estado==='En Cierre');
+
+  let txt = '';
+  txt += 'ACCIONA REAL ESTATE — RESUMEN DE PORTFOLIO\n';
+  txt += fecha + '\n';
+  txt += dbl + '\n\n';
+
+  txt += 'SITUACIÓN GENERAL\n';
+  txt += '  Total proyectos en cartera : ' + projects.length + '\n';
+  txt += '  Proyectos activos          : ' + activos.length + '\n';
+  txt += '  En Due Diligence           : ' + dd.length + '\n';
+  txt += '  En Negociación             : ' + neg.length + '\n';
+  txt += '  En Cierre                  : ' + cierre.length + '\n';
+  txt += '  Activo                     : ' + ejec.length + '\n';
+  txt += '  Prioridad Alta 🔴          : ' + alta.length + '\n\n';
+
+  // Por bloque
+  BLOQUES_ORDER.forEach(b => {
+    const bp = projects.filter(p=>p.bloque===b);
+    if(!bp.length) return;
+    txt += hr + '\n';
+    txt += b.toUpperCase() + ' (' + bp.length + ' proyectos)\n\n';
+    bp.forEach(p => {
+      txt += '▸ ' + p.nombre + '\n';
+      txt += '  Estado      : ' + p.estado;
+      txt += '  ·  Prioridad: ' + ['','Alta','Media','Baja'][p.prioridad] + '\n';
+      if(p.tipo && p.tipo!=='—') txt += '  Tipo        : ' + p.tipo + (p.contraparte&&p.contraparte!=='—'?' / '+p.contraparte:'') + '\n';
+      if(p.responsable && p.responsable!=='—') txt += '  Responsable : ' + p.responsable + '\n';
+      if(p.avance && p.avance!=='—') txt += '  Avance      : ' + p.avance + '\n';
+      txt += '  → ' + p.proxima + '\n\n';
+    });
+  });
+
+  txt += dbl + '\n';
+  txt += 'ACCIONES URGENTES — PRIORIDAD ALTA (' + alta.length + ')\n\n';
+  alta.forEach(p => {
+    txt += '  • [' + p.estado + '] ' + p.nombre + '\n';
+    txt += '    → ' + p.proxima.split('.')[0] + '.\n';
+  });
+
+  txt += '\n' + dbl + '\n';
+  txt += 'Fin del resumen · Acciona Real Estate · ' + fecha + '\n';
+
+  // Copy to clipboard button
+  const copyBtn = '<button onclick="copyResumen()" style="padding:7px 16px;font-size:12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--accent);color:white;cursor:pointer;font-family:var(--font);font-weight:500;transition:opacity .15s" onmouseover="this.style.opacity=\'.85\'" onmouseout="this.style.opacity=\'1\'">📋 Copiar para pegar en email</button>';
+
+  return renderKPIs()
+    + '<div class="view-panel">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
+    + '<h2 style="margin:0">Resumen ejecutivo</h2>'
+    + copyBtn
+    + '</div>'
+    + '<pre class="view-pre" id="resumen-text">' + txt + '</pre>'
+    + '</div>';
+}
+
+function copyResumen() {
+  const el = document.getElementById('resumen-text');
+  if(!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiado';
+    setTimeout(() => btn.textContent = orig, 2000);
+  }).catch(() => {
+    // Fallback
+    const range = document.createRange();
+    range.selectNode(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+  });
+}
+
+function renderEconomico() {
+  const np = projects.filter(p => p.bloque==='Pipeline'||p.bloque==='Pipeline');
+  const withData = np.filter(p => p.eco && (p.eco.sueloEur || p.eco.ventaEur || p.eco.construccionEur || p.edificabilidad));
+
+  function fmt(v) { if(!v||v==='') return null; const n=parseInt(String(v).replace(/\./g,'').replace(/,/g,''),10); return isNaN(n)?null:n; }
+  function fmtE(v) { const n=fmt(v); if(n===null) return '<span style="color:var(--text3)">—</span>'; return fmtMiles(n)+' €'; }
+  function fmtN(v) { const n=fmt(v); if(n===null) return '<span style="color:var(--text3)">—</span>'; return fmtMiles(n); }
+  function fmtCalc(v) { if(v===null) return '<span style="color:var(--text3)">—</span>'; return '<span style="color:var(--accent);font-weight:600">'+fmtMiles(v)+' €</span>'; }
+  function fmtPct(v) { if(v===null) return '<span style="color:var(--text3)">—</span>'; const color=v>30?'#166534':v>15?'#854d0e':'#991b1b'; return '<span style="color:'+color+';font-weight:600">'+v+'%</span>'; }
+
+  // Aggregates for totals row
+  let totEdif=0,totViv=0,totSuelo=0,totVenta=0,totConstr=0;
+  np.forEach(p=>{
+    const e=fmt(p.edificabilidad),v=fmt(p.nViviendas);
+    const se=fmt((p.eco||{}).sueloEur),ve=fmt((p.eco||{}).ventaEur),ce=fmt((p.eco||{}).construccionEur);
+    if(e) totEdif+=e; if(v) totViv+=v; if(se) totSuelo+=se; if(ve) totVenta+=ve; if(ce) totConstr+=ce;
+  });
+
+  function bigFmt(n) {
+    if(!n) return '—';
+    if(n>=1000000000) return fmtMiles(Math.round(n/1000000))+' M€';
+    if(n>=1000000) return fmtMiles(Math.round(n/1000000))+' M€';
+    if(n>=1000) return fmtMiles(Math.round(n/1000))+' K€';
+    return n.toLocaleString('es-ES')+' €';
+  }
+
+  // KPI summary bar
+  const summaryBar = '<div class="eco-summary-bar">'
+    +'<div class="eco-summary-cell"><div class="lbl">Proyectos</div><div class="val">'+np.length+'</div><div class="sub">Nuevas opor.</div></div>'
+    +'<div class="eco-summary-cell"><div class="lbl">Con datos</div><div class="val">'+withData.length+'</div><div class="sub">de '+np.length+'</div></div>'
+    +'<div class="eco-summary-cell"><div class="lbl">Edificabilidad total</div><div class="val">'+(totEdif?fmtMiles(totEdif)+' m²':'—')+'</div><div class="sub">suma</div></div>'
+    +'<div class="eco-summary-cell"><div class="lbl">Viviendas</div><div class="val">'+(totViv?fmtMiles(totViv)+' uds':'—')+'</div><div class="sub">suma</div></div>'
+    +'<div class="eco-summary-cell"><div class="lbl">Venta total</div><div class="val">'+bigFmt(totVenta)+'</div><div class="sub">estimado</div></div>'
+    +'<div class="eco-summary-cell"><div class="lbl">Suelo total</div><div class="val">'+bigFmt(totSuelo)+'</div><div class="sub">estimado</div></div>'
+    +'<div class="eco-summary-cell"><div class="lbl">Construcción total</div><div class="val">'+bigFmt(totConstr)+'</div><div class="sub">estimado</div></div>'
+    +'</div>';
+
+  // Column group headers
+  const W = 'min-width:105px;width:105px';
+  const WS = 'min-width:90px;width:90px';
+  const WL = 'min-width:220px;width:220px';
+  const WM = 'min-width:120px;width:120px';
+
+  const colGroups = '<colgroup>'
+    +'<col style="'+WL+'">'   // proyecto
+    // Suelo (3)
+    +'<col style="'+W+'"><col style="'+W+'"><col style="'+W+'">'
+    // Construcción (7)
+    +'<col style="'+W+'"><col style="'+W+'"><col style="'+W+'"><col style="'+W+'"><col style="'+WM+'"><col style="'+WM+'"><col style="'+W+'">'
+    // Venta (4)
+    +'<col style="'+W+'"><col style="'+W+'"><col style="'+W+'"><col style="'+WM+'">'
+    // Rentabilidad (11)
+    +'<col style="'+W+'"><col style="'+WS+'"><col style="'+W+'"><col style="'+WS+'"><col style="'+WS+'"><col style="'+WS+'"><col style="'+WS+'"><col style="'+W+'"><col style="'+W+'"><col style="'+W+'"><col style="'+WS+'">'
+    // Plazos (5)
+    +'<col style="'+WM+'"><col style="'+WM+'"><col style="'+WM+'"><col style="'+WS+'"><col style="'+WS+'">'
+    // Comercial (4)
+    +'<col style="'+WS+'"><col style="'+WS+'"><col style="'+WS+'"><col style="'+WS+'">'
+    // Pagos (7)
+    +'<col style="'+WM+'"><col style="'+WS+'"><col style="'+WM+'"><col style="'+WS+'"><col style="'+WM+'"><col style="'+WS+'"><col style="'+WM+'">'
+    // General (2)
+    +'<col style="'+WS+'"><col style="'+WM+'">'
+    +'</colgroup>';
+
+  const thStyle  = 'padding:6px 8px;text-align:right;font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.03em;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface2)';
+  const thStyleL = thStyle.replace('text-align:right','text-align:left');
+  const tgs = (bg,fg,span) => '<th colspan="'+span+'" style="'+thGroupStyle(bg,fg)+'"></th>';
+
+  const thead = '<thead>'
+    +'<tr>'
+    +'<th style="'+thGroupStyle('','background:var(--surface2);position:sticky;left:0;z-index:4')+'"></th>'
+    +'<th colspan="3"  style="'+thGroupStyle('#FFF3E0','color:#92400E')+'">SUELO</th>'
+    +'<th colspan="7"  style="'+thGroupStyle('#EDE9FE','color:#5B21B6')+'">CONSTRUCCIÓN</th>'
+    +'<th colspan="4"  style="'+thGroupStyle('#DCFCE7','color:#166534')+'">VENTA</th>'
+    +'<th colspan="11" style="'+thGroupStyle('#FEF3C7','color:#92400E')+'">RENTABILIDAD</th>'
+    +'<th colspan="5"  style="'+thGroupStyle('#E0F2F1','color:#00695C')+'">PLAZOS</th>'
+    +'<th colspan="4"  style="'+thGroupStyle('#F3E8FF','color:#6B21A8')+'">COMERCIAL</th>'
+    +'<th colspan="7"  style="'+thGroupStyle('#E8F0FE','color:#1A56A0')+'">PAGOS</th>'
+    +'<th colspan="2"  style="'+thGroupStyle('#F1F0EC','color:#5F5E56')+'">GENERAL</th>'
+    +'</tr>'
+    +'<tr>'
+    // Proyecto
+    +'<th style="'+thStyleL+';position:sticky;left:0;z-index:3;min-width:220px">Proyecto</th>'
+    // Suelo
+    +'<th style="'+thStyle+'">Suelo N</th>'
+    +'<th style="'+thStyle+'">Suelo €</th>'
+    +'<th style="'+thStyle+'">€/m² ◆</th>'
+    // Construcción
+    +'<th style="'+thStyle+'">Constr. €</th>'
+    +'<th style="'+thStyle+'">Equiv. €/m²</th>'
+    +'<th style="'+thStyle+'">Urb. €</th>'
+    +'<th style="'+thStyle+'">Urb. €/m²</th>'
+    +'<th style="'+thStyle+'">Cocinas €</th>'
+    +'<th style="'+thStyle+'">Otros Hon. €</th>'
+    +'<th style="'+thStyle+'">Coste Total €</th>'
+    // Venta
+    +'<th style="'+thStyle+'">Venta Total €</th>'
+    +'<th style="'+thStyle+'">Venta Viv. €</th>'
+    +'<th style="'+thStyle+'">Venta €/m²</th>'
+    +'<th style="'+thStyle+'">Venta Unid. €</th>'
+    // Rentabilidad
+    +'<th style="'+thStyle+'">NOI €</th>'
+    +'<th style="'+thStyle+'">Yield %</th>'
+    +'<th style="'+thStyle+'">Margen €</th>'
+    +'<th style="'+thStyle+'">Margen %</th>'
+    +'<th style="'+thStyle+'">TIR %</th>'
+    +'<th style="'+thStyle+'">TIR Alq.</th>'
+    +'<th style="'+thStyle+'">TIR DI</th>'
+    +'<th style="'+thStyle+'">Rentas €</th>'
+    +'<th style="'+thStyle+'">Vtas Alq. €</th>'
+    +'<th style="'+thStyle+'">Mg Alq. €</th>'
+    +'<th style="'+thStyle+'">Mg Alq. %</th>'
+    // Plazos
+    +'<th style="'+thStyle+'">Ini. Proy.</th>'
+    +'<th style="'+thStyle+'">Ini. Obras</th>'
+    +'<th style="'+thStyle+'">1ª Ocup.</th>'
+    +'<th style="'+thStyle+'">Licencia N</th>'
+    +'<th style="'+thStyle+'">Plazo Obras</th>'
+    // Comercial
+    +'<th style="'+thStyle+'">Com. Suelo %</th>'
+    +'<th style="'+thStyle+'">Publicidad %</th>'
+    +'<th style="'+thStyle+'">Fee Com. %</th>'
+    +'<th style="'+thStyle+'">Postventa %</th>'
+    // Pagos
+    +'<th style="'+thStyle+'">Pago 1 FF</th>'
+    +'<th style="'+thStyle+'">Pago 1 %</th>'
+    +'<th style="'+thStyle+'">Pago 2 FF</th>'
+    +'<th style="'+thStyle+'">Pago 2 %</th>'
+    +'<th style="'+thStyle+'">Pago 3 FF</th>'
+    +'<th style="'+thStyle+'">Pago 3 %</th>'
+    +'<th style="'+thStyle+'">Forma Pago</th>'
+    // General
+    +'<th style="'+thStyle+'">Parking N</th>'
+    +'<th style="'+thStyleL+'">Archivo</th>'
+    +'</tr>'
+    +'</thead>';
+
+  const tdStyle  = 'padding:8px 8px;text-align:right;border-bottom:1px solid var(--border);font-size:11px;white-space:nowrap;vertical-align:middle';
+  const tdStyleL = tdStyle.replace('text-align:right','text-align:left');
+
+  function fmtPctVal(v) {
+    if(!v||v==='') return '<span style="color:var(--text3)">—</span>';
+    const n=parseFloat(v); if(isNaN(n)) return v;
+    const color=n>30?'#2e5c3e':n>15?'#7a5c2e':'#8b3030';
+    return '<span style="color:'+color+';font-weight:600">'+n.toFixed(2).replace('.',',')+' %</span>';
+  }
+  function fmtTIR(v) {
+    if(!v||v==='') return '<span style="color:var(--text3)">—</span>';
+    const n=parseFloat(v); if(isNaN(n)) return v;
+    const color=n>=20?'#2e5c3e':n>=15?'#2e4e6b':n>=10?'#7a5c2e':'#8b3030';
+    return '<span style="color:'+color+';font-weight:600">'+n.toFixed(2).replace('.',',')+' %</span>';
+  }
+  function fmtYield(v) {
+    if(!v||v==='') return '<span style="color:var(--text3)">—</span>';
+    const n=parseFloat(v); return '<span style="font-weight:500">'+(isNaN(n)?v:n.toFixed(2).replace('.',','))+' %</span>';
+  }
+  function fmtDt(v) { return v||'<span style="color:var(--text3)">—</span>'; }
+  function fmtTxt(v) { return v||'<span style="color:var(--text3)">—</span>'; }
+
+  const rows = np.map((p,i) => {
+    const eco = p.eco || {};
+    const c = calcEco(p);
+    const bg = i%2===0 ? '' : 'background:var(--surface2)';
+    return '<tr style="'+bg+';cursor:pointer" onclick="goToProject('+p.id+')" title="Clic para editar">'
+      // Proyecto
+      +'<td style="'+tdStyleL+';position:sticky;left:0;z-index:1;'+bg+';font-weight:500;min-width:220px">'
+        +'<div style="display:flex;align-items:center;gap:6px">'+pillP(p.prioridad)+'<span>'+p.nombre+'</span></div>'
+        +'<div style="font-size:10px;color:var(--text3);margin-top:1px">'+p.tipo+(p.contraparte&&p.contraparte!=='—'?' · '+p.contraparte:'')+'</div>'
+      +'</td>'
+      // Suelo
+      +'<td style="'+tdStyle+'">'+fmtN(eco.sueloN||p.edificabilidad)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.sueloEur)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtCalc(c.sueloEurM2)+'</td>'
+      // Construcción
+      +'<td style="'+tdStyle+'">'+fmtE(eco.construccionEur)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.construccionEurM2)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.urbEur)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.urbEurM2)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.costeCocinas)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.otrosHonorarios)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.costoTotal)+'</td>'
+      // Venta
+      +'<td style="'+tdStyle+'">'+fmtE(eco.ventaEur)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.ventaVivEur)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.ventaEurM2)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtCalc(c.ventaPorUnidad)+'</td>'
+      // Rentabilidad
+      +'<td style="'+tdStyle+'">'+fmtE(eco.noi)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtYield(eco.yieldPct)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.margenEur)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtPctVal(eco.margenPct)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtTIR(eco.tirPct)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtTIR(eco.tirAlqPct)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtTIR(eco.tirDiPct)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.rentasEur)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.ventasAlqEur)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtE(eco.margenAlqEur)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtPctVal(eco.margenAlqPct)+'</td>'
+      // Plazos
+      +'<td style="'+tdStyle+'">'+fmtDt(eco.inicioProy)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtDt(eco.inicioObras)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtDt(eco.fechaEntrega)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtDt(eco.licenciaN)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtDt(eco.plazoMeses)+'</td>'
+      // Comercial
+      +'<td style="'+tdStyle+'">'+fmtYield(eco.comisionSueloPct)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtYield(eco.publicidadPct)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtYield(eco.feeComercialPct)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtYield(eco.postventaPct)+'</td>'
+      // Pagos
+      +'<td style="'+tdStyle+'">'+fmtDt(eco.pago1FF)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtYield(eco.pago1Pct)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtDt(eco.pago2FF)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtYield(eco.pago2Pct)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtDt(eco.pago3FF)+'</td>'
+      +'<td style="'+tdStyle+'">'+fmtYield(eco.pago3Pct)+'</td>'
+      +'<td style="'+tdStyleL+'">'+fmtTxt(eco.formaPago)+'</td>'
+      // General
+      +'<td style="'+tdStyle+'">'+fmtN(eco.parkingN)+'</td>'
+      +'<td style="'+tdStyleL+'">'+fmtTxt(eco.archivo)+'</td>'
+      +'</tr>';
+  }).join('');
+
+
+  // Totals row
+  const totalsRow = '<tr style="background:#1a1a1a">'
+    +'<td style="'+tdStyleL+';color:white;font-weight:600;position:sticky;left:0;background:#1a1a1a;min-width:220px">TOTALES</td>'
+    // Suelo
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:white;font-weight:600">'+(totSuelo?bigFmt(totSuelo):'—')+'</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    // Construcción (7)
+    +'<td style="'+tdStyle+';color:white;font-weight:600">'+(totConstr?bigFmt(totConstr):'—')+'</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    // Venta (4)
+    +'<td style="'+tdStyle+';color:white;font-weight:600">'+(totVenta?bigFmt(totVenta):'—')+'</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    // Rentabilidad (11) — all dash
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    // Plazos (5) — all dash
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    // Comercial (4)
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    // Pagos (7)
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    // General (2)
+    +'<td style="'+tdStyle+';color:#888">—</td>'
+    +'<td style="'+tdStyleL+';color:#888">—</td>'
+    +'</tr>';
+
+  // Weekly update alert
+  const lastImport = localStorage.getItem('acciona_last_import');
+  const daysSince = lastImport ? Math.floor((Date.now()-parseInt(lastImport))/(1000*60*60*24)) : null;
+  const alertBanner = (daysSince !== null && daysSince >= 7)
+    ? '<div style="background:#FFF3E0;border:1px solid #F59E0B;border-radius:var(--r);padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:12px;color:#92400E;margin-bottom:12px"><span style="font-size:16px">⚠️</span><span>Han pasado <strong>'+daysSince+' días</strong> desde la última importación. Actualiza los datos de <strong>En Estudio</strong>.</span></div>'
+    : (daysSince !== null
+      ? '<div style="background:#F0F7F1;border:1px solid #86C99A;border-radius:var(--r);padding:8px 14px;font-size:11px;color:#1a3a2a;margin-bottom:12px">✓ Última importación hace '+daysSince+' día'+(daysSince!==1?'s':'')+'</div>'
+      : '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 14px;font-size:11px;color:var(--text3);margin-bottom:12px">📥 Sin importaciones — sube tu Excel para poblar En Estudio</div>');
+
+  const legend = '<div style="font-size:10px;color:var(--text3);padding:6px 0">◆ Campo calculado · Haz clic en cualquier fila para editar</div>';
+
+  return renderKPIs()
+    +'<div class="eco-dashboard">'
+    +'<div class="eco-dash-header" style="margin-bottom:10px">'
+    +'<div><div class="eco-dash-title">KPIs Económicos — Nuevas Oportunidades</div><div class="eco-dash-sub">'+np.length+' proyectos · '+withData.length+' con datos</div></div>'
+    +'<div style="display:flex;gap:8px;align-items:center">'
+    +'<label class="btn-import-xl">📥 Importar Excel — En Estudio<input type="file" accept=".xlsx,.xls" style="display:none" onchange="importExcelEstudio(this)"></label>'
+    +'</div>'
+    +'</div>'
+    +alertBanner
+    +summaryBar
+    +'<div class="eco-table-wrap">'
+    +'<table style="width:max-content;min-width:100%;border-collapse:collapse;font-size:12px">'+colGroups+thead
+    +'<tbody>'+rows+totalsRow+'</tbody>'
+    +'</table>'
+    +'</div>'
+    +legend
+    +'</div>';
+}
+
+function thGroupStyle(bg, extra) {
+  return 'padding:5px 10px;font-size:10px;font-weight:700;text-align:center;letter-spacing:.04em;border-bottom:1px solid var(--border);white-space:nowrap;'+(bg?'background:'+bg+';':'background:var(--surface2);')+(extra||'');
+}
+
+function goToProject(id) {
+  S.view = 'tabla'; S.selId = id; S.fBloque = '';
+  document.querySelectorAll('.nav-tab').forEach(t=>{ t.classList.toggle('active', t.dataset.view==='tabla'); });
+  render();
+  setTimeout(()=>{ const row=document.querySelector('tr[data-id="'+id+'"]'); if(row) row.scrollIntoView({behavior:'smooth',block:'center'}); },100);
+  // Open eco section after a tick
+  setTimeout(()=>{ const btn=document.querySelector('.eco-toggle'); if(btn) btn.click(); },300);
+}
+
+function render() {
+  const m = document.getElementById('main');
+  const focused = document.activeElement;
+  const detailHasFocus = focused && focused.closest && focused.closest('.detail-panel');
+  if(S.view==='dashboard') {
+    try { m.innerHTML=renderDashboard(); }
+    catch(e) { m.innerHTML='<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error en Dashboard:</strong><br><pre>'+e.message+'</pre></div>'; console.error(e); }
+  }
+  else if(S.view==='tabla') {
+    if(detailHasFocus) renderTablaOnly();
+    else m.innerHTML=renderTabla();
+  }
+  else if(S.view==='resumen') m.innerHTML=renderResumen();
+  else if(S.view==='economico') {
+    try { m.innerHTML=renderEconomico(); }
+    catch(e) { m.innerHTML='<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error en Económico:</strong><br><pre>'+e.message+'\\n'+e.stack+'</pre></div>'; console.error(e); }
+  }
+  else if(S.view==='dealsheet') m.innerHTML=renderDealSheet();
+}
+
+function renderTablaOnly() {
+  // Re-render only kpis + filters + table, leave detail panel untouched
+  const m = document.getElementById('main');
+  const f = getFiltered();
+  const cols = [{key:'nombre',label:'Proyecto'},{key:'bloque',label:'Bloque'},{key:'estado',label:'Estado'},{key:'prioridad',label:'Prioridad'},{key:'tipo',label:'Tipo'},{key:'contraparte',label:'Contraparte'},{key:'responsable',label:'Responsable'}];
+  const ths = cols.map(c=>{ const si=S.sortCols.findIndex(s=>s.col===c.key); let arr=''; if(si>=0){arr=S.sortCols[si].dir===1?'↑':'↓'; if(S.sortCols.length>1) arr+='<sup style="font-size:8px;opacity:.7">'+(si+1)+'<\/sup>';} return '<th onclick="setSortCol(\''+c.key+'\',event.shiftKey)">'+c.label+'<span class="th-arr">'+arr+'<\/span><\/th>'; }).join('') + '<th style="width:36px"></th>';
+  let rows='';
+  BLOQUES_ORDER.forEach(b=>{
+    const bp=f.filter(p=>p.bloque===b); if(!bp.length) return;
+    const collapsed=S.collapsedGroups.has(b);
+    const totalB=projects.filter(p=>p.bloque===b).length;
+    const countTxt=bp.length+(bp.length!==totalB?' de '+totalB:'')+' proyecto'+(bp.length!==1?'s':'');
+    const locked2 = BLOQUES_LOCKED.has(b);
+    const bi2 = BLOQUES_ORDER.indexOf(b);
+    rows+='<tr class="section-row"><td colspan="8">'
+      +'<div class="group-header" data-bloque-idx="'+bi2+'"'
+      +' draggable="'+(locked2?'false':'true')+'"'
+      +' ondragstart="onGroupDragStart(BLOQUES_ORDER['+bi2+'],event)"'
+      +' ondragover="onGroupDragOver(BLOQUES_ORDER['+bi2+'],event)"'
+      +' ondrop="onGroupDrop(BLOQUES_ORDER['+bi2+'],event)"'
+      +' ondragend="onGroupDragEnd()"'
+      +' onclick="toggleGroup(BLOQUES_ORDER['+bi2+']);">'
+      +'<span class="group-drag-handle">'+(locked2?'🔒':'⠿')+'</span>'
+      +'<span class="group-chevron'+(collapsed?' collapsed':'')+'">▼</span>'
+      +'<span class="group-name">'+b+'</span>'
+      +'<span class="group-count">'+countTxt+'</span>'
+      +'<button class="group-lock-btn'+(locked2?' locked':'')+'" onclick="toggleLock(BLOQUES_ORDER['+bi2+'],event)" title="'+(locked2?'Desbloquear':'Bloquear')+'">'+(locked2?'🔒':'🔓')+'</button>'
+      +'</div></td></tr>';
+    if(!collapsed) bp.forEach(p=>{
+      const sel=S.selId===p.id?'selected':'';
+      rows+='<tr class="'+sel+'" data-id="'+p.id+'" onclick="selectProject('+p.id+')">'
+        +'<td class="cell-nombre" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;padding-left:28px" title="'+p.nombre+'">'+p.nombre+'</td>'
+        +'<td><span class="bloque-tag">'+p.bloque.split(' ')[0]+'</span></td>'
+        +'<td>'+estadoDropdown(p.id,p.estado)+'</td>'
+        +'<td class="cell-prio">'+pillP(p.prioridad)+'</td>'
+        +'<td style="font-size:11px;color:var(--text2);white-space:nowrap">'+p.tipo+'</td>'
+        +'<td style="font-size:11px;color:var(--text2);white-space:nowrap">'+(p.contraparte||'—')+'</td>'
+        +'<td style="font-size:11px;color:var(--text2);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+p.responsable+'">'+p.responsable+'</td>'
+        +'<td style="text-align:center;padding:0 4px" onclick="event.stopPropagation()"><button class="btn-del" onclick="deleteProject('+p.id+',event)">✕ Eliminar</button></td>'
+        +'</tr>';
+    });
+  });
+
+  // Update kpi bar
+  const kpiBar = m.querySelector('.kpi-bar');
+  if(kpiBar) kpiBar.outerHTML = renderKPIs();
+
+  // Update filter count badge only
+  const badge = m.querySelector('.count-badge');
+  if(badge) badge.textContent = f.length+' / '+projects.length+' proyectos';
+
+  // Update table body only
+  const tbody = m.querySelector('tbody');
+  if(tbody) tbody.innerHTML = rows;
+}
+
+
+// ─── DEAL SHEET ────────────────────────────────────────────────
+let S_dealId = null;
+
+function renderDealSheet() {
+  const ops = projects.filter(p => p.bloque === 'Pipeline');
+  const opts = '<option value="">— Selecciona un proyecto —</option>'
+    + ops.map(p => '<option value="'+p.id+'"'+(S_dealId===p.id?' selected':'')+'>'+p.nombre+'</option>').join('');
+  const selector = '<div class="ds-toolbar">'
+    +'<select class="ds-selector" onchange="S_dealId=parseInt(this.value)||null;render()">'+opts+'</select>'
+    +(S_dealId?'<button class="ds-export-btn" onclick="window.print()">Exportar PDF</button>':'')
+    +'<span style="font-size:11px;color:var(--text3);margin-left:auto">Ctrl+P para exportar PDF</span>'
+    +'</div>';
+  if(!S_dealId) return '<div class="ds-wrap">'+selector+'<div class="ds-empty"><div style="font-size:36px">📄</div><div>Selecciona un proyecto de <strong>Pipeline</strong></div></div></div>';
+  const p = projects.find(x=>x.id===S_dealId);
+  if(!p) return '<div class="ds-wrap">'+selector+'</div>';
+  const eco = p.eco||{};
+  function fv(v){ return (!v||v===''||v==='—')?'—':v; }
+  function fe(v){ if(!v||v==='') return '—'; const n=parseInt(String(v).replace(/\./g,'').replace(/,/g,''),10); return isNaN(n)?v:fmtMiles(n)+' €'; }
+  function fp(v){ if(!v||v==='') return '—'; const n=parseFloat(v); return isNaN(n)?v:n.toFixed(2).replace('.',',')+' %'; }
+  function fc(v){ if(!v||v==='') return null; const n=parseInt(String(v).replace(/\./g,'').replace(/,/g,''),10); return isNaN(n)?null:n; }
+  function tirC(v){ const n=parseFloat(v); if(isNaN(n)) return ''; return n>=20?'tir':n>=10?'':'neg'; }
+  function mgC(v){ const n=parseFloat(v); if(isNaN(n)) return ''; return n>=25?'tir':n>=10?'':'neg'; }
+  let mapEmbed='';
+  if(p.mapUrl){try{const co=p.mapUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);if(co)mapEmbed='https://maps.google.com/maps?q='+co[1]+','+co[2]+'&z=15&output=embed';else if(url.includes('goo.gl')||url.includes('maps.app'))mapEmbed='https://maps.google.com/maps?q='+encodeURIComponent(url)+'&output=embed';}catch(e){}}
+  const mapHtml=mapEmbed?'<div class="ds-map"><iframe src="'+mapEmbed+'" loading="lazy"></iframe></div>':'<div class="ds-map"><div class="ds-map-ph">Sin mapa</div></div>';
+  const imgHtml=p.imgData?'<div class="ds-img"><img src="'+p.imgData+'"/></div>':'<div class="ds-img"><div style="font-size:11px;color:var(--text3);text-align:center;padding:16px">Sin imagen</div></div>';
+  migrateAcciones(p);
+  const pending=(p.acciones||[]).filter(a=>!a.d).slice(0,5);
+  const checksHtml=pending.length?pending.map(a=>'<div class="ds-check"><div class="ds-check-dot" style="background:var(--accent)"></div>'+a.t+'</div>').join(''):'<div style="font-size:12px;color:var(--text3);font-style:italic">Sin acciones pendientes</div>';
+  const sv=fc(eco.sueloEur),cv=fc(eco.construccionEur);
+  let donutHtml='';
+  if(sv||cv){
+    const tot=(sv||0)+(cv||0),rs=tot>0?Math.round((sv||0)/tot*100):0,rc=tot>0?Math.round((cv||0)/tot*100):0,ro=100-rs-rc;
+    function seg(sd,sw,col,r,cx,cy){if(sw<=0)return '';const s=sw>=360?359.99:sw,sa=(sd-90)*Math.PI/180,ea=(sd+s-90)*Math.PI/180,x1=cx+r*Math.cos(sa),y1=cy+r*Math.sin(sa),x2=cx+r*Math.cos(ea),y2=cy+r*Math.sin(ea);return '<path d="M'+cx+' '+cy+' L'+x1+' '+y1+' A'+r+' '+r+' 0 '+(s>180?1:0)+' 1 '+x2+' '+y2+' Z" fill="'+col+'"/>';}
+    donutHtml='<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><svg width="72" height="72" viewBox="0 0 72 72">'+seg(0,rs*3.6,'#2c4a3e',32,36,36)+seg(rs*3.6,rc*3.6,'#7a9cbf',32,36,36)+seg((rs+rc)*3.6,ro*3.6,'#c9c7c0',32,36,36)+'<circle cx="36" cy="36" r="18" fill="white"/></svg><div style="font-size:11px;display:flex;flex-direction:column;gap:3px">'+(rs>0?'<div><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#2c4a3e;margin-right:5px"></span>Suelo '+rs+'%</div>':'')+(rc>0?'<div><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#7a9cbf;margin-right:5px"></span>Constr. '+rc+'%</div>':'')+(ro>0?'<div><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#c9c7c0;margin-right:5px"></span>Otros '+ro+'%</div>':'')+'</div></div>';
+  }
+  const eBg={'Recibido':'#ebebea','En análisis':'#dce6f0','Negociación':'#dceee2','Due diligence':'#e8e2f5','En cierre':'#f0e0e8','Activo':'#d8eae8','Descartado':'#f0ede8','Cerrado':'#f0dede'};
+  const eFg={'Recibido':'#5a5a54','En análisis':'#2e4e6b','Negociación':'#2e5c3e','Due diligence':'#4a3a70','En cierre':'#6b2e4a','Activo':'#2e5c54','Descartado':'#6b5a3e','Cerrado':'#6b2e2e'};
+  const pBg=p.prioridad===1?'#f5e8e8':p.prioridad===2?'#f5f0e0':'#e8f0e8',pFg=p.prioridad===1?'#8b3030':p.prioridad===2?'#7a6020':'#306030',pLbl=p.prioridad===1?'Alta':p.prioridad===2?'Media':'Baja';
+  return '<div class="ds-wrap">'+selector
+    +'<div class="ds-sheet">'
+    +'<div class="ds-header"><div><div class="ds-title">'+p.nombre.toUpperCase()+'</div><div class="ds-subtitle">'+(p.ubicacion||p.tipo||'')+(p.contraparte&&p.contraparte!=='—'?' · '+p.contraparte:'')+'</div></div>'
+    +'<div class="ds-logo-area"><svg width="110" height="28" viewBox="0 0 110 28" fill="none"><polygon points="0,23 7,5 14,23" fill="white" opacity=".9"/><polygon points="3.5,23 7,13 10.5,23" fill="rgba(255,255,255,0.2)"/><text x="18" y="21" font-family="Aptos,Segoe UI,sans-serif" font-size="14" font-weight="700" fill="white" letter-spacing="2">ACCIONA</text><text x="18" y="27" font-family="Aptos,Segoe UI,sans-serif" font-size="8" fill="rgba(255,255,255,0.45)" letter-spacing="1">REAL ESTATE</text></svg>'
+    +'<div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end"><span class="ds-pill" style="background:'+(eBg[p.estado]||'#eee')+';color:'+(eFg[p.estado]||'#333')+'">'+p.estado+'</span><span class="ds-pill" style="background:'+pBg+';color:'+pFg+'">'+pLbl+'</span></div></div></div>'
+    +'<div class="ds-kpi-row">'
+    +'<div class="ds-kpi"><div class="ds-kpi-label">TIR Proyecto</div><div class="ds-kpi-val '+tirC(eco.tirPct)+'">'+fp(eco.tirPct)+'</div><div class="ds-kpi-sub">rentabilidad</div></div>'
+    +'<div class="ds-kpi"><div class="ds-kpi-label">Venta Total</div><div class="ds-kpi-val">'+fe(eco.ventaEur)+'</div><div class="ds-kpi-sub">'+fp(eco.ventaEurM2)+' / m²</div></div>'
+    +'<div class="ds-kpi"><div class="ds-kpi-label">Margen</div><div class="ds-kpi-val '+mgC(eco.margenPct)+'">'+fp(eco.margenPct)+'</div><div class="ds-kpi-sub">'+fe(eco.margenEur)+'</div></div>'
+    +'<div class="ds-kpi"><div class="ds-kpi-label">Coste Total</div><div class="ds-kpi-val">'+fe(eco.costoTotal||eco.construccionEur)+'</div><div class="ds-kpi-sub">'+fv(p.ubicacion||'—')+'</div></div>'
+    +'</div>'
+    +'<div class="ds-body">'
+    +'<div class="ds-col"><div class="ds-col-title">Situación</div>'+mapHtml
+    +'<div class="ds-row"><span class="ds-row-label">Edificabilidad</span><span class="ds-row-val">'+(p.edificabilidad?fmtMiles(p.edificabilidad)+' m²':'—')+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">Nº viviendas</span><span class="ds-row-val">'+(p.nViviendas?fmtMiles(p.nViviendas)+' uds':'—')+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">Parking</span><span class="ds-row-val">'+(eco.parkingN?fmtMiles(eco.parkingN)+' plz':'—')+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">Tipo</span><span class="ds-row-val">'+fv(p.tipo)+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">Contraparte</span><span class="ds-row-val">'+fv(p.contraparte)+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">Responsable</span><span class="ds-row-val" style="font-size:11px">'+fv(p.responsable.split('/')[0].trim())+'</span></div>'
+    +'</div>'
+    +'<div class="ds-col"><div class="ds-col-title">Propuesta de inversión</div>'+imgHtml+donutHtml
+    +'<div class="ds-row"><span class="ds-row-label">Suelo</span><span class="ds-row-val">'+fe(eco.sueloEur)+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">Suelo €/m²</span><span class="ds-row-val">'+fe(eco.sueloEurM2)+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">Construcción</span><span class="ds-row-val">'+fe(eco.construccionEur)+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">Constr. €/m²</span><span class="ds-row-val">'+fe(eco.construccionEurM2)+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">Venta €/m²</span><span class="ds-row-val">'+fe(eco.ventaEurM2)+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">Venta/unidad</span><span class="ds-row-val">'+fe(eco.ventaUnidadEur)+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">TIR Alquiler</span><span class="ds-row-val">'+fp(eco.tirAlqPct)+'</span></div>'
+    +'</div>'
+    +'<div class="ds-col"><div class="ds-col-title">Estado y seguimiento</div>'
+    +'<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:5px">Último avance</div>'
+    +'<div class="ds-narrative">'+fv(p.avance)+'</div>'
+    +'<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:5px;margin-top:10px">Próximas acciones</div>'
+    +checksHtml
+    +'<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:5px;margin-top:12px">Plazos</div>'
+    +'<div class="ds-row"><span class="ds-row-label">Inicio proyecto</span><span class="ds-row-val">'+fv(eco.inicioProy)+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">Inicio obras</span><span class="ds-row-val">'+fv(eco.inicioObras)+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">1ª Ocupación</span><span class="ds-row-val">'+fv(eco.fechaEntrega)+'</span></div>'
+    +'<div class="ds-row"><span class="ds-row-label">Plazo obras</span><span class="ds-row-val">'+(eco.plazoMeses?eco.plazoMeses+' meses':'—')+'</span></div>'
+    +'</div></div>'
+    +'<div class="ds-footer"><span class="ds-footer-txt">Acciona Real Estate · Deal Sheet · '+new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'})+'</span><span class="ds-footer-txt">Documento interno — uso confidencial</span></div>'
+    +'</div></div>';
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────
+function renderDashboard() {
+  const total=projects.length;
+  const porEstado={},porBloque={},porPrio={1:0,2:0,3:0};
+  ESTADOS.forEach(e=>porEstado[e]=0);
+  BLOQUES_ORDER.forEach(b=>porBloque[b]=0);
+  projects.forEach(p=>{
+    if(porEstado[p.estado]!==undefined) porEstado[p.estado]++; else porEstado[p.estado]=(porEstado[p.estado]||0)+1;
+    const bMatch=BLOQUES_ORDER.find(b=>b.toLowerCase()===p.bloque.toLowerCase());
+    porBloque[bMatch||p.bloque]=(porBloque[bMatch||p.bloque]||0)+1;
+    porPrio[p.prioridad]=(porPrio[p.prioridad]||0)+1;
+  });
+  const activos=projects.filter(p=>!["Descartado","Cerrado"].includes(p.estado)).length;
+  const avanzados=(porEstado["Due diligence"]||0)+(porEstado["Activo"]||0)+(porEstado["Negociaci\u00f3n"]||0)+(porEstado["En cierre"]||0);
+  const urgentes=projects.filter(p=>p.prioridad===1).length;
+  const pendientes=(porEstado["Recibido"]||0)+(porEstado["En an\u00e1lisis"]||0);
+
+  // KPI CARDS
+  var kpiCards="";
+  var kpis=[
+    {label:"Total proyectos",value:total,sub:activos+" activos",accent:"#1a3a2a",view:"tabla"},
+    {label:"Prioridad Alta",value:urgentes,sub:"requieren atenci\u00f3n",accent:"#8b3030",filter:{prio:"1"}},
+    {label:"Fase avanzada",value:avanzados,sub:"DD \u00b7 Neg. \u00b7 Cierre \u00b7 Activo",accent:"#4a3a70",filter:{estado:"Due diligence"}},
+    {label:"Recibido / An\u00e1lisis",value:pendientes,sub:"en revisi\u00f3n",accent:"#7a5c2e",filter:{estado:"Recibido"}},
+  ];
+  kpis.forEach(function(k){
+    var oc=k.filter ? JSON.stringify(k.filter) : "{}";
+    var view=k.view||"tabla";
+    kpiCards+="<div class=\"kpi-card\" onclick=\"navigateTo('"+view+"',"+(k.filter?JSON.stringify(k.filter).replace(/"/g,"'")+")":"{}"+")")+"\" title=\"Ver proyectos\" style=\"border-top:3px solid "+k.accent+"\">"
+      +"<div class=\"kpi-card-label\">"+k.label+"</div>"
+      +"<div class=\"kpi-card-value\" style=\"color:"+k.accent+"\">"+k.value+"</div>"
+      +"<div class=\"kpi-card-sub\">"+k.sub+"</div>"
+      +"</div>";
+  });
+
+  // DONUT
+  var DONUT_COLORS={"Recibido":"#c9c7c0","En an\u00e1lisis":"#7a9cbf","Due diligence":"#9b8abf","WIP":"#7aab8a","Stand By":"#9b8abf","WIP":"#7aab8a","Stand By":"#9b8abf","Descartado":"#c8b89a","Cerrado":"#bf7a7a"};
+  var donutData=ESTADOS.map(function(e){return {e:e,n:porEstado[e]||0,c:DONUT_COLORS[e]};}).filter(function(d){return d.n>0;});
+  // DONUT — contar directamente sin depender de porEstado inicializado
+  var DONUT_COLORS={"Recibido":"#c9c7c0","En an\u00e1lisis":"#7a9cbf","Due diligence":"#9b8abf","WIP":"#7aab8a","Stand By":"#9b8abf","WIP":"#7aab8a","Stand By":"#9b8abf","Descartado":"#c8b89a","Cerrado":"#bf7a7a"};
+  var donutMap={};
+  projects.forEach(function(p){ donutMap[p.estado]=(donutMap[p.estado]||0)+1; });
+  var donutData=Object.keys(donutMap).map(function(e){ return {e:e,n:donutMap[e],c:DONUT_COLORS[e]||"#aaa"}; }).sort(function(a,b){ return ESTADOS.indexOf(a.e)-ESTADOS.indexOf(b.e); });
+  var donutTotal=donutData.reduce(function(s,d){return s+d.n;},0)||1;
+  var dsvg="<svg width=\"160\" height=\"160\" viewBox=\"0 0 160 160\">";
+  var sa=-Math.PI/2;
+  donutData.forEach(function(d){
+    var a=(d.n/donutTotal)*Math.PI*2,x1=80+70*Math.cos(sa),y1=80+70*Math.sin(sa),x2=80+70*Math.cos(sa+a),y2=80+70*Math.sin(sa+a),l=a>Math.PI?1:0;
+    dsvg+="<path d=\"M80,80 L"+x1+","+y1+" A70,70 0 "+l+",1 "+x2+","+y2+" Z\" fill=\""+d.c+"\"/>";
+    sa+=a;
+  });
+  dsvg+="<circle cx=\"80\" cy=\"80\" r=\"38\" fill=\"white\"/><text x=\"80\" y=\"75\" text-anchor=\"middle\" font-size=\"22\" font-weight=\"700\" fill=\"#1a1a18\">"+projects.length+"</text><text x=\"80\" y=\"92\" text-anchor=\"middle\" font-size=\"10\" fill=\"#a09f97\">proyectos</text></svg>";
+  var donutLegend="<div class=\"donut-legend\">";
+  donutData.forEach(function(d){
+    donutLegend+="<div class=\"legend-item\" onclick=\"navigateTo('tabla',{estado:'"+d.e+"'})\"><div class=\"legend-dot\" style=\"background:"+d.c+"\"></div><span class=\"legend-label\">"+d.e+"</span><span class=\"legend-val\">"+d.n+"</span><span class=\"legend-pct\">"+Math.round(d.n/donutTotal*100)+"%</span></div>";
+  });
+  donutLegend+="</div>";
+
+  // BARRAS BLOQUE
+  var BLOQUE_COLORS={"Desinersi\u00f3n":"#2c4a3e","Desinversi\u00f3n":"#2c4a3e","Pipeline":"#4a6741","Pipeline":"#7a9e72","Desarrollo / Operaci\u00f3n":"#6b8cba","Clientes / Gesti\u00f3n":"#8a7aaa","Postventa":"#8a8a80"};
+  var allBloques=BLOQUES_ORDER.slice();
+  Object.keys(porBloque).forEach(function(b){if(allBloques.indexOf(b)<0&&porBloque[b]>0)allBloques.push(b);});
+  var maxB=Math.max.apply(null,allBloques.map(function(b){return porBloque[b]||0;}).concat([1]));
+  var barsBloque="";
+  allBloques.forEach(function(b){
+    var n=porBloque[b]||0; if(n===0)return;
+    var pct=Math.round(n/maxB*100),color=BLOQUE_COLORS[b]||"#888";
+    barsBloque+="<div class=\"bar-row\" onclick=\"navigateTo('tabla',{bloque:'"+b+"'})\">"+
+      "<div style=\"font-size:11px;color:var(--text2);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\" title=\""+b+"\">"+b+"</div>"+
+      "<div class=\"bar-track\"><div class=\"bar-fill\" style=\"width:"+Math.max(pct,4)+"%;background:"+color+"\"></div></div>"+
+      "<div style=\"font-size:12px;font-weight:600;color:var(--text2);width:22px;text-align:right\">"+n+"</div>"+
+      "</div>";
+  });
+
+  // MATRIZ
+  var CELL_BG={"1":"#f5e8e8","2":"#f5f0e0","3":"#e8f0e8"};
+  var CELL_FG={"1":"#8b3030","2":"#7a6020","3":"#306030"};
+  var matrixHtml="<div style=\"display:grid;grid-template-columns:70px repeat(3,1fr);gap:3px;\">";
+  matrixHtml+="<div></div><div style=\"text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:3px 0\">Alta</div><div style=\"text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:3px 0\">Media</div><div style=\"text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:3px 0\">Baja</div>";
+  var ABBR={"Recibido":"Recib.","En an\u00e1lisis":"An\u00e1lisis","Due diligence":"DD","WIP":"WIP","Stand By":"Stand By","Descartado":"Desc.","Cerrado":"Cerrado"};
+  ESTADOS.forEach(function(s){
+    matrixHtml+="<div style=\"font-size:10px;color:var(--text2);text-align:right;padding-right:6px;display:flex;align-items:center;justify-content:flex-end\">"+( ABBR[s]||s)+"</div>";
+    [1,2,3].forEach(function(pr){
+      var n=projects.filter(function(p){return p.estado===s&&p.prioridad===pr;}).length;
+      var bg=n>0?CELL_BG[String(pr)]:"var(--surface2)",fg=n>0?CELL_FG[String(pr)]:"var(--text3)";
+      matrixHtml+="<div class=\"mx-cell\" style=\"background:"+bg+";border-radius:4px;padding:6px 2px;text-align:center;cursor:"+(n>0?"pointer":"default")+"\" data-estado=\""+encodeURIComponent(s)+"\" data-prio=\""+pr+"\">"+
+        "<span style=\"font-size:15px;font-weight:700;color:"+fg+"\">"+n+"</span>"+
+        "</div>";
+    });
+  });
+  matrixHtml+="</div>";
+
+  // PIPELINE — tabla fusionada con UW + Estado
+  var ESTADO_DOT={"Due diligence":"#9b8abf","En an\u00e1lisis":"#7a9cbf","Recibido":"#c9c7c0","WIP":"#7aab8a","Stand By":"#9b8abf","WIP":"#7aab8a","Stand By":"#9b8abf","Descartado":"#c8b89a","Cerrado":"#bf7a7a"};
+  var ops=projects.filter(function(p){return p.bloque==="Pipeline";});
+  function hasUW(p){var e=p.eco||{};return !!(e.tirPct||e.margenPct||e.ventaEur||e.sueloEur);}
+  var uwCount=ops.filter(hasUW).length;
+  var thS="padding:5px 8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);border-bottom:2px solid var(--border);background:var(--surface2);white-space:nowrap";
+  var tdS="padding:6px 8px;font-size:11px;border-bottom:1px solid var(--border);vertical-align:middle";
+  var opsHtml="";
+  if(ops.length){
+    opsHtml="<div style=\"overflow-x:auto\"><table style=\"width:100%;border-collapse:collapse\">"+
+      "<thead><tr>"+
+      "<th style=\""+thS+";text-align:left\">Proyecto</th>"+
+      "<th style=\""+thS+"\">Estado</th>"+
+      "<th style=\""+thS+";text-align:center\">UW</th>"+
+      "<th style=\""+thS+";text-align:left\">Tipo</th>"+
+      "</tr></thead><tbody>";
+    ops.forEach(function(p){
+      var uw=hasUW(p);
+      var dot="<span style=\"display:inline-block;width:7px;height:7px;border-radius:50%;background:"+(ESTADO_DOT[p.estado]||"#aaa")+";margin-right:5px\"></span>";
+      var uwBadge=uw
+        ?"<span style=\"font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;background:#dceee2;color:#2e5c3e;border:1px solid #b6d9c2\">\u2713 UW</span>"
+        :"<span style=\"font-size:9px;padding:1px 6px;border-radius:3px;background:var(--surface2);color:var(--text3);border:1px solid var(--border)\">\u2014</span>";
+      opsHtml+="<tr style=\"cursor:pointer\" onclick=\"navigateTo('tabla',{id:"+p.id+"})\">"+
+        "<td style=\""+tdS+";font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">"+p.nombre+"</td>"+
+        "<td style=\""+tdS+";white-space:nowrap\">"+dot+p.estado+"</td>"+
+        "<td style=\""+tdS+";text-align:center\">"+uwBadge+"</td>"+
+        "<td style=\""+tdS+";font-size:10px;color:var(--text3);white-space:nowrap\">"+p.tipo+"</td>"+
+        "</tr>";
+    });
+    opsHtml+="</tbody></table></div>";
+  } else {
+    opsHtml="<div style=\"font-size:12px;color:var(--text3);padding:8px 0\">Sin proyectos en Pipeline</div>";
+  }
+
+  // ACCIONES URGENTES — tabla compacta fila única por proyecto
+  var urgList=projects.filter(function(p){return p.prioridad===1;}).sort(function(a,b){return ESTADOS.indexOf(a.estado)-ESTADOS.indexOf(b.estado);});
+  var urgHtml="";
+  if(urgList.length){
+    var thU="padding:5px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);border-bottom:2px solid var(--border);background:var(--surface2);white-space:nowrap";
+    var tdU="padding:5px 10px;font-size:11px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle";
+    urgHtml="<table style=\"width:100%;border-collapse:collapse\"><thead><tr>"+
+      "<th style=\""+thU+";text-align:left\">Proyecto</th>"+
+      "<th style=\""+thU+"\">Estado</th>"+
+      "<th style=\""+thU+";text-align:left\">Responsable</th>"+
+      "<th style=\""+thU+";text-align:left\">Próxima acción</th>"+
+      "</tr></thead><tbody>";
+    urgList.forEach(function(p){
+      var dot="<span style=\"display:inline-block;width:7px;height:7px;border-radius:50%;background:"+(ESTADO_DOT[p.estado]||"#ccc")+";margin-right:6px\"></span>";
+      urgHtml+="<tr style=\"cursor:pointer\" onclick=\"navigateTo('tabla',{id:"+p.id+"})\">"+
+        "<td style=\""+tdU+";font-weight:500\">"+p.nombre+"</td>"+
+        "<td style=\""+tdU+"\">"+dot+p.estado+"</td>"+
+        "<td style=\""+tdU+";color:var(--text2);max-width:180px;overflow:hidden;text-overflow:ellipsis\">"+p.responsable.split("/")[0].trim()+"</td>"+
+        "<td style=\""+tdU+";color:var(--text2);max-width:300px;overflow:hidden;text-overflow:ellipsis\">"+p.proxima.split(".")[0]+".</td>"+
+        "</tr>";
+    });
+    urgHtml+="</tbody></table>";
+  } else {
+    urgHtml="<div style=\"font-size:12px;color:var(--text3);padding:6px 0\">Sin proyectos de prioridad alta</div>";
+  }
+
+  return "<div class=\"dash\">"+
+    // Fila 1: 4 KPIs
+    "<div class=\"dash-row dash-row-4\">"+kpiCards+"</div>"+
+    // Fila 2: Donut + Barras bloque + Matriz
+    "<div class=\"dash-row dash-row-3\">"+
+      "<div class=\"dash-card\"><div class=\"dash-card-title\">Distribuci\u00f3n por estado</div><div class=\"donut-wrap\">"+dsvg+donutLegend+"</div></div>"+
+      "<div class=\"dash-card\"><div class=\"dash-card-title\">Proyectos por bloque</div>"+barsBloque+"</div>"+
+      "<div class=\"dash-card\"><div class=\"dash-card-title\">Matriz estado \u00d7 prioridad</div>"+matrixHtml+"</div>"+
+    "</div>"+
+    // Fila 3: Urgentes ancho completo
+    "<div class=\"dash-card\" style=\"margin-bottom:12px\"><div class=\"dash-card-title\">Acciones urgentes \u2014 Prioridad Alta</div>"+urgHtml+"</div>"+
+    // Fila 4: Estudio
+    "<div style=\"margin-top:4px\"><div style=\"font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px\">Pipeline | Estudio</div>"+renderEstudioSection()+"</div>"+
+  "</div>";
+}
+
+function renderEstudioSection() {
+  const ep=projects.filter(p=>p.bloque==='Pipeline');
+  if(!ep.length) return '<div class="dash-card" style="border:2px dashed var(--border2);background:var(--surface2);text-align:center;padding:28px;color:var(--text3)"><div style="font-size:24px;margin-bottom:8px">&#x1F4E5;</div><div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:4px">Sin proyectos en Estudio</div><div style="font-size:12px;margin-bottom:14px">Importa tu Excel desde la pestaña Económico</div><button onclick="navigateTo(\'economico\',{})" style="padding:7px 18px;font-size:12px;border-radius:var(--r);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);font-weight:500">Ir a Económico →</button></div>';
+  function fmtM(v){if(!v||v==='') return '—';const n=parseInt(String(v).replace(/\./g,'').replace(/,/g,''),10);if(isNaN(n))return v;if(n>=1000000)return fmtMiles(Math.round(n/1000000))+' M€';if(n>=1000)return fmtMiles(Math.round(n/1000))+' K€';return fmtMiles(n)+' €';}
+  function fmtPct(v,good,mid){if(!v||v==='')return '<span style="color:var(--text3)">—</span>';const n=parseFloat(v);if(isNaN(n))return v;const color=n>=good?'#2e5c3e':n>=mid?'#7a5c2e':'#8b3030';return '<span style="color:'+color+';font-weight:600">'+n.toFixed(2).replace('.',',')+' %</span>';}
+  let totVenta=0,totSuelo=0,tirSum=0,tirN=0,mgSum=0,mgN=0;
+  ep.forEach(p=>{const e=p.eco||{};const v=parseInt(String(e.ventaEur||'').replace(/\./g,''),10),s=parseInt(String(e.sueloEur||'').replace(/\./g,''),10),t=parseFloat(e.tirPct||''),m=parseFloat(e.margenPct||'');if(!isNaN(v)&&v>0)totVenta+=v;if(!isNaN(s)&&s>0)totSuelo+=s;if(!isNaN(t)&&t>0){tirSum+=t;tirN++;}if(!isNaN(m)&&m>0){mgSum+=m;mgN++;}});
+  const tirMedia=tirN>0?Math.round(tirSum/tirN*10)/10:null,mgMedia=mgN>0?Math.round(mgSum/mgN*10)/10:null;
+  const kpisHtml='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px">'+[
+    {l:'Proyectos',v:ep.length,s:'en estudio'},{l:'Venta total',v:totVenta?fmtM(String(totVenta)):'—',s:'estimado'},{l:'Suelo total',v:totSuelo?fmtM(String(totSuelo)):'—',s:'estimado'},
+    {l:'TIR media',v:tirMedia!==null?'<span style="color:'+(tirMedia>=20?'#2e5c3e':tirMedia>=15?'#2e4e6b':tirMedia>=10?'#7a5c2e':'#8b3030')+';font-weight:700">'+tirMedia.toFixed(2).replace('.',',')+' %</span>':'—',s:tirN+' proyectos'},
+    {l:'Margen medio',v:mgMedia!==null?'<span style="color:'+(mgMedia>=30?'#2e5c3e':mgMedia>=15?'#7a5c2e':'#8b3030')+';font-weight:700">'+mgMedia.toFixed(2).replace('.',',')+' %</span>':'—',s:mgN+' proyectos'},
+  ].map(k=>'<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:4px">'+k.l+'</div><div style="font-size:18px;font-weight:600;line-height:1">'+k.v+'</div><div style="font-size:10px;color:var(--text3);margin-top:3px">'+k.s+'</div></div>').join('')+'</div>';
+  const thS='padding:7px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface2)';
+  const tdS='padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle';;
+  function fmtEntrega(v){
+    if(!v||v==='') return '—';
+    // "02 ene 2028" → "ene 2028"
+    var parts = v.trim().split(' ');
+    if(parts.length===3) return parts[1]+' '+parts[2];
+    return v;
+  }
+  const EDOT={'Due diligence':'#9b8abf','En análisis':'#7a9cbf','Recibido':'#c9c7c0','Descartado':'#c8b89a','Cerrado':'#bf7a7a'};
+  function hasUWe(p){const e=p.eco||{};return !!(e.tirPct||e.margenPct||e.ventaEur||e.sueloEur);}
+  const tableRows=ep.map((p,i)=>{
+    const e=p.eco||{},bg=i%2===0?'':'background:var(--surface2)';
+    const dot='<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+(EDOT[p.estado]||'#aaa')+';margin-right:5px"></span>';
+    const uwBadge=hasUWe(p)
+      ?'<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:#dceee2;color:#2e5c3e;border:1px solid #b6d9c2">✓ UW</span>'
+      :'<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:var(--surface2);color:var(--text3);border:1px solid var(--border)">—</span>';
+    return '<tr style="'+bg+';cursor:pointer" onclick="navigateTo(\'tabla\',{id:'+p.id+'})">'
+      +'<td style="'+tdS+';font-weight:500">'+pillP(p.prioridad)+' '+p.nombre+'</td>'
+      +'<td style="'+tdS+'">'+dot+p.estado+'</td>'
+      +'<td style="'+tdS+';text-align:center">'+uwBadge+'</td>'
+      +'<td style="'+tdS+';color:var(--text2)">'+p.tipo+'</td>'
+      +'<td style="'+tdS+';text-align:right">'+fmtM(e.ventaEur)+'</td>'
+      +'<td style="'+tdS+';text-align:right">'+fmtM(e.sueloEur)+'</td>'
+      +'<td style="'+tdS+';text-align:right">'+fmtM(e.construccionEur)+'</td>'
+      +'<td style="'+tdS+';text-align:right">'+fmtPct(e.margenPct,30,15)+'</td>'
+      +'<td style="'+tdS+';text-align:right">'+fmtPct(e.tirPct,20,15)+'</td>'
+      +'<td style="'+tdS+';text-align:right;padding-right:24px;color:var(--text2)">'+fmtEntrega(e.fechaEntrega)+'</td>'
+      +'</tr>';
+  }).join('');
+  return '<div class="dash-card" style="padding:0;overflow:hidden">'
+    +'<div style="padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">'+ep.length+' proyectos</span><button onclick="navigateTo(\'economico\',{})" style="font-size:11px;padding:4px 12px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:500">Ver tabla completa →</button></div>'
+    +'<div style="padding:14px 18px 4px">'+kpisHtml+'</div>'
+    +'<div style="overflow-x:auto;padding:0 4px 0 0"><table style="width:100%;border-collapse:collapse"><thead><tr>'
+    +'<th style="'+thS+';text-align:left">Proyecto</th>'
+    +'<th style="'+thS+'">Estado</th>'
+    +'<th style="'+thS+';text-align:center">UW</th>'
+    +'<th style="'+thS+';text-align:left">Tipo</th>'
+    +'<th style="'+thS+';text-align:right">Venta €</th>'
+    +'<th style="'+thS+';text-align:right">Suelo €</th>'
+    +'<th style="'+thS+';text-align:right">Constr. €</th>'
+    +'<th style="'+thS+';text-align:right">Margen %</th>'
+    +'<th style="'+thS+';text-align:right">TIR %</th>'
+    +'<th style="'+thS+';text-align:right;padding-right:24px">Entrega</th>'
+    +'</tr></thead><tbody>'+tableRows+'</tbody></table></div></div>';
+}
+
+function navigateTo(view, filters) {
+  S.view=view;
+  if(filters && filters.prio) S.fPrio=String(filters.prio);
+  if(filters && filters.estado) S.fEstado=filters.estado;
+  if(filters && filters.bloque) S.fBloque=filters.bloque;
+  if(filters && filters.id){S.selId=filters.id;S.fBloque='';S.fEstado='';S.fPrio='';}
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.view===view));
+  render();
+  if(filters && filters.id) setTimeout(()=>{const row=document.querySelector('tr[data-id="'+filters.id+'"]');if(row)row.scrollIntoView({behavior:'smooth',block:'center'});},100);
+}
+
+// Matrix cell click delegation
+document.addEventListener('click', function(e) {
+  const cell = e.target.closest('.mx-cell');
+  if(!cell) return;
+  const estado = decodeURIComponent(cell.dataset.estado || '');
+  const prio = cell.dataset.prio || '';
+  if(estado) navigateTo('tabla', {estado: estado, prio: prio});
+});
+
+
+// ─── RESUMEN ──────────────────────────────────────────────────
+function renderResumen() {
+  const fecha=document.getElementById('fecha-hoy').textContent;
+  const hr='─'.repeat(58),dbl='═'.repeat(58);
+  const alta=projects.filter(p=>p.prioridad===1),activos=projects.filter(p=>!['Descartado','Cerrado'].includes(p.estado));
+  let txt='ACCIONA REAL ESTATE — RESUMEN DE PORTFOLIO\n'+fecha+'\n'+dbl+'\n\nSITUACIÓN GENERAL\n';
+  txt+='  Total proyectos : '+projects.length+'\n  Activos          : '+activos.length+'\n  Prioridad Alta   : '+alta.length+'\n\n';
+  BLOQUES_ORDER.forEach(b=>{const bp=projects.filter(p=>p.bloque===b);if(!bp.length)return;txt+=hr+'\n'+b.toUpperCase()+' ('+bp.length+')\n\n';bp.forEach(p=>{txt+='▸ '+p.nombre+'\n  '+p.estado+'  ·  '+['','Alta','Media','Baja'][p.prioridad]+'\n  → '+p.proxima+'\n\n';});});
+  txt+=dbl+'\nFin · Acciona RE · '+fecha+'\n';
+  const copyBtn='<button onclick="copyResumen()" style="padding:7px 16px;font-size:12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--accent);color:white;cursor:pointer;font-family:var(--font);font-weight:500">📋 Copiar</button>';
+  return renderKPIs()+'<div class="view-panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><h2 style="margin:0">Resumen ejecutivo</h2>'+copyBtn+'</div><pre class="view-pre" id="resumen-text">'+txt+'</pre></div>';
+}
+function copyResumen(){const el=document.getElementById('resumen-text');if(!el)return;navigator.clipboard.writeText(el.textContent).then(()=>{const btn=event.target,orig=btn.textContent;btn.textContent='✓ Copiado';setTimeout(()=>btn.textContent=orig,2000);}).catch(()=>{const r=document.createRange();r.selectNode(el);window.getSelection().removeAllRanges();window.getSelection().addRange(r);document.execCommand('copy');window.getSelection().removeAllRanges();});}
+
+// ─── AI ───────────────────────────────────────────────────────
+let aiHist=[];
+function addMsg(role,text){const msgs=document.getElementById('ai-msgs');if(!msgs)return;const el=document.createElement('div');el.className='msg msg-'+role;el.textContent=text;msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;return el;}
+function setHint(t){document.getElementById('ai-input').value=t;document.getElementById('ai-input').focus();}
+async function sendAI(){
+  const input=document.getElementById('ai-input'),btn=document.getElementById('ai-btn');
+  const text=input.value.trim();if(!text)return;
+  input.value='';btn.disabled=true;
+  addMsg('user',text);
+  const thinking=addMsg('ai','Procesando…');if(thinking)thinking.classList.add('msg-thinking');
+  const pj=JSON.stringify(projects.map(p=>({id:p.id,nombre:p.nombre,bloque:p.bloque,estado:p.estado,prioridad:p.prioridad,tipo:p.tipo,contraparte:p.contraparte,avance:p.avance,proxima:p.proxima,responsable:p.responsable,notas:p.notas})));
+  const sys='Eres el asistente de gestión inmobiliaria de Acciona. PORTFOLIO: '+pj+'\nEstados: Recibido, En análisis, Negociación, Due diligence, En cierre, Activo, Descartado, Cerrado. Bloques: Desinversión, Pipeline, Pipeline, Desarrollo / Operación, Clientes / Gestión, Postventa. Responde SIEMPRE JSON: {"accion":"actualizar","cambios":[{"id":N,"campo":"x","valor_nuevo":"x"}],"resumen":"x"} o {"accion":"consulta","respuesta":"x"}';
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[...aiHist,{role:'user',content:text}]})});
+    const data=await resp.json();
+    const raw=(data.content||[]).map(c=>c.text||'').join('');
+    let parsed;try{parsed=JSON.parse(raw.replace(/`{3}json|`{3}/g,'').trim());}catch(e){if(thinking){thinking.textContent=raw;thinking.classList.remove('msg-thinking');}btn.disabled=false;return;}
+    aiHist.push({role:'user',content:text},{role:'assistant',content:raw});
+    if(aiHist.length>12)aiHist=aiHist.slice(-12);
+    if(thinking)thinking.classList.remove('msg-thinking');
+    if(parsed.accion==='actualizar'){parsed.cambios.forEach(c=>{const p=projects.find(x=>x.id===c.id);if(p&&c.campo in p)p[c.campo]=c.campo==='prioridad'?parseInt(c.valor_nuevo):c.valor_nuevo;});persist();if(thinking)thinking.textContent='✓ '+parsed.resumen;render();}
+    else if(thinking)thinking.textContent=parsed.respuesta||raw;
+  }catch(e){if(thinking){thinking.textContent='Error al conectar.';thinking.classList.remove('msg-thinking');}};
+  btn.disabled=false;
+}
+document.addEventListener('DOMContentLoaded',()=>{const ai=document.getElementById('ai-input');if(ai)ai.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI();}});});
+
+// ─── MODAL ────────────────────────────────────────────────────
+function openModal(){['m-nombre','m-tipo','m-contraparte','m-responsable','m-avance','m-proxima','m-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const b=document.getElementById('m-bloque');if(b)b.value='';const e=document.getElementById('m-estado');if(e)e.value='Recibido';const pr=document.getElementById('m-prioridad');if(pr)pr.value='2';const errEl=document.getElementById('m-error');if(errEl)errEl.style.display='none';const mo=document.getElementById('modal-overlay');if(mo)mo.classList.add('open');setTimeout(()=>{const n=document.getElementById('m-nombre');if(n)n.focus();},50);}
+function closeModal(){const mo=document.getElementById('modal-overlay');if(mo)mo.classList.remove('open');}
+function addProject(){
+  const nombre=document.getElementById('m-nombre').value.trim(),bloque=document.getElementById('m-bloque').value,errEl=document.getElementById('m-error');
+  if(!nombre){errEl.textContent='Nombre obligatorio';errEl.style.display='block';document.getElementById('m-nombre').focus();return;}
+  if(!bloque){errEl.textContent='Selecciona un bloque';errEl.style.display='block';document.getElementById('m-bloque').focus();return;}
+  errEl.style.display='none';
+  const maxId=projects.reduce((m,p)=>Math.max(m,p.id),0);
+  const isOps=bloque==='Pipeline'||bloque==='Pipeline';
+  const np={id:maxId+1,nombre,bloque,estado:document.getElementById('m-estado').value,prioridad:parseInt(document.getElementById('m-prioridad').value),tipo:document.getElementById('m-tipo').value.trim()||'—',contraparte:document.getElementById('m-contraparte').value.trim()||'—',avance:document.getElementById('m-avance').value.trim()||'—',proxima:document.getElementById('m-proxima').value.trim()||'—',responsable:document.getElementById('m-responsable').value.trim()||'—',notas:document.getElementById('m-notas').value.trim(),ubicacion:'',acciones:[],mapUrl:'',imgData:'',...(isOps?{edificabilidad:'',nViviendas:'',eco:{sueloEur:'',sueloEurM2:'',ventaEur:'',ventaEurM2:'',construccionEur:'',construccionEurM2:'',plazoMeses:'',fechaEntrega:'',tirPct:'',tirAlqPct:'',margenEur:'',margenPct:'',noi:'',yieldPct:'',costoTotal:''}}:{})};
+  projects.push(np);persist();closeModal();S.selId=np.id;S.fBloque='';S.fEstado='';S.fSearch='';render();
+  setTimeout(()=>{const row=document.querySelector('tr[data-id="'+np.id+'"]');if(row)row.scrollIntoView({behavior:'smooth',block:'center'});},100);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+// ─── EXPORT EXCEL ─────────────────────────────────────────────
+function exportToExcel(){
+  const fecha=document.getElementById('fecha-hoy').textContent;
+  function x(v){if(v===null||v===undefined)return '';return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  let rows='<row r="1" ht="28" customHeight="1"><c r="A1" t="inlineStr"><is><t>ACCIONA REAL ESTATE — Portfolio · '+x(fecha)+'</t></is></c></row>';
+  rows+='<row r="2" ht="22" customHeight="1">'+['ID','Proyecto','Bloque','Estado','Prioridad','Tipo','Contraparte','Responsable','Avance','Próxima acción'].map((h,i)=>'<c r="'+String.fromCharCode(65+i)+'2" t="inlineStr"><is><t>'+x(h)+'</t></is></c>').join('')+'</row>';
+  let rowNum=3,lastBloque=null;
+  [...projects].sort((a,b)=>BLOQUES_ORDER.indexOf(a.bloque)-BLOQUES_ORDER.indexOf(b.bloque)).forEach(p=>{
+    if(p.bloque!==lastBloque){rows+='<row r="'+rowNum+'"><c r="A'+rowNum+'" t="inlineStr"><is><t>  '+x(p.bloque.toUpperCase())+'</t></is></c></row>';lastBloque=p.bloque;rowNum++;}
+    rows+='<row r="'+rowNum+'"><c r="A'+rowNum+'" t="n"><v>'+p.id+'</v></c><c r="B'+rowNum+'" t="inlineStr"><is><t>'+x(p.nombre)+'</t></is></c><c r="C'+rowNum+'" t="inlineStr"><is><t>'+x(p.bloque)+'</t></is></c><c r="D'+rowNum+'" t="inlineStr"><is><t>'+x(p.estado)+'</t></is></c><c r="E'+rowNum+'" t="inlineStr"><is><t>'+x(['','Alta','Media','Baja'][p.prioridad])+'</t></is></c><c r="F'+rowNum+'" t="inlineStr"><is><t>'+x(p.tipo)+'</t></is></c><c r="G'+rowNum+'" t="inlineStr"><is><t>'+x(p.contraparte||'')+'</t></is></c><c r="H'+rowNum+'" t="inlineStr"><is><t>'+x(p.responsable)+'</t></is></c><c r="I'+rowNum+'" t="inlineStr"><is><t>'+x(p.avance)+'</t></is></c><c r="J'+rowNum+'" t="inlineStr"><is><t>'+x(p.proxima)+'</t></is></c></row>';rowNum++;});
+  const ws='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'+rows+'</sheetData></worksheet>';
+  const wb='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Portfolio" sheetId="1" r:id="rId1"/></sheets></workbook>';
+  const wbR='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>';
+  const rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+  const ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>';
+  if(typeof JSZip==='undefined'){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=()=>buildXlsx({ct,rels,wb,wbR,ws,fecha});document.head.appendChild(s);}else buildXlsx({ct,rels,wb,wbR,ws,fecha});
+}
+async function buildXlsx({ct,rels,wb,wbR,ws,fecha}){const zip=new JSZip();zip.file('[Content_Types].xml',ct);zip.file('_rels/.rels',rels);zip.file('xl/workbook.xml',wb);zip.file('xl/_rels/workbook.xml.rels',wbR);zip.file('xl/worksheets/sheet1.xml',ws);const blob=await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Acciona_RE_Portfolio_'+fecha.replace(/ /g,'_')+'.xlsx';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+
+// ─── IMPORT EXCEL ─────────────────────────────────────────────
+function importExcelEstudio(input){const file=input.files[0];if(!file)return;if(typeof XLSX==='undefined'){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=()=>readExcelFile(file);document.head.appendChild(s);}else readExcelFile(file);input.value='';}
+function readExcelFile(file){const reader=new FileReader();reader.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});const sn=wb.SheetNames.find(n=>n.toLowerCase()==='resumen')||wb.SheetNames[0];if(!sn){alert('No se encontró hoja Resumen');return;}const data=XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:'',range:5});if(!data.length||!Object.prototype.hasOwnProperty.call(data[0],'SlideKey')){alert('Columna SlideKey no encontrada. Columnas: '+Object.keys(data[0]||{}).join(', '));return;}function cl(v){return(!v&&v!==0)?'':String(v).trim();}function cn(v){if(!v&&v!==0)return '';const n=parseFloat(String(v).replace(/[^\d.,-]/g,'').replace(',','.'));return isNaN(n)?'':String(Math.round(n));}function cp(v){if(!v&&v!==0)return '';const s=String(v),n=parseFloat(s.replace('%','').replace(',','.'));if(isNaN(n))return '';return(n<1&&!s.includes('%')?n*100:n).toFixed(2).replace('.',',');}function cd(v){if(!v)return '';if(v instanceof Date)return v.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});return cl(v);}const maxId=projects.reduce((m,p)=>Math.max(m,p.id),0);let nid=maxId+1;const np=data.filter(r=>cl(r['SlideKey'])).map((r,i)=>({id:nid+i,nombre:cl(r['SlideKey']),bloque:'Pipeline',estado:'En análisis',prioridad:2,tipo:cl(r['Tipo'])||'—',contraparte:'—',responsable:'—',avance:'—',proxima:'—',notas:'',mapUrl:'',imgData:'',ubicacion:'',acciones:[],edificabilidad:cn(r['Edificabilidad N']),nViviendas:cn(r['Unidades N']),eco:{sueloN:cn(r['Suelo N']),sueloEur:cn(r['Suelo €']),sueloEurM2:cn(r['Suelo €/m2']),construccionEur:cn(r['Construcción €']),construccionEurM2:cn(r['Equivalente €/m2']),urbEur:cn(r['Urb. €']),urbEurM2:cn(r['Urb. €/m2']),costeCocinas:cn(r['Coste Cocinas €']),otrosHonorarios:cn(r['Otros Honorarios €']),costoTotal:cn(r['Coste Total €']),ventaEur:cn(r['Venta Total €']),ventaVivEur:cn(r['Venta Viv. €']),ventaEurM2:cn(r['Venta €/m2']),ventaUnidadEur:cn(r['Venta Unidad Viv. €']),noi:cn(r['NOI €']),yieldPct:cp(r['Yield %']),margenEur:cn(r['Margen €']),margenPct:cp(r['Margen %']),tirPct:cp(r['TIR %']),tirAlqPct:cp(r['TIR s/Alq. %']),tirDiPct:cp(r['TIR DI %']),rentasEur:cn(r['Rentas €']),ventasAlqEur:cn(r['Ventas s/ Alq. €']),margenAlqEur:cn(r['Margen s/ Alq. €']),margenAlqPct:cp(r['Margen s/ Alq. %']),inicioProy:cd(r['Inicio Proy. FF']),inicioObras:cd(r['Inicio Obras FF']),fechaEntrega:cd(r['1ª Ocupación FF']),plazoMeses:cn(r['Plazo Obras N']),licenciaN:cn(r['Licencia N']),parkingN:cn(r['Parking N']),comisionSueloPct:cp(r['Comisión Suelo %']),publicidadPct:cp(r['Publicidad %']),feeComercialPct:cp(r['Fee Comercial %']),postventaPct:cp(r['Postventa %']),pago1FF:cd(r['Pago 1 FF']),pago1Pct:cp(r['Pago 1 %']),pago2FF:cd(r['Pago 2 FF']),pago2Pct:cp(r['Pago 2 %']),pago3FF:cd(r['Pago 3 FF']),pago3Pct:cp(r['Pago 3 %']),formaPago:cl(r['Forma Pago']),archivo:cl(r['Archivo'])}}));if(!np.length){alert('Sin datos en SlideKey');return;}// Importación aditiva
+      np.forEach(function(newP){const existing=projects.find(p=>p.nombre===newP.nombre&&p.bloque==='Pipeline');if(existing){existing.eco=newP.eco;existing.edificabilidad=newP.edificabilidad;existing.nViviendas=newP.nViviendas;if(existing.tipo==='—')existing.tipo=newP.tipo;}else{projects.push(newP);}});
+      localStorage.setItem('acciona_last_import',String(Date.now()));persist();alert('\u2705 Importaci\u00f3n completada\n\n\u2022 '+np.length+' proyectos procesados\n\u2022 Datos econ\u00f3micos actualizados\n\u2022 Estado y seguimiento conservados');render();}catch(err){console.error(err);alert('Error: '+err.message);}};reader.readAsArrayBuffer(file);}
+
+// ─── LOGIN ─────────────────────────────────────────────────────
+function simpleHash(str){let h=0;for(let i=0;i<str.length;i++){h=Math.imul(31,h)+str.charCodeAt(i)|0;}return Math.abs(h).toString(16).padStart(8,'0');}
+const PWD_CHECK=(function(){return simpleHash(['Acciona','DN','!'].join(''));})();
+
+function checkLogin(){
+  const val=document.getElementById('login-pwd').value,errEl=document.getElementById('login-error');
+  if(simpleHash(val)===PWD_CHECK){
+    try{sessionStorage.setItem('acciona_auth','1');}catch(e){}
+    document.getElementById('login-overlay').classList.add('hidden');
+    errEl.textContent='';
+  } else {
+    errEl.textContent='Contraseña incorrecta';
+    const input=document.getElementById('login-pwd');
+    input.value='';input.focus();
+    const box=document.querySelector('.login-box');
+    if(box){box.style.transform='translateX(-8px)';setTimeout(()=>box.style.transform='translateX(8px)',80);setTimeout(()=>box.style.transform='translateX(-4px)',160);setTimeout(()=>box.style.transform='translateX(0)',240);}
+  }
+}
+
+function checkSession(){
+  try{if(sessionStorage.getItem('acciona_auth')==='1'){document.getElementById('login-overlay').classList.add('hidden');return true;}}catch(e){}
+  setTimeout(()=>{const el=document.getElementById('login-pwd');if(el)el.focus();},100);
+  return false;
+}
+
+// ── PRIVACY MODE ──
+let privacyMode = false;
+function togglePrivacy(){
+  privacyMode = !privacyMode;
+  const btn=document.getElementById('privacy-btn');
+  if(btn) btn.textContent = privacyMode ? '🔓 Mostrar' : '👁 Privado';
+  if(btn) btn.style.background = privacyMode ? 'rgba(255,165,0,0.3)' : 'transparent';
+  render();
+}
+
+function maskVal(val){
+  if(!privacyMode) return val;
+  return '<span style="filter:blur(5px);user-select:none;display:inline-block">'+val+'</span>';
+}
+
+document.addEventListener('DOMContentLoaded',()=>{const pwd=document.getElementById('login-pwd');if(pwd)pwd.addEventListener('keydown',e=>{if(e.key==='Enter')checkLogin();});});
+
+// ─── SEND EMAIL REPORT ────────────────────────────────────────
+function sendEmailReport(){
+  const fecha=document.getElementById('fecha-hoy').textContent;
+  const subject=encodeURIComponent('Acciona RE — Portfolio '+fecha);
+  const body=encodeURIComponent('Hola,\n\nAdjunto el informe de portfolio de Acciona Real Estate a fecha '+fecha+'.\n\nSaludos');
+  window.location.href='mailto:?subject='+subject+'&body='+body;
+}
+
+// ─── INIT ──────────────────────────────────────────────────────
+document.getElementById('fecha-hoy').textContent=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+loadPersisted();
+loadBloques();
+migrateBloquesLegacy();
+projects.forEach(p=>migrateAcciones(p));
+checkSession();
+addMsg('system','Gestor listo · '+projects.length+' proyectos · Sincronizando con la nube...');
+render();
+// Load from Supabase (overrides localStorage with latest cloud data)
+loadFromSupabase();
+</script>
+</body>
+</html>
