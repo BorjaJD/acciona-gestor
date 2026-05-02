@@ -192,6 +192,34 @@
   body.privacy-on .private-val{font-size:0!important;user-select:none}
   body.privacy-on .private-val *{font-size:0!important}
   body.privacy-on .private-val::after{content:'––';font-size:12px;color:var(--text3);font-weight:400}
+
+  /* ── RESPONSIVE MÓVIL ───────────────────────────────────── */
+  @media (max-width: 768px) {
+    body{overflow:auto}
+    .app-body{flex-direction:column;overflow:auto;height:auto}
+    .main-area{overflow:visible;min-height:0;height:auto}
+    .sidebar{display:none!important}
+    .topbar{display:none!important}
+    .kpi-bar{display:grid;grid-template-columns:1fr 1fr;gap:1px}
+    .kpi-cell{padding:8px 12px}
+    .kpi-value{font-size:18px}
+    .filters-bar{flex-wrap:wrap;gap:6px}
+    .filters-bar input{width:100%!important}
+    .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .detail-panel{max-height:none;overflow:visible}
+    .dash{padding:10px}
+    .ds-sheet{margin:8px;width:calc(100% - 16px)}
+    .ds-toolbar{flex-wrap:wrap;gap:6px;padding:8px 10px}
+    .ds-selector{width:100%;min-width:0}
+    .eco-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .ubic-inner{padding:8px}
+    .view-panel{padding:10px}
+  }
+  @media (max-width: 480px) {
+    .kpi-bar{grid-template-columns:1fr}
+    .ds-body-grid{grid-template-columns:1fr!important}
+    .ds-body-grid > div{border-right:none!important;border-bottom:1px solid #eee}
+  }
   .ds-toolbar{padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
   .ds-selector{font-size:13px;padding:7px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;min-width:280px}
   .ds-selector:focus{border-color:var(--accent)}
@@ -481,9 +509,17 @@
   <div class="main-area" id="main"></div>
   <div class="sidebar" id="ai-sidebar">
     <div class="ai-header" style="cursor:pointer" onclick="toggleSidebar()">
-      <div class="ai-dot"></div>
-      <div style="flex:1"><div class="ai-title">Asistente IA</div><div class="ai-sub">Actualiza proyectos en lenguaje natural</div></div>
+      <div class="ai-dot" id="ai-dot"></div>
+      <div style="flex:1"><div class="ai-title">Asistente IA</div><div class="ai-sub" id="ai-sub">Añade tu API key para activar</div></div>
       <button id="sidebar-toggle-btn" onclick="event.stopPropagation();toggleSidebar()" style="background:none;border:1px solid var(--border2);border-radius:4px;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 7px;font-family:var(--font);line-height:1.4;flex-shrink:0" title="Colapsar panel">◀</button>
+    </div>
+    <div id="ai-key-panel" style="padding:10px 12px;border-bottom:1px solid var(--border);background:var(--surface2)">
+      <div style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Anthropic API Key</div>
+      <div style="display:flex;gap:6px">
+        <input id="ai-key-input" type="password" placeholder="sk-ant-…" style="flex:1;font-size:11px;padding:5px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-family:var(--font);outline:none" oninput="saveApiKey(this.value)"/>
+        <button onclick="toggleKeyVisibility()" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);cursor:pointer;font-family:var(--font);color:var(--text2)" title="Mostrar/ocultar">👁</button>
+      </div>
+      <div style="font-size:9px;color:var(--text3);margin-top:4px">Se guarda solo en tu navegador. Nunca se envía a ningún servidor externo salvo Anthropic.</div>
     </div>
     <div class="ai-msgs" id="ai-msgs"></div>
     <div class="ai-input-area">
@@ -1843,8 +1879,96 @@ function goToProject(id) {
   setTimeout(()=>{ const btn=document.querySelector('.eco-toggle'); if(btn) btn.click(); },300);
 }
 
+function isMobile() {
+  return (window.innerWidth || document.documentElement.clientWidth || screen.width) <= 768;
+}
+
+function renderMobile() {
+  const activos = projects.filter(p=>!['Descartado','Cerrado'].includes(p.estado));
+  const alta = projects.filter(p=>p.prioridad===1);
+  const ESTADO_COLOR2={'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae','Descartado':'#c8cfc9','Cerrado':'#e0e0e0'};
+
+  const q = S.fSearch.toLowerCase();
+  const filtered = projects.filter(p=>
+    (!q || p.nombre.toLowerCase().includes(q) || p.tipo.toLowerCase().includes(q))
+    && (!S.fBloque || p.bloque===S.fBloque)
+    && (!S.fEstado || p.estado===S.fEstado)
+    && (!S.fPrio || String(p.prioridad)===S.fPrio)
+  );
+
+  // Mobile header
+  let html = '<div style="background:#1a3a2a;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100">'
+    +'<div style="display:flex;align-items:center;gap:8px">'
+    +'<svg width="18" height="18" viewBox="0 0 18 18"><polygon points="0,15 4.5,3 9,15" fill="white" opacity=".9"/></svg>'
+    +'<span style="font-size:14px;font-weight:700;color:white;letter-spacing:.5px">ACCIONA</span>'
+    +'</div>'
+    +'<div style="display:flex;gap:4px">'
+    +'<button onclick="S.fEstado=\'\';S.fBloque=\'\';S.fSearch=\'\';render()" style="font-size:11px;padding:5px 10px;border-radius:6px;border:none;background:rgba(255,255,255,0.15);color:white;cursor:pointer">Todos</button>'
+    +'<button onclick="S.fPrio=S.fPrio===\'1\'?\'\':\'1\';render()" style="font-size:11px;padding:5px 10px;border-radius:6px;border:none;background:'+(S.fPrio==='1'?'rgba(242,139,130,0.9)':'rgba(255,255,255,0.15)')+';color:white;cursor:pointer">🔴 Alta</button>'
+    +'</div>'
+    +'</div>';
+
+  html += '<div style="padding:10px;background:var(--bg);min-height:calc(100vh - 50px)">';
+
+  // Search + filter
+  html += '<div style="display:flex;gap:8px;margin-bottom:10px">'
+    +'<input type="text" placeholder="🔍 Buscar proyecto…" value="'+S.fSearch+'" oninput="S.fSearch=this.value;render()" '
+    +'style="flex:1;padding:10px 12px;border-radius:10px;border:1px solid var(--border2);background:var(--surface);font-size:14px;font-family:var(--font);outline:none;-webkit-appearance:none"/>'
+    +'<select onchange="S.fEstado=this.value;render()" style="padding:8px 10px;border-radius:10px;border:1px solid var(--border2);background:var(--surface);font-size:13px;font-family:var(--font);-webkit-appearance:none;outline:none">'
+    +'<option value="">Todo</option>'+['WIP','Due diligence','En análisis','Recibido','Stand By'].map(e=>'<option value="'+e+'"'+(S.fEstado===e?' selected':'')+'>'+e+'</option>').join('')
+    +'</select></div>';
+
+  // KPI strip
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">'
+    +[['Total',projects.length,'proyectos'],['Activos',activos.length,'activos'],['Alta',alta.length,'prioridad']]
+    .map(([l,v,s])=>'<div style="background:var(--surface);border-radius:10px;padding:10px 12px;box-shadow:0 1px 4px rgba(0,0,0,0.07);text-align:center">'
+      +'<div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:2px">'+l+'</div>'
+      +'<div style="font-size:22px;font-weight:700;color:#1a3a2a;line-height:1">'+v+'</div>'
+      +'<div style="font-size:10px;color:var(--text3)">'+s+'</div>'
+      +'</div>').join('')
+    +'</div>';
+
+  // Projects by bloque
+  BLOQUES_ORDER.forEach(b => {
+    const bp = filtered.filter(p=>p.bloque===b);
+    if(!bp.length) return;
+    html += '<div style="margin-bottom:16px">'
+      +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#1a3a2a;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #1a3a2a">'+b+' <span style="color:var(--text3);font-weight:400">('+bp.length+')</span></div>'
+      +'<div style="display:flex;flex-direction:column;gap:8px">';
+    bp.forEach(p => {
+      const dot = ESTADO_COLOR2[p.estado]||'#aaa';
+      const prioColor = p.prioridad===1?'#f28b82':p.prioridad===2?'#fdd580':'#81c995';
+      const acc = Array.isArray(p.acciones)?p.acciones.filter(a=>!a.d):[];
+      const firstAcc = acc.length ? acc[0].t : (p.proxima&&p.proxima!=='—'?p.proxima:'');
+      html += '<div style="background:var(--surface);border-radius:12px;padding:13px 14px;box-shadow:0 1px 6px rgba(0,0,0,0.07);border-left:4px solid '+dot+';active:opacity:.7">'
+        +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;gap:8px">'
+        +'<span style="font-size:14px;font-weight:600;color:var(--text);line-height:1.3">'+p.nombre+'</span>'
+        +'<span style="width:10px;height:10px;border-radius:50%;background:'+prioColor+';flex-shrink:0;margin-top:3px;display:inline-block"></span>'
+        +'</div>'
+        +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:'+(firstAcc?'7':'0')+'px">'
+        +'<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+dot+';color:white">'+p.estado+'</span>'
+        +(p.tipo?'<span style="font-size:11px;color:var(--text2)">'+p.tipo+'</span>':'')
+        +(p.ubicacion?'<span style="font-size:11px;color:var(--text3)">'+p.ubicacion+'</span>':'')
+        +'</div>'
+        +(firstAcc?'<div style="font-size:11px;color:var(--text2);border-top:1px solid var(--border);padding-top:7px;line-height:1.4">→ '+firstAcc.substring(0,90)+(firstAcc.length>90?'…':'')+'</div>':'')
+        +'</div>';
+    });
+    html += '</div></div>';
+  });
+
+  if(!filtered.length) html += '<div style="text-align:center;padding:48px 20px;color:var(--text3)"><div style="font-size:32px;margin-bottom:10px">🔍</div><div style="font-size:14px">Sin resultados</div></div>';
+
+  html += '</div>';
+  return html;
+}
+
 function render() {
   const m = document.getElementById('main');
+  // Mobile gets simplified view (except when viewing a project detail)
+  if(isMobile() && S.view!=='dealsheet') {
+    m.innerHTML = renderMobile();
+    return;
+  }
   const focused = document.activeElement;
   const detailHasFocus = focused && focused.closest && focused.closest('.detail-panel');
   if(S.view==='dashboard') {
@@ -2152,7 +2276,7 @@ function renderDealSheet() {
     +'</div></div></div>'
 
     // ── BODY 3 COLS ──────────────────────────────────────────
-    +'<div style="display:grid;grid-template-columns:200px 1fr 1fr;gap:0;min-height:520px">'
+    +'<div class="ds-body-grid" style="display:grid;grid-template-columns:200px 1fr 1fr;gap:0;min-height:520px">'
 
     // COL 1 — Mapa + texto superior
     +'<div style="padding:16px 14px;border-right:1px solid #e8e8e0;background:linear-gradient(180deg,#f5f4f0 0%,#fafaf8 100%);display:flex;flex-direction:column;gap:10px;box-shadow:inset -3px 0 8px rgba(0,0,0,0.03)">'
@@ -2664,18 +2788,61 @@ function copyResumenExec(){
 
 // ─── AI ───────────────────────────────────────────────────────
 let aiHist=[];
+
+const AI_KEY_STORE = 'acciona_ai_key';
+
+function getApiKey() {
+  return localStorage.getItem(AI_KEY_STORE)||'';
+}
+
+function saveApiKey(val) {
+  localStorage.setItem(AI_KEY_STORE, val.trim());
+  updateAiStatus();
+}
+
+function toggleKeyVisibility() {
+  const inp = document.getElementById('ai-key-input');
+  if(inp) inp.type = inp.type==='password'?'text':'password';
+}
+
+function updateAiStatus() {
+  const key = getApiKey();
+  const dot = document.getElementById('ai-dot');
+  const sub = document.getElementById('ai-sub');
+  if(dot) dot.style.background = key ? '#22c55e' : '#f59e0b';
+  if(sub) sub.textContent = key ? 'Listo · Claude Sonnet' : 'Añade tu API key para activar';
+}
+
+function initAiKey() {
+  const stored = getApiKey();
+  const inp = document.getElementById('ai-key-input');
+  if(inp && stored) inp.value = stored;
+  updateAiStatus();
+}
+
 function addMsg(role,text){const msgs=document.getElementById('ai-msgs');if(!msgs)return;const el=document.createElement('div');el.className='msg msg-'+role;el.textContent=text;msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;return el;}
 function setHint(t){document.getElementById('ai-input').value=t;document.getElementById('ai-input').focus();}
 async function sendAI(){
   const input=document.getElementById('ai-input'),btn=document.getElementById('ai-btn');
   const text=input.value.trim();if(!text)return;
+  const apiKey=getApiKey();
+  if(!apiKey){
+    addMsg('ai','⚠️ Añade tu API key de Anthropic en el campo de arriba. La encuentras en console.anthropic.com → API Keys.');
+    return;
+  }
   input.value='';btn.disabled=true;
   addMsg('user',text);
   const thinking=addMsg('ai','Procesando…');if(thinking)thinking.classList.add('msg-thinking');
   const pj=JSON.stringify(projects.map(p=>({id:p.id,nombre:p.nombre,bloque:p.bloque,estado:p.estado,prioridad:p.prioridad,tipo:p.tipo,contraparte:p.contraparte,avance:p.avance,proxima:p.proxima,responsable:p.responsable,notas:p.notas})));
   const sys='Eres el asistente de gestión inmobiliaria de Acciona. PORTFOLIO: '+pj+'\nEstados: Recibido, En análisis, Negociación, Due diligence, En cierre, Activo, Descartado, Cerrado. Bloques: Desinversión, Pipeline, Pipeline, Desarrollo / Operación, Clientes / Gestión, Postventa. Responde SIEMPRE JSON: {"accion":"actualizar","cambios":[{"id":N,"campo":"x","valor_nuevo":"x"}],"resumen":"x"} o {"accion":"consulta","respuesta":"x"}';
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[...aiHist,{role:'user',content:text}]})});
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[...aiHist,{role:'user',content:text}]})
+    });
+    if(resp.status===401){if(thinking){thinking.textContent='⚠️ API key incorrecta. Compruébala en console.anthropic.com';thinking.classList.remove('msg-thinking');}btn.disabled=false;return;}
+    if(!resp.ok){if(thinking){thinking.textContent='Error '+resp.status+': '+resp.statusText;thinking.classList.remove('msg-thinking');}btn.disabled=false;return;}
     const data=await resp.json();
     const raw=(data.content||[]).map(c=>c.text||'').join('');
     let parsed;try{parsed=JSON.parse(raw.replace(/`{3}json|`{3}/g,'').trim());}catch(e){if(thinking){thinking.textContent=raw;thinking.classList.remove('msg-thinking');}btn.disabled=false;return;}
@@ -2684,7 +2851,7 @@ async function sendAI(){
     if(thinking)thinking.classList.remove('msg-thinking');
     if(parsed.accion==='actualizar'){parsed.cambios.forEach(c=>{const p=projects.find(x=>x.id===c.id);if(p&&c.campo in p)p[c.campo]=c.campo==='prioridad'?parseInt(c.valor_nuevo):c.valor_nuevo;});persist();if(thinking)thinking.textContent='✓ '+parsed.resumen;render();}
     else if(thinking)thinking.textContent=parsed.respuesta||raw;
-  }catch(e){if(thinking){thinking.textContent='Error al conectar.';thinking.classList.remove('msg-thinking');}};
+  }catch(e){if(thinking){thinking.textContent='Error de conexión. Comprueba tu conexión a internet.';thinking.classList.remove('msg-thinking');}};
   btn.disabled=false;
 }
 document.addEventListener('DOMContentLoaded',()=>{const ai=document.getElementById('ai-input');if(ai)ai.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI();}});});
@@ -2787,8 +2954,12 @@ loadBloques();
 migrateBloquesLegacy();
 projects.forEach(p=>migrateAcciones(p));
 checkSession();
+initAiKey();
 addMsg('system','Gestor listo · '+projects.length+' proyectos · Sincronizando con la nube...');
 render();
+// Re-render on resize (desktop ↔ mobile)
+let _resizeTimer;
+window.addEventListener('resize', ()=>{ clearTimeout(_resizeTimer); _resizeTimer=setTimeout(render, 150); });
 // Load from Supabase (overrides localStorage with latest cloud data)
 loadFromSupabase();
 </script>
