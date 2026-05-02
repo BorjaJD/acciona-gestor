@@ -966,18 +966,20 @@ function renderUbicSection(p) {
   // Convert Google Maps share URL to embed URL
   function toEmbedUrl(url) {
     if(!url) return '';
+    url = url.trim();
     // Already embed
     if(url.includes('maps/embed')) return url;
     try {
-      // Short URL goo.gl — embed via place search using the short URL as query
+      // Direct coordinates "40.4165, -3.7026" or "40.4165,-3.7026"
+      const coordDirect = url.match(/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/);
+      if(coordDirect) return 'https://maps.google.com/maps?q='+coordDirect[1]+','+coordDirect[2]+'&z=16&output=embed';
+      // Short URL goo.gl
       if(url.includes('goo.gl') || url.includes('maps.app')) {
         return 'https://maps.google.com/maps?q='+encodeURIComponent(url)+'&output=embed';
       }
       // Coordinates in URL @lat,lng
       const placeMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if(placeMatch) {
-        return 'https://maps.google.com/maps?q='+placeMatch[1]+','+placeMatch[2]+'&z=16&output=embed';
-      }
+      if(placeMatch) return 'https://maps.google.com/maps?q='+placeMatch[1]+','+placeMatch[2]+'&z=16&output=embed';
       // ?q= param
       const qMatch = url.match(/[?&]q=([^&]+)/);
       if(qMatch) return 'https://maps.google.com/maps?q='+qMatch[1]+'&output=embed';
@@ -991,7 +993,7 @@ function renderUbicSection(p) {
   const embedUrl = toEmbedUrl(mapUrl);
 
   const mapDisplay = !mapUrl
-    ? '<div class="ubic-map-placeholder">📍 Pega un enlace de Google Maps y pulsa "Mostrar"</div>'
+    ? '<div class="ubic-map-placeholder">📍 Pega coordenadas (ej. 40.4165, -3.7026) o URL de Google Maps</div>'
     : !embedUrl
     ? '<div class="ubic-map-placeholder" style="color:#B45309">No se pudo procesar la URL. Usa una URL de Google Maps.</div>'
     : '<iframe src="'+embedUrl+'" width="100%" height="100%" style="border:0" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
