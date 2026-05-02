@@ -188,9 +188,9 @@
   .viewer-comment-textarea:focus{border-color:var(--accent)}
   .viewer-save-btn{margin-top:6px;padding:5px 14px;font-size:12px;border-radius:var(--r);border:none;background:var(--accent);color:white;cursor:pointer;font-family:var(--font);font-weight:500;width:100%}
   /* Privacy mode */
-   .private-val{transition:all .1s}
-  body.privacy-on .private-val{visibility:hidden}
-  body.privacy-on .private-val::after{content:'--';visibility:visible;color:var(--text3)}
+  .private-val{transition:filter .2s}
+  body.privacy-on .private-val{filter:blur(5px);user-select:none}
+  .ds-wrap{flex:1;overflow-y:auto;background:#f0efe9;display:flex;flex-direction:column}
   .ds-toolbar{padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
   .ds-selector{font-size:13px;padding:7px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;min-width:280px}
   .ds-selector:focus{border-color:var(--accent)}
