@@ -188,8 +188,8 @@
   .viewer-comment-textarea:focus{border-color:var(--accent)}
   .viewer-save-btn{margin-top:6px;padding:5px 14px;font-size:12px;border-radius:var(--r);border:none;background:var(--accent);color:white;cursor:pointer;font-family:var(--font);font-weight:500;width:100%}
   /* Privacy mode */
-  .private-val{filter:blur(4px);user-select:none;pointer-events:none;transition:filter .2s}
-  body.privacy-off .private-val{filter:none}
+  .private-val{transition:filter .2s}
+  body.privacy-on .private-val{filter:blur(5px);user-select:none}
   .ds-wrap{flex:1;overflow-y:auto;background:#f0efe9;display:flex;flex-direction:column}
   .ds-toolbar{padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
   .ds-selector{font-size:13px;padding:7px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;min-width:280px}
@@ -2029,20 +2029,39 @@ function renderDashboard() {
   donutLegend+="</div>";
 
   // BARRAS BLOQUE
-  var BLOQUE_COLORS={"Desinersi\u00f3n":"#2c4a3e","Desinversi\u00f3n":"#2c4a3e","Pipeline":"#4a6741","Pipeline":"#7a9e72","Desarrollo / Operaci\u00f3n":"#6b8cba","Clientes / Gesti\u00f3n":"#8a7aaa","Postventa":"#8a8a80"};
+  var BLOQUE_COLORS={"Desinversi\u00f3n":"#2c4a3e","Pipeline":"#4a6741","Desarrollo / Operaci\u00f3n":"#6b8cba","Clientes / Gesti\u00f3n":"#8a7aaa","Postventa":"#8a8a80"};
   var allBloques=BLOQUES_ORDER.slice();
   Object.keys(porBloque).forEach(function(b){if(allBloques.indexOf(b)<0&&porBloque[b]>0)allBloques.push(b);});
   var maxB=Math.max.apply(null,allBloques.map(function(b){return porBloque[b]||0;}).concat([1]));
   var barsBloque="";
   allBloques.forEach(function(b){
     var n=porBloque[b]||0; if(n===0)return;
-    var pct=Math.round(n/maxB*100),color=BLOQUE_COLORS[b]||"#888";
-    barsBloque+="<div class=\"bar-row\" onclick=\"navigateTo('tabla',{bloque:'"+b+"'})\">"+
-      "<div style=\"font-size:11px;color:var(--text2);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\" title=\""+b+"\">"+b+"</div>"+
-      "<div class=\"bar-track\"><div class=\"bar-fill\" style=\"width:"+Math.max(pct,4)+"%;background:"+color+"\"></div></div>"+
-      "<div style=\"font-size:12px;font-weight:600;color:var(--text2);width:22px;text-align:right\">"+n+"</div>"+
+    var pct=Math.max(Math.round(n/maxB*100),12),color=BLOQUE_COLORS[b]||"#888";
+    barsBloque+="<div class=\"bar-row\" onclick=\"navigateTo('tabla',{bloque:'"+b+"'})\" style=\"cursor:pointer;margin-bottom:6px\">"+
+      "<div style=\"font-size:11px;color:var(--text2);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\">"+b+"</div>"+
+      "<div class=\"bar-track\" style=\"flex:1\">"+
+        "<div class=\"bar-fill\" style=\"width:"+pct+"%;background:"+color+";display:flex;align-items:center;padding:0 7px;min-height:20px\">"+
+          "<span style=\"font-size:10px;font-weight:700;color:white\">"+n+"</span>"+
+        "</div>"+
+      "</div>"+
       "</div>";
   });
+  // Country mini chart
+  var porPais={};
+  projects.forEach(function(p){var pa=ubicToCountry(p.ubicacion);if(pa)porPais[pa]=(porPais[pa]||0)+1;});
+  var PAIS_COLORS={"Espa\u00f1a":"#2c4a3e","M\u00e9xico":"#c8a96e","Polonia":"#9b8abf","Portugal":"#7a9cbf","Otros":"#c9c7c0"};
+  var paisOrder=["Espa\u00f1a","M\u00e9xico","Polonia","Portugal","Otros"];
+  var totalPais=Object.values(porPais).reduce(function(a,b){return a+b;},0);
+  var paisHtml="";
+  if(totalPais>0){
+    paisHtml="<div style=\"margin-top:14px;padding-top:12px;border-top:1px solid var(--border)\">"+
+      "<div style=\"font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px\">Por pa\u00eds</div>"+
+      "<div style=\"display:flex;gap:3px;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px\">";
+    paisOrder.forEach(function(p){var n=porPais[p]||0;if(n===0)return;var pct=Math.round(n/totalPais*100);paisHtml+="<div style=\"width:"+pct+"%;background:"+(PAIS_COLORS[p]||"#aaa")+"\" title=\""+p+": "+n+"\"></div>";});
+    paisHtml+="</div><div style=\"display:flex;flex-wrap:wrap;gap:6px 12px\">";
+    paisOrder.forEach(function(p){var n=porPais[p]||0;if(n===0)return;paisHtml+="<div style=\"display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)\"><span style=\"width:8px;height:8px;border-radius:50%;background:"+(PAIS_COLORS[p]||"#aaa")+";display:inline-block\"></span>"+p+" <strong>"+n+"</strong></div>";});
+    paisHtml+="</div></div>";
+  }
 
   // MATRIZ
   var CELL_BG={"1":"#f5e8e8","2":"#f5f0e0","3":"#e8f0e8"};
@@ -2101,20 +2120,27 @@ function renderDashboard() {
   var urgHtml="";
   if(urgList.length){
     var thU="padding:5px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);border-bottom:2px solid var(--border);background:var(--surface2);white-space:nowrap";
-    var tdU="padding:5px 10px;font-size:11px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle";
+    var tdU="padding:5px 10px;font-size:11px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:top";
     urgHtml="<table style=\"width:100%;border-collapse:collapse\"><thead><tr>"+
       "<th style=\""+thU+";text-align:left\">Proyecto</th>"+
+      "<th style=\""+thU+";text-align:left\">Bloque</th>"+
       "<th style=\""+thU+"\">Estado</th>"+
       "<th style=\""+thU+";text-align:left\">Responsable</th>"+
-      "<th style=\""+thU+";text-align:left\">Próxima acción</th>"+
+      "<th style=\""+thU+";text-align:left\">Próximas acciones</th>"+
       "</tr></thead><tbody>";
     urgList.forEach(function(p){
       var dot="<span style=\"display:inline-block;width:7px;height:7px;border-radius:50%;background:"+(ESTADO_DOT[p.estado]||"#ccc")+";margin-right:6px\"></span>";
+      // All acciones pendientes
+      var acciones=Array.isArray(p.acciones)?p.acciones.filter(function(a){return !a.d;}):[];
+      var accionesHtml=acciones.length
+        ?acciones.map(function(a){return '<div style="padding:2px 0;border-bottom:1px solid var(--border);font-size:11px">'+a.t+'</div>';}).join('')
+        :(p.proxima&&p.proxima!=='—'?p.proxima:'—');
       urgHtml+="<tr style=\"cursor:pointer\" onclick=\"navigateTo('tabla',{id:"+p.id+"})\">"+
         "<td style=\""+tdU+";font-weight:500\">"+p.nombre+"</td>"+
+        "<td style=\""+tdU+";font-size:10px;color:var(--text3)\">"+p.bloque+"</td>"+
         "<td style=\""+tdU+"\">"+dot+p.estado+"</td>"+
-        "<td style=\""+tdU+";color:var(--text2);max-width:180px;overflow:hidden;text-overflow:ellipsis\">"+p.responsable.split("/")[0].trim()+"</td>"+
-        "<td style=\""+tdU+";color:var(--text2);max-width:300px;overflow:hidden;text-overflow:ellipsis\">"+p.proxima.split(".")[0]+".</td>"+
+        "<td style=\""+tdU+";color:var(--text2)\">"+p.responsable.split("/")[0].trim()+"</td>"+
+        "<td style=\""+tdU+";color:var(--text2);white-space:normal;min-width:200px\">"+accionesHtml+"</td>"+
         "</tr>";
     });
     urgHtml+="</tbody></table>";
@@ -2128,7 +2154,7 @@ function renderDashboard() {
     // Fila 2: Donut + Barras bloque + Matriz
     "<div class=\"dash-row dash-row-3\">"+
       "<div class=\"dash-card\"><div class=\"dash-card-title\">Distribuci\u00f3n por estado</div><div class=\"donut-wrap\">"+dsvg+donutLegend+"</div></div>"+
-      "<div class=\"dash-card\"><div class=\"dash-card-title\">Proyectos por bloque</div>"+barsBloque+"</div>"+
+      "<div class=\"dash-card\"><div class=\"dash-card-title\">Proyectos por bloque</div>"+barsBloque+paisHtml+"</div>"+
       "<div class=\"dash-card\"><div class=\"dash-card-title\">Matriz estado \u00d7 prioridad</div>"+matrixHtml+"</div>"+
     "</div>"+
     // Fila 3: Urgentes ancho completo
@@ -2173,11 +2199,11 @@ function renderEstudioSection() {
       +'<td style="'+tdS+'">'+dot+p.estado+'</td>'
       +'<td style="'+tdS+';text-align:center">'+uwBadge+'</td>'
       +'<td style="'+tdS+';color:var(--text2)">'+p.tipo+'</td>'
-      +'<td style="'+tdS+';text-align:right">'+fmtM(e.ventaEur)+'</td>'
-      +'<td style="'+tdS+';text-align:right">'+fmtM(e.sueloEur)+'</td>'
-      +'<td style="'+tdS+';text-align:right">'+fmtM(e.construccionEur)+'</td>'
-      +'<td style="'+tdS+';text-align:right">'+fmtPct(e.margenPct,30,15)+'</td>'
-      +'<td style="'+tdS+';text-align:right">'+fmtPct(e.tirPct,20,15)+'</td>'
+      +'<td style="'+tdS+';text-align:right" class="private-val">'+fmtM(e.ventaEur)+'</td>'
+      +'<td style="'+tdS+';text-align:right" class="private-val">'+fmtM(e.sueloEur)+'</td>'
+      +'<td style="'+tdS+';text-align:right" class="private-val">'+fmtM(e.construccionEur)+'</td>'
+      +'<td style="'+tdS+';text-align:right" class="private-val">'+fmtPct(e.margenPct,30,15)+'</td>'
+      +'<td style="'+tdS+';text-align:right" class="private-val">'+fmtPct(e.tirPct,20,15)+'</td>'
       +'<td style="'+tdS+';text-align:right;padding-right:24px;color:var(--text2)">'+fmtEntrega(e.fechaEntrega)+'</td>'
       +'</tr>';
   }).join('');
@@ -2330,10 +2356,10 @@ function checkSession(){
 let privacyMode = false;
 function togglePrivacy(){
   privacyMode = !privacyMode;
+  document.body.classList.toggle('privacy-on', privacyMode);
   const btn=document.getElementById('privacy-btn');
   if(btn) btn.textContent = privacyMode ? '🔓 Mostrar' : '👁 Privado';
   if(btn) btn.style.background = privacyMode ? 'rgba(255,165,0,0.3)' : 'transparent';
-  render();
 }
 
 function maskVal(val){
