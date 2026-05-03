@@ -31,11 +31,17 @@
   /* LAYOUT */
   .app-body{display:flex;flex:1;overflow:hidden}
   .main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;min-height:0}
-  .sidebar{width:340px;border-left:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface);flex-shrink:0;transition:width .2s}
-  .sidebar.collapsed{width:44px}
+  .sidebar{width:340px;border-left:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface);flex-shrink:0;transition:width .2s;position:relative}
+  .sidebar.collapsed{width:38px;overflow:hidden;position:relative}
   .sidebar.collapsed .ai-msgs,.sidebar.collapsed .ai-input-area,.sidebar.collapsed .hints{display:none}
-  .sidebar.collapsed .ai-sub,.sidebar.collapsed .ai-title{display:none}
-  .sidebar.collapsed .ai-dot{margin:0 auto}
+  .sidebar.collapsed .ai-sub,.sidebar.collapsed .ai-title,.sidebar.collapsed .ai-dot{display:none}
+  .sidebar.collapsed #ai-key-panel{display:none}
+  .sidebar.collapsed .ai-header{display:none}
+  .sidebar.collapsed .ai-collapsed-label{display:flex}
+  .ai-collapsed-label{display:none;position:absolute;top:0;left:0;right:0;bottom:0;flex-direction:column;align-items:center;justify-content:flex-start;cursor:pointer;padding:14px 0 0;gap:8px;background:var(--accent)}
+  .ai-collapsed-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.7);flex-shrink:0}
+  .ai-collapsed-arrow{font-size:13px;color:rgba(255,255,255,0.8);line-height:1}
+  .ai-collapsed-text{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);font-size:11px;font-weight:700;letter-spacing:.18em;color:white;text-transform:uppercase;white-space:nowrap;margin-top:4px}
   /* KPIs */
   .kpi-bar{display:flex;gap:1px;background:var(--border);border-bottom:1px solid var(--border);flex-shrink:0}
   .kpi-cell{flex:1;padding:10px 16px;background:var(--surface)}
@@ -512,6 +518,12 @@
       <div class="ai-dot" id="ai-dot"></div>
       <div style="flex:1"><div class="ai-title">Asistente IA</div><div class="ai-sub" id="ai-sub">Añade tu API key para activar</div></div>
       <button id="sidebar-toggle-btn" onclick="event.stopPropagation();toggleSidebar()" style="background:none;border:1px solid var(--border2);border-radius:4px;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 7px;font-family:var(--font);line-height:1.4;flex-shrink:0" title="Colapsar panel">◀</button>
+    </div>
+    <!-- Collapsed state label — shown via CSS when sidebar.collapsed -->
+    <div class="ai-collapsed-label" onclick="toggleSidebar()">
+      <div class="ai-collapsed-dot" id="ai-dot-mini"></div>
+      <div class="ai-collapsed-arrow">◀</div>
+      <div class="ai-collapsed-text">Asistente IA</div>
     </div>
     <div id="ai-key-panel" style="padding:10px 12px;border-bottom:1px solid var(--border);background:var(--surface2)">
       <div style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Anthropic API Key</div>
@@ -2116,24 +2128,23 @@ function renderPipelineSummary() {
   const SKIP = ['Descartado','Cerrado'];
   const ps = projects.filter(p => p.bloque==='Pipeline' && !SKIP.includes(p.estado));
 
-  const PROV_COORDS = {
-    'Madrid':[40.416,-3.703],'Barcelona':[41.387,2.169],'Valencia':[39.469,-0.376],
-    'Sevilla':[37.389,-5.984],'Zaragoza':[41.649,-0.887],'Málaga':[36.721,-4.421],
-    'Murcia':[37.992,-1.13],'Pontevedra':[42.433,-8.648],
-    'Vizcaya':[43.263,-2.935],'Bizkaia':[43.263,-2.935],'Bilbao':[43.263,-2.935],
-    'Gipuzkoa':[43.312,-1.980],'Granada':[37.177,-3.598],'Alicante':[38.345,-0.490],
-    'Córdoba':[37.888,-4.779],'Burgos':[42.343,-3.696],
-    'Lleida':[41.617,0.620],'Tarragona':[41.119,1.245],'Girona':[41.979,2.819],
-    'A Coruña':[43.362,-8.412],'Ourense':[42.336,-7.863],'Lugo':[43.012,-7.555],
-    'Valladolid':[41.652,-4.724],'León':[42.598,-5.57],'Salamanca':[40.965,-5.664],
-    'Cáceres':[39.475,-6.372],'Badajoz':[38.879,-6.970],'Huelva':[37.261,-6.948],
-    'Cádiz':[36.527,-6.288],'Almería':[36.834,-2.463],'Jaén':[37.773,-3.790],
-    'Toledo':[39.857,-4.024],'Cuenca':[40.066,-2.149],'Albacete':[38.994,-1.856],
-    'Castellón':[39.986,-0.028],'Huesca':[42.136,-0.408],'Teruel':[40.345,-1.106],
-    'Navarra':[42.695,-1.676],'La Rioja':[42.287,-2.539],'Cantabria':[43.182,-3.987],
-    'Asturias':[43.361,-5.849],'Palencia':[42.009,-4.527],'Segovia':[40.948,-4.119],
-    'Ávila':[40.656,-4.700],'Soria':[41.763,-2.464],'Zamora':[41.503,-5.744],
-    'Guadalajara':[40.633,-3.167],'Ciudad Real':[38.986,-3.928],
+  // Province name in GeoJSON → match from ubicacion
+  const UBI2GEO = {
+    'Madrid':'Madrid','Barcelona':'Barcelona','Valencia':'València/Valencia',
+    'Sevilla':'Sevilla','Zaragoza':'Zaragoza','Málaga':'Málaga','Murcia':'Murcia',
+    'Pontevedra':'Pontevedra','Vizcaya':'Bizkaia/Vizcaya','Bizkaia':'Bizkaia/Vizcaya',
+    'Bilbao':'Bizkaia/Vizcaya','Gipuzkoa':'Gipuzkoa/Guipúzcoa',
+    'Granada':'Granada','Alicante':'Alacant/Alicante','Córdoba':'Córdoba',
+    'Burgos':'Burgos','Lleida':'Lleida','Tarragona':'Tarragona','Girona':'Girona',
+    'A Coruña':'A Coruña','Ourense':'Ourense','Lugo':'Lugo',
+    'Valladolid':'Valladolid','León':'León','Salamanca':'Salamanca',
+    'Cáceres':'Cáceres','Badajoz':'Badajoz','Huelva':'Huelva','Cádiz':'Cádiz',
+    'Almería':'Almería','Jaén':'Jaén','Toledo':'Toledo','Cuenca':'Cuenca',
+    'Albacete':'Albacete','Castellón':'Castelló/Castellón','Huesca':'Huesca',
+    'Teruel':'Teruel','Navarra':'Navarra','La Rioja':'La Rioja',
+    'Cantabria':'Cantabria','Asturias':'Asturias','Palencia':'Palencia',
+    'Segovia':'Segovia','Ávila':'Ávila','Soria':'Soria','Zamora':'Zamora',
+    'Guadalajara':'Guadalajara','Ciudad Real':'Ciudad Real',
   };
 
   const COUNTRY_MAP = {
@@ -2151,17 +2162,16 @@ function renderPipelineSummary() {
     'Soria':'España','Zamora':'España','Guadalajara':'España','Ciudad Real':'España',
     'Lisboa':'Portugal','Porto':'Portugal','Portugal':'Portugal',
     'Varsovia':'Polonia','Cracovia':'Polonia','Polonia':'Polonia',
-    'Ciudad de México':'México','Guadalajara MX':'México','México':'México',
+    'Ciudad de México':'México','México':'México',
   };
 
   function fm(v){if(!v||v==='')return '—';const n=parseInt(String(v).replace(/\D/g,''),10);if(isNaN(n)||n===0)return '—';return n>=1e6?fmtMiles(Math.round(n/1e6))+' M€':n>=1e3?fmtMiles(Math.round(n/1e3))+' K€':n+' €';}
   function fm2(v){if(!v||v==='')return '';const n=parseInt(String(v).replace(/\D/g,''),10);if(isNaN(n)||n===0)return '';return fmtMiles(Math.round(n))+' €/m²';}
   function tirc(t){const n=parseFloat(t);return n>=18?'#1a3a2a':n>=15?'#2d6a4f':n>=12?'#52b788':'#95d5b2';}
-  function toSVG(lon,lat){const p=SPAIN_PROJ,x=lon,y=Math.log(Math.tan(Math.PI/4+lat*Math.PI/180/2));return[p.PAD+(x-p.min_x)/(p.max_x-p.min_x)*(p.W-2*p.PAD),p.H-p.PAD-(y-p.min_y)/(p.max_y-p.min_y)*(p.H-2*p.PAD)];}
+  function tirGrey(t){const n=parseFloat(t);return n>=18?'#2a2a2a':n>=15?'#555555':n>=12?'#888888':'#b8b8b8';}
   function parseFecha(v){
     if(!v||v==='—'||v==='')return null;
     const M={ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11};
-    // "ene-28" or "dic-2028" or "2028-01"
     const m1=String(v).match(/^([a-z]{3})-(\d{2,4})$/i);
     if(m1){const yr=parseInt(m1[2]);return new Date(yr<100?2000+yr:yr,(M[m1[1].toLowerCase()]||0),1);}
     const m2=String(v).match(/^(\d{4})-(\d{2})/);
@@ -2179,25 +2189,35 @@ function renderPipelineSummary() {
   const tc2=ps.reduce((s,p)=>s+parseInt((p.eco?.construccionEur||'').replace(/\D/g,'')||0),0);
   const maxT=Math.max(...tirVals,1),maxM=Math.max(...mgVals,1);
 
-  // ── MAP ──────────────────────────────────────────────────────
-  const mapPaths=(SPAIN_PATHS||[]).map(p=>`<path d="${p.d}" fill="#edf2f8" stroke="#b8c8d8" stroke-width="0.6" stroke-linejoin="round"/>`).join('');
-  const byLoc={};ps.forEach(p=>{const loc=p.ubicacion||'';byLoc[loc]=byLoc[loc]||[];byLoc[loc].push(p);});
-  const dots=Object.entries(byLoc).map(([loc,projs])=>{
-    const c=PROV_COORDS[loc];if(!c)return '';
-    const[bx,by]=toSVG(c[1],c[0]);
-    if(bx<0||bx>460||by<0||by>380)return '';
-    return projs.map((p,i)=>{
-      const x=bx+i*10,y=by+i*-6,col=tirc(p.eco?.tirPct||0);
-      return `<circle cx="${x}" cy="${y}" r="9" fill="${col}" fill-opacity="0.2"/>
-              <circle cx="${x}" cy="${y}" r="4.5" fill="${col}" stroke="white" stroke-width="1.2"/>`;
-    }).join('');
+  // ── MAP: color provinces by best TIR of projects there ───────
+  // Build province → best TIR map
+  const provTIR={};
+  ps.forEach(p=>{
+    const geoName=UBI2GEO[p.ubicacion||''];
+    if(!geoName)return;
+    const t=parseFloat(p.eco?.tirPct||0);
+    if(!provTIR[geoName]||t>provTIR[geoName])provTIR[geoName]=t;
+  });
+
+  const mapPaths=(SPAIN_PATHS||[]).map(p=>{
+    const t=provTIR[p.n];
+    const hasProject=t>0;
+    const fill=hasProject?tirGrey(t):'#f0f0f0';
+    const stroke=hasProject?'rgba(255,255,255,0.4)':'#aaaaaa';
+    const sw=hasProject?'0.8':'0.4';
+    return `<path d="${p.d}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`;
   }).join('');
+
+  // Province labels for highlighted ones
+  const PROV_LABEL_POS={
+    'Madrid':[230,195],'Barcelona':[380,130],'Sevilla':[148,280],'Pontevedra':[60,110],
+    'Bizkaia/Vizcaya':[255,65],'Gipuzkoa/Guipúzcoa':[290,60],
+  };
 
   // ── FUNNEL by country ─────────────────────────────────────────
   const countries={};
   ps.forEach(p=>{
-    const loc=p.ubicacion||'';
-    const pais=COUNTRY_MAP[loc]||(loc?'Otros':'Sin loc.');
+    const pais=COUNTRY_MAP[p.ubicacion||'']||(p.ubicacion?'Otros':'Sin loc.');
     countries[pais]=countries[pais]||{n:0,v:0};
     countries[pais].n++;
     countries[pais].v+=parseInt((p.eco?.ventaEur||'').replace(/\D/g,'')||0);
@@ -2207,54 +2227,71 @@ function renderPipelineSummary() {
   const CFLAG={'España':'🇪🇸','Portugal':'🇵🇹','Polonia':'🇵🇱','México':'🇲🇽','Otros':'🌍'};
   const funnelRows=cEntries.map(([pais,{n,v}])=>{
     const w=Math.round((n/maxN)*100);
-    return `<div style="margin-bottom:5px">
+    return `<div style="margin-bottom:6px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
         <span style="font-size:10px;color:#555">${CFLAG[pais]||'🌍'} ${pais}</span>
-        <span style="font-size:9px;color:#888">${n} proy · ${fm(v)}</span>
+        <span style="font-size:8.5px;color:#888">${n} · ${fm(v)}</span>
       </div>
-      <div style="height:8px;background:#e8eef5;border-radius:2px;overflow:hidden">
+      <div style="height:7px;background:#e8eef5;border-radius:2px;overflow:hidden">
         <div style="height:100%;width:${w}%;background:#2d6a4f;border-radius:2px"></div>
       </div>
     </div>`;}).join('');
 
-  // ── TIMELINE entregas ─────────────────────────────────────────
+  // ── TIMELINE — use eco.fechaEntrega (LPO date) ────────────────
   const withDate=ps.map(p=>({p,d:parseFecha(p.eco?.fechaEntrega)})).filter(x=>x.d).sort((a,b)=>a.d-b.d);
-  let timelineHtml='<div style="font-size:9px;color:#bbb;font-style:italic">Sin fechas de entrega registradas</div>';
-  if(withDate.length){
-    const minD=withDate[0].d, maxD=withDate[withDate.length-1].d;
-    const span=Math.max(maxD-minD,1);
+  let timelineHtml='<div style="font-size:9px;color:#bbb;font-style:italic;padding:8px 0">Sin fechas de entrega en LPO</div>';
+  if(withDate.length>=1){
     const now=new Date();
-    const nowPct=Math.min(100,Math.max(0,(now-minD)/span*100));
+    const minD=new Date(Math.min(withDate[0].d,now));
+    const maxD=withDate[withDate.length-1].d;
+    // Extend slightly past last date
+    const extMax=new Date(maxD.getFullYear(),maxD.getMonth()+3,1);
+    const span=Math.max(extMax-minD,1);
+    const nowPct=Math.min(100,Math.max(0,((now-minD)/span*100)));
 
-    // Group by same date for overlap
-    const dots2=withDate.map(({p,d})=>{
-      const pct=span>0?((d-minD)/span*100):50;
-      const col=tirc(p.eco?.tirPct||0);
-      const label=p.nombre.split('|')[0].trim().split(' ').slice(0,2).join(' ');
-      const mo=d.toLocaleDateString('es-ES',{month:'short',year:'2-digit'});
-      return `<div style="position:absolute;left:${pct}%;transform:translateX(-50%);top:0;display:flex;flex-direction:column;align-items:center;gap:2px">
-        <div style="font-size:7.5px;color:#555;white-space:nowrap;font-weight:500;max-width:70px;overflow:hidden;text-overflow:ellipsis;text-align:center">${label}</div>
-        <div style="width:2px;height:10px;background:${col}"></div>
-        <div style="width:8px;height:8px;border-radius:50%;background:${col};border:1.5px solid white;box-shadow:0 0 0 1px ${col}"></div>
-        <div style="font-size:7px;color:#aaa;margin-top:1px">${mo}</div>
-      </div>`;}).join('');
-
+    // Year ticks
     const yearMarks=[];
-    for(let y=minD.getFullYear();y<=maxD.getFullYear()+1;y++){
+    for(let y=minD.getFullYear();y<=extMax.getFullYear();y++){
       const d2=new Date(y,0,1);
       const pct=((d2-minD)/span*100);
-      if(pct>=0&&pct<=102)yearMarks.push(`<div style="position:absolute;left:${pct}%;transform:translateX(-50%);top:0;font-size:8px;color:#ccc">${y}</div>`);
+      if(pct>=-1&&pct<=101)yearMarks.push(
+        `<div style="position:absolute;left:${pct}%;transform:translateX(-50%);bottom:0;font-size:7.5px;color:#bbb;white-space:nowrap">${y}</div>`
+      );
     }
 
-    timelineHtml=`<div style="position:relative;padding:22px 10px 22px;margin:0 6px">
-      <!-- Year labels -->
-      <div style="position:relative;height:14px;margin-bottom:4px">${yearMarks.join('')}</div>
-      <!-- Line -->
-      <div style="position:relative;height:2px;background:#e0e8e0;border-radius:1px;margin:24px 0 20px">
-        <div style="position:absolute;left:${nowPct}%;top:-3px;width:2px;height:8px;background:#f28b82;border-radius:1px"></div>
+    // Project dots — offset vertically if same year to avoid overlap
+    const byYear={};
+    const dotElems=withDate.map(({p,d})=>{
+      const pct=((d-minD)/span*100);
+      const yr=d.getFullYear();
+      byYear[yr]=(byYear[yr]||0)+1;
+      const row=byYear[yr];
+      const col=tirc(p.eco?.tirPct||0);
+      const label=p.nombre.replace(/\|.*/,'').trim().split(' ').slice(0,2).join(' ');
+      const mo=d.toLocaleDateString('es-ES',{month:'short',year:'2-digit'}).replace(/ /,'–');
+      const top=8+(row-1)*28; // stack vertically per cluster
+      return `<div style="position:absolute;left:${Math.min(95,pct)}%;top:${top}px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:1px;z-index:${10-row}">
+        <div style="width:2px;height:${row===1?6:4}px;background:${col};opacity:.7"></div>
+        <div style="width:7px;height:7px;border-radius:50%;background:${col};border:1.5px solid white;box-shadow:0 0 0 1px ${col}40;flex-shrink:0"></div>
+        <div style="font-size:7px;color:#555;white-space:nowrap;max-width:55px;overflow:hidden;text-overflow:ellipsis;text-align:center;line-height:1.1">${label}</div>
+        <div style="font-size:6.5px;color:#aaa">${mo}</div>
+      </div>`;}).join('');
+
+    const totalH=Math.max(70,withDate.length*18);
+
+    timelineHtml=`<div style="position:relative;margin:0 4px;padding-bottom:18px">
+      <!-- Baseline -->
+      <div style="position:relative;height:2px;background:linear-gradient(90deg,#e0e8e0,#c8dfc8);border-radius:1px;margin-top:4px">
+        <!-- Today marker -->
+        <div style="position:absolute;left:${nowPct}%;top:-4px;display:flex;flex-direction:column;align-items:center">
+          <div style="width:2px;height:10px;background:#f28b82;border-radius:1px"></div>
+        </div>
+        <div style="position:absolute;left:${nowPct}%;top:6px;transform:translateX(-50%);font-size:7px;color:#f28b82;white-space:nowrap">hoy</div>
       </div>
-      <!-- Dots above line -->
-      <div style="position:relative;height:60px">${dots2}</div>
+      <!-- Dots above -->
+      <div style="position:relative;height:${totalH}px;margin-top:2px">${dotElems}</div>
+      <!-- Year labels below -->
+      <div style="position:relative;height:12px">${yearMarks.join('')}</div>
     </div>`;
   }
 
@@ -2269,6 +2306,8 @@ function renderPipelineSummary() {
           ${p.ubicacion?`<span style="font-size:8.5px;color:#bbb">${p.ubicacion}</span>`:''}
         </div>
       </td>
+      <td style="padding:4px 4px;font-size:8.5px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0">${p.tipo||'—'}</td>
+      <td style="padding:4px 4px;text-align:right"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.prioridad===1?'#f28b82':p.prioridad===2?'#fdd580':'#81c995'}"></span></td>
       <td style="padding:4px 5px;text-align:right">
         <div style="font-size:10.5px;color:#555">${fm(e.sueloEur)}</div>
         ${fm2(e.sueloEurM2)?`<div style="font-size:8px;color:#ccc">${fm2(e.sueloEurM2)}</div>`:''}
@@ -2294,11 +2333,11 @@ function renderPipelineSummary() {
       <div style="font-size:8.5px;color:#555;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.nombre}">${nm}</div>
       <div style="display:flex;align-items:center;gap:4px;margin-bottom:1px">
         <div style="height:8px;width:${wt}px;background:${col};border-radius:1px;flex-shrink:0"></div>
-        <span style="font-size:8.5px;font-weight:700;color:${col};white-space:nowrap">TIR ${t>0?t.toFixed(1)+'%':'—'}</span>
+        <span style="font-size:8px;font-weight:700;color:${col};white-space:nowrap">${t>0?t.toFixed(1)+'%':'—'}</span>
       </div>
-      <div style="display:flex;align-items:center;gap:4px;margin-bottom:1px">
+      <div style="display:flex;align-items:center;gap:4px">
         <div style="height:8px;width:${wm}px;background:#c8dfc8;border-radius:1px;flex-shrink:0"></div>
-        <span style="font-size:8.5px;color:#888;white-space:nowrap">Mg ${m>0?m.toFixed(0)+'%':'—'}${mg>0?' · '+fm(mg):''}</span>
+        <span style="font-size:8px;color:#888;white-space:nowrap">${m>0?m.toFixed(0)+'%':'—'}${mg>0?' · '+fm(mg):''}</span>
       </div>
     </div>`;}).join('');
 
@@ -2335,25 +2374,35 @@ function renderPipelineSummary() {
     </div>
 
     <!-- BODY: 3 cols -->
-    <div style="display:grid;grid-template-columns:210px 1fr 185px;flex:1;min-height:0;overflow:hidden">
+    <div style="display:grid;grid-template-columns:200px 1fr 185px;flex:1;min-height:0;overflow:hidden">
 
-      <!-- COL 1: Mapa (pequeño arriba) + Funnel países -->
+      <!-- COL 1: Mapa coloreado + Funnel -->
       <div style="padding:10px 10px;border-right:1px solid #eee;display:flex;flex-direction:column;gap:10px;overflow:hidden">
         <div>
           <div style="${CT}">Distribución geográfica</div>
-          <div style="display:flex;justify-content:center">
-            <svg viewBox="0 0 460 380" style="width:188px;height:156px;display:block;border-radius:4px;border:1px solid #dde8f0">
-              <rect width="460" height="380" fill="#d4e4f0"/>
-              ${mapPaths}${dots}
-            </svg>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:5px">
-            ${[['≥18%','#1a3a2a'],['15–17%','#2d6a4f'],['12–14%','#52b788'],['<12%','#95d5b2']].map(([l,c])=>`<div style="display:flex;align-items:center;gap:2px;font-size:7.5px;color:#888"><span style="width:6px;height:6px;border-radius:50%;background:${c};display:inline-block"></span>${l}</div>`).join('')}
+          <svg viewBox="0 0 460 380" style="width:178px;height:147px;display:block;border-radius:4px;border:1px solid #ccc">
+            <rect width="460" height="380" fill="white"/>
+            ${mapPaths}
+          </svg>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px">
+            ${[['≥18%','#2a2a2a'],['15–17%','#555'],['12–14%','#888'],['<12%','#b8b8b8']].map(([l,c])=>`<div style="display:flex;align-items:center;gap:2px;font-size:7.5px;color:#888"><span style="width:8px;height:8px;border-radius:2px;background:${c};display:inline-block"></span>${l}</div>`).join('')}
           </div>
         </div>
         <div style="flex:1;overflow:hidden">
           <div style="${CT}">Por país</div>
           ${funnelRows}
+        </div>
+        <div style="flex-shrink:0;margin-top:8px">
+          <div style="${CT}">Acciones urgentes</div>
+          ${ps.filter(p=>p.prioridad===1).slice(0,4).map(p=>{
+            const acc=(Array.isArray(p.acciones)?p.acciones.filter(a=>!a.d):[])[0];
+            const txt=acc?acc.t:(p.proxima&&p.proxima!=='—'?p.proxima:'');
+            if(!txt)return '';
+            return `<div style="padding:4px 0;border-bottom:1px solid #f0efe9">
+              <div style="font-size:8.5px;font-weight:600;color:#1a1a18;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nombre.replace(/\|.*/,'').trim()}</div>
+              <div style="font-size:8px;color:#888;line-height:1.3;margin-top:1px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">→ ${txt}</div>
+            </div>`;
+          }).join('')}
         </div>
       </div>
 
@@ -2361,26 +2410,25 @@ function renderPipelineSummary() {
       <div style="padding:10px 14px;border-right:1px solid #eee;display:flex;flex-direction:column;overflow:hidden">
         <div style="${CT}">Proyectos en estudio</div>
         <table style="width:100%;border-collapse:collapse;table-layout:fixed;flex-shrink:0">
-          <colgroup><col style="width:30%"><col style="width:70%" span="3"></colgroup>
-          <colgroup><col style="width:30%"><col style="width:23.3%"><col style="width:23.3%"><col style="width:23.4%"></colgroup>
+          <colgroup><col style="width:24%"><col style="width:10%"><col style="width:8%"><col style="width:19%"><col style="width:19%"><col style="width:20%"></colgroup>
           <thead><tr>
-            ${[['Proyecto',false],['Suelo €',true],['Constr. €',true],['Venta €',true]].map(([h,r])=>`<th style="padding:3px ${r?'5px':'6px 3px 0'};font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#bbb;border-bottom:2px solid #eee;text-align:${r?'right':'left'}">${h}</th>`).join('')}
+            ${[['Proyecto',false],['Tipo',false],['P.',true],['Suelo €',true],['Constr. €',true],['Venta €',true]].map(([h,r])=>`<th style="padding:3px ${r?'5px':'5px 3px 3px 0'};font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#bbb;border-bottom:2px solid #eee;text-align:${r?'right':'left'}">${h}</th>`).join('')}
           </tr></thead>
           <tbody>${tableRows}</tbody>
         </table>
-        <!-- Timeline -->
-        <div style="margin-top:auto;padding-top:8px;border-top:1px solid #f0efe9">
-          <div style="${CT}">Entregas previstas</div>
+        <!-- Timeline LPO -->
+        <div style="margin-top:auto;padding-top:8px;border-top:1px solid #f0efe9;flex-shrink:0">
+          <div style="${CT}">Entregas previstas (LPO)</div>
           ${timelineHtml}
         </div>
       </div>
 
-      <!-- COL 3: TIR/Margen + Estado -->
+      <!-- COL 3: TIR/Margen chart + Estado -->
       <div style="padding:10px 12px;background:#fafaf8;display:flex;flex-direction:column;overflow:hidden">
         <div style="${CT}">TIR / Margen / Mg €</div>
         <div style="display:flex;gap:8px;margin-bottom:6px">
           <div style="display:flex;align-items:center;gap:3px;font-size:7.5px;color:#888"><span style="width:10px;height:5px;background:#2d6a4f;border-radius:1px;display:inline-block"></span>TIR %</div>
-          <div style="display:flex;align-items:center;gap:3px;font-size:7.5px;color:#888"><span style="width:10px;height:5px;background:#c8dfc8;border-radius:1px;display:inline-block"></span>Margen % · €</div>
+          <div style="display:flex;align-items:center;gap:3px;font-size:7.5px;color:#888"><span style="width:10px;height:5px;background:#c8dfc8;border-radius:1px;display:inline-block"></span>Mg % · €</div>
         </div>
         <div style="flex:1;overflow:hidden">${bars}</div>
         <div style="margin-top:10px;flex-shrink:0">
@@ -2497,113 +2545,41 @@ function renderDealSheet() {
 
   // Simplified Spain SVG — major regions as rough polygons
   function spainSVG(prov) {
-    const P2ID={
-      'La Coruña':'la-coruna','Lugo':'lugo','Pontevedra':'pontevedra','Orense':'ourense',
-      'Asturias':'asturias','Cantabria':'cantabria',
-      'Álava':'araba','Guipúzcoa':'gipuzkoa','Vizcaya':'bizkaia',
-      'Navarra':'navarra','La Rioja':'la-rioja',
-      'Huesca':'huesca','Zaragoza':'zaragoza','Teruel':'teruel',
-      'Lérida':'lleida','Gerona':'girona','Barcelona':'barcelona','Tarragona':'tarragona',
-      'León':'leon','Zamora':'zamora','Salamanca':'salamanca','Burgos':'burgos',
-      'Palencia':'palencia','Valladolid':'valladolid','Soria':'soria',
-      'Segovia':'segovia','Ávila':'avila',
-      'Cáceres':'caceres','Badajoz':'badajoz','Madrid':'madrid',
-      'Guadalajara':'guadalajara','Toledo':'toledo','Cuenca':'cuenca',
-      'Ciudad Real':'ciudad-real','Albacete':'albacete',
-      'Castellón':'castellon','Valencia':'valencia','Alicante':'alicante','Murcia':'murcia',
-      'Huelva':'huelva','Sevilla':'sevilla','Cádiz':'cadiz','Málaga':'malaga',
-      'Granada':'granada','Almería':'almeria','Jaén':'jaen','Córdoba':'cordoba',
-      'Islas Baleares':'baleares','Las Palmas':'gran-canaria','Santa Cruz de Tenerife':'tenerife',
+    // Map ubicacion → province name in GeoJSON
+    const P2NAME={
+      'La Coruña':'A Coruña','A Coruña':'A Coruña','Lugo':'Lugo','Pontevedra':'Pontevedra',
+      'Orense':'Ourense','Ourense':'Ourense','Asturias':'Asturias','Cantabria':'Cantabria',
+      'Álava':'Araba/Álava','Araba':'Araba/Álava','Vizcaya':'Bizkaia/Vizcaya',
+      'Bizkaia':'Bizkaia/Vizcaya','Bilbao':'Bizkaia/Vizcaya',
+      'Guipúzcoa':'Gipuzkoa/Guipúzcoa','Gipuzkoa':'Gipuzkoa/Guipúzcoa',
+      'Navarra':'Navarra','La Rioja':'La Rioja',
+      'Huesca':'Huesca','Zaragoza':'Zaragoza','Teruel':'Teruel',
+      'Lérida':'Lleida','Lleida':'Lleida','Gerona':'Girona','Girona':'Girona',
+      'Barcelona':'Barcelona','Tarragona':'Tarragona',
+      'León':'León','Zamora':'Zamora','Salamanca':'Salamanca','Burgos':'Burgos',
+      'Palencia':'Palencia','Valladolid':'Valladolid','Soria':'Soria',
+      'Segovia':'Segovia','Ávila':'Ávila',
+      'Cáceres':'Cáceres','Badajoz':'Badajoz','Madrid':'Madrid',
+      'Guadalajara':'Guadalajara','Toledo':'Toledo','Cuenca':'Cuenca',
+      'Ciudad Real':'Ciudad Real','Albacete':'Albacete',
+      'Castellón':'Castelló/Castellón','Valencia':'València/Valencia',
+      'Alicante':'Alacant/Alicante','Murcia':'Murcia',
+      'Huelva':'Huelva','Sevilla':'Sevilla','Cádiz':'Cádiz',
+      'Málaga':'Málaga','Granada':'Granada','Almería':'Almería',
+      'Jaén':'Jaén','Córdoba':'Córdoba',
     };
-    const id = P2ID[prov]||'';
-    // Build highlight class injection
-    const hlStyle = id ? '<style>.prov#'+id+'{fill:#1a3a2a!important;stroke:#0d2218;stroke-width:1.4}</style>' : '';
-    return hlStyle + '<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;border-radius:4px">'
-    +'<rect width="800" height="600" fill="#dbe9f5"/>'
-    +'<style>.prov{fill:#f0efe9;stroke:#8a8a7a;stroke-width:0.6}.prov.can{fill:#f4f3ee}</style>'
-    // Portugal
-    +'<path class="prov" fill="#e8e8e0" stroke="#aaa" stroke-width="0.5" d="M88,80L96,80L106,84L112,106L114,128L108,152L106,168L108,188L100,208L86,214L74,210L68,196L66,176L70,154L70,130L72,110L76,92Z"/>'
-    // Galicia
-    +'<path class="prov" id="la-coruna" d="M94,75L106,60L118,55L130,58L138,68L132,80L120,85L106,84L96,80Z"/>'
-    +'<path class="prov" id="lugo" d="M138,68L156,62L170,64L174,82L168,96L150,100L136,96L130,84L132,80Z"/>'
-    +'<path class="prov" id="pontevedra" d="M94,80L106,84L120,85L128,94L122,108L108,112L96,106L88,96Z"/>'
-    +'<path class="prov" id="ourense" d="M120,85L132,80L136,96L150,100L148,114L136,120L122,116L112,106L122,108L128,94Z"/>'
-    // Asturias
-    +'<path class="prov" id="asturias" d="M138,68L170,58L196,56L216,60L218,72L204,80L188,82L174,82L156,62Z"/>'
-    // Cantabria
-    +'<path class="prov" id="cantabria" d="M216,60L240,56L256,60L256,72L244,78L228,80L218,72Z"/>'
-    // País Vasco
-    +'<path class="prov" id="araba" d="M256,72L272,80L268,92L256,96L246,88L244,78L256,72Z"/>'
-    +'<path class="prov" id="gipuzkoa" d="M278,60L292,62L294,72L282,78L272,80L266,70L272,62Z"/>'
-    +'<path class="prov" id="bizkaia" d="M256,60L272,56L278,60L272,62L266,70L272,80L256,72Z"/>'
-    // Navarra
-    +'<path class="prov" id="navarra" d="M292,62L312,56L322,62L320,80L308,90L294,88L294,72Z"/>'
-    // La Rioja
-    +'<path class="prov" id="la-rioja" d="M256,96L268,92L278,90L286,96L282,108L268,112L256,108Z"/>'
-    // Aragón
-    +'<path class="prov" id="huesca" d="M320,80L342,72L362,74L368,90L358,110L340,116L322,108L308,90L320,80Z"/>'
-    +'<path class="prov" id="zaragoza" d="M282,108L286,96L294,88L308,90L322,108L340,116L338,140L320,150L300,148L282,136L278,120Z"/>'
-    +'<path class="prov" id="teruel" d="M300,148L320,150L338,140L348,158L344,178L328,186L308,184L294,172L294,158Z"/>'
-    // Cataluña
-    +'<path class="prov" id="lleida" d="M362,74L384,68L400,72L398,92L386,108L368,112L358,110Z"/>'
-    +'<path class="prov" id="girona" d="M400,72L420,66L432,76L428,96L412,106L398,100L398,92Z"/>'
-    +'<path class="prov" id="barcelona" d="M386,108L398,100L412,106L410,122L396,128L382,122L378,114Z"/>'
-    +'<path class="prov" id="tarragona" d="M348,158L368,162L382,154L396,128L410,122L412,136L404,154L390,168L368,172L348,162Z"/>'
-    // Castilla y León
-    +'<path class="prov" id="leon" d="M138,96L150,100L168,96L174,112L168,130L150,138L134,134L122,120L130,108Z"/>'
-    +'<path class="prov" id="zamora" d="M122,116L136,120L148,114L150,130L142,144L128,148L114,140L112,128Z"/>'
-    +'<path class="prov" id="salamanca" d="M114,140L128,148L142,144L148,158L138,172L122,176L108,166L106,152Z"/>'
-    +'<path class="prov" id="burgos" d="M204,80L218,84L228,96L244,88L246,88L256,96L256,108L244,114L228,116L214,110L204,98Z"/>'
-    +'<path class="prov" id="palencia" d="M188,96L204,98L214,110L208,126L192,130L178,122L176,110L188,100Z"/>'
-    +'<path class="prov" id="valladolid" d="M192,130L208,126L218,134L214,148L200,156L186,150L182,138Z"/>'
-    +'<path class="prov" id="soria" d="M256,108L268,112L278,120L282,136L270,144L254,140L244,128L244,114Z"/>'
-    +'<path class="prov" id="segovia" d="M214,148L230,144L244,148L244,162L230,170L214,166L208,156Z"/>'
-    +'<path class="prov" id="avila" d="M186,150L200,156L214,160L214,172L200,180L186,176L174,166L174,154Z"/>'
-    // Extremadura
-    +'<path class="prov" id="caceres" d="M122,176L138,172L148,158L162,158L174,166L174,182L168,200L152,210L136,208L120,198L116,184Z"/>'
-    +'<path class="prov" id="badajoz" d="M116,184L120,198L136,208L152,210L158,228L148,246L130,252L112,244L100,228L98,208Z"/>'
-    // Madrid
-    +'<path class="prov" id="madrid" d="M230,170L244,162L256,164L262,178L254,192L240,196L226,190L222,178Z"/>'
-    // Castilla-La Mancha
-    +'<path class="prov" id="guadalajara" d="M244,128L254,140L270,144L282,136L294,140L294,156L280,162L262,160L252,148L244,148L244,128Z"/>'
-    +'<path class="prov" id="toledo" d="M200,180L214,172L228,174L240,196L254,204L252,222L236,230L218,228L202,218L196,204Z"/>'
-    +'<path class="prov" id="cuenca" d="M262,160L280,162L294,156L308,160L312,178L304,196L288,202L272,200L258,190L256,176Z"/>'
-    +'<path class="prov" id="ciudad-real" d="M202,218L218,228L236,230L252,228L266,234L266,252L250,260L230,260L212,252L202,238Z"/>'
-    +'<path class="prov" id="albacete" d="M272,200L288,202L304,196L316,206L318,226L308,240L290,246L272,242L264,228L266,214Z"/>'
-    // Valencia
-    +'<path class="prov" id="castellon" d="M348,158L368,152L382,154L390,168L384,188L368,196L352,192L344,178Z"/>'
-    +'<path class="prov" id="valencia" d="M352,192L368,196L384,188L392,206L386,224L372,232L356,228L346,214L346,202Z"/>'
-    +'<path class="prov" id="alicante" d="M346,214L356,228L372,232L378,250L368,262L352,264L338,256L334,240L340,226Z"/>'
-    // Murcia
-    +'<path class="prov" id="murcia" d="M308,240L316,226L330,228L340,226L346,240L352,256L344,268L330,272L314,264L306,250Z"/>'
-    // Andalucía
-    +'<path class="prov" id="huelva" d="M98,208L100,228L112,244L108,258L96,264L80,260L72,244L74,226L86,214Z"/>'
-    +'<path class="prov" id="sevilla" d="M100,228L112,244L130,252L142,258L146,274L134,284L116,284L100,272L92,256L90,240Z"/>'
-    +'<path class="prov" id="cadiz" d="M90,284L100,272L116,284L122,296L112,308L98,310L86,302L84,290Z"/>'
-    +'<path class="prov" id="malaga" d="M116,284L134,284L148,280L158,290L156,304L140,312L122,308L112,298Z"/>'
-    +'<path class="prov" id="granada" d="M148,246L164,248L178,254L184,270L178,286L162,292L148,288L138,278L140,262L148,250Z"/>'
-    +'<path class="prov" id="almeria" d="M178,254L196,250L212,252L220,264L216,280L202,288L184,284L176,274Z"/>'
-    +'<path class="prov" id="jaen" d="M140,262L148,250L164,248L178,254L176,262L166,272L152,274L140,268Z"/>'
-    +'<path class="prov" id="cordoba" d="M130,252L142,244L142,258L158,258L172,260L174,248L178,254L164,248L148,246Z"/>'
-    // Baleares inset
-    +'<rect x="490" y="130" width="130" height="60" rx="3" fill="white" stroke="#bbb" stroke-width="0.7"/>'
-    +'<text style="font:500 7px system-ui,sans-serif;fill:#888" x="555" y="143" text-anchor="middle">ISLAS BALEARES</text>'
-    +'<path class="prov" id="baleares" d="M504,160L524,152L540,154L544,162L534,166L516,166Z"/>'
-    +'<path class="prov" d="M550,154L562,150L568,156L564,162L552,162Z"/>'
-    +'<path class="prov" d="M574,158L580,156L582,160L578,162Z"/>'
-    // Canarias inset
-    +'<rect x="490" y="210" width="280" height="110" rx="3" fill="white" stroke="#bbb" stroke-width="0.7"/>'
-    +'<text style="font:500 7px system-ui,sans-serif;fill:#888" x="630" y="223" text-anchor="middle">ISLAS CANARIAS</text>'
-    +'<path class="prov" id="tenerife" d="M506,270L520,258L534,262L534,276L520,280Z"/>'
-    +'<path class="prov" id="gran-canaria" d="M540,255L558,248L572,254L570,268L554,272L542,266Z"/>'
-    +'<path class="prov" d="M578,258L592,254L600,260L596,270L582,270Z"/>'
-    +'<path class="prov" d="M606,252L626,246L640,252L636,266L618,270L608,264Z"/>'
-    +'<path class="prov" d="M646,252L660,248L666,254L662,264L648,264Z"/>'
-    +'<path class="prov" d="M672,258L682,256L684,262L678,266L672,262Z"/>'
-    +'<path class="prov" d="M688,260L696,258L698,264L692,266Z"/>'
-    // Province label
-    +(prov?'<text style="font:700 9px system-ui,sans-serif;fill:#1a3a2a" x="400" y="590" text-anchor="middle">'+prov.toUpperCase()+'</text>':'')
-    +'</svg>';
+    const hlName = P2NAME[prov]||prov||'';
+
+    const paths = (SPAIN_PATHS||[]).map(p=>{
+      const isHl = hlName && p.n === hlName;
+      return `<path d="${p.d}" fill="${isHl?'#1a3a2a':'#f0f0f0'}" stroke="${isHl?'rgba(255,255,255,0.4)':'#aaaaaa'}" stroke-width="${isHl?'0.8':'0.4'}" stroke-linejoin="round"/>`;
+    }).join('');
+
+    return `<svg viewBox="0 0 460 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;border-radius:4px;border:1px solid #ccc">
+      <rect width="460" height="380" fill="white"/>
+      ${paths}
+      ${prov?`<text x="230" y="374" text-anchor="middle" font-family="Aptos,Segoe UI,sans-serif" font-size="11" font-weight="700" fill="#1a3a2a" letter-spacing="1">${prov.toUpperCase()}</text>`:''}
+    </svg>`;
   }
 
   // ── Image ─────────────────────────────────────────────────
@@ -3195,8 +3171,11 @@ function toggleKeyVisibility() {
 function updateAiStatus() {
   const key = getApiKey();
   const dot = document.getElementById('ai-dot');
+  const dotMini = document.getElementById('ai-dot-mini');
   const sub = document.getElementById('ai-sub');
-  if(dot) dot.style.background = key ? '#22c55e' : '#f59e0b';
+  const color = key ? '#22c55e' : '#f59e0b';
+  if(dot) dot.style.background = color;
+  if(dotMini) dotMini.style.background = color;
   if(sub) sub.textContent = key ? 'Listo · Claude Sonnet' : 'Añade tu API key para activar';
 }
 
