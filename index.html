@@ -86,8 +86,8 @@
   .btn-reset-order:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
   .group-chevron{font-size:10px;transition:transform .2s;display:inline-block;flex-shrink:0;color:rgba(255,255,255,0.45)}
   .group-chevron.collapsed{transform:rotate(-90deg)}
-  .group-name{font-size:13px;font-weight:700;letter-spacing:.02em;flex:1;color:#fff}
-  .group-count{font-size:11px;font-weight:400;color:rgba(255,255,255,0.45);white-space:nowrap}
+  .group-name{font-size:13px;font-weight:700;letter-spacing:.02em;color:#fff;white-space:nowrap}
+  .group-count{font-size:11px;font-weight:400;color:rgba(255,255,255,0.45);white-space:nowrap;margin-left:8px}
   .section-row td{background:#222;border-bottom:1px solid #111}
   /* PILLS */
   /* PILLS */
@@ -729,18 +729,18 @@ let projects = [
   {id:22,nombre:"Loiu",bloque:"Desinversión",estado:"Recibido",prioridad:2,tipo:"Log",contraparte:"CBRE",avance:"Modelo en revisión.",proxima:"Revisión interna y dar seguimiento con CBRE",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + PN",notas:""},
   {id:24,nombre:"A&G – Madrid Nuevo Norte + Suelos",bloque:"Desinversión",estado:"Recibido",prioridad:2,tipo:"Resi",contraparte:"A&G",avance:"En espera.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
   {id:27,nombre:"Bensaude",bloque:"Desinversión",estado:"Due diligence",prioridad:1,tipo:"Suelo",contraparte:"VIZTA",avance:"Seguimiento obras urbanización.",proxima:"Confirmar próximo Steering Committee. Seguimiento email addenda al contrato.",responsable:"Desarrollo de Negocio / BJD",notas:""},
-  {id:6,nombre:"Fuente Fría",bloque:"Pipeline",estado:"En análisis",prioridad:1,tipo:"Resi",contraparte:"Offmarket",avance:"Actualización enviada por Borja el viernes.",proxima:"Enviar modelo de la LOI. Llegar > 42%. Citar en notaría; pago condicionado al % total escriturado.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
-  {id:7,nombre:"PBSA Vallecas",bloque:"Pipeline",estado:"Due diligence",prioridad:1,tipo:"PBSA",contraparte:"Colliers + Praemia",avance:"ONV aceptada. DD iniciado. Encajes Morph presentados (650 hab.). NBO actualizada (excl. 6+5 sem., 50/50). NDA enviado a Addient.",proxima:"Seguimiento encaje MORPH + CDL. Vehiculizar FPA. Convenio Universidad. Llamada PRAEMIA semana 04/05.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
-  {id:8,nombre:"HOSS",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Mix Used",contraparte:"Praemia",avance:"Reunión Felipe (Praemia) 16 abr. Aprobación Plan General prevista pleno fin de abril.",proxima:"Encaje + modelo: presentación JME. Independizar modelos. Confirmar yield AXA. Nota inversión PPT.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
-  {id:9,nombre:"Eucalipto",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"Merlin",avance:"Encaje recibido.",proxima:"Nuevo encaje Morph – semana 27/04. Revisar encaje. Hay que tomar una decisión",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
-  {id:10,nombre:"Suso y Yuso 34",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"Generali",avance:"Teresa Joven analizando edificio (c. 3.250 m² remanentes). C&W consultando indemnización supermercado.",proxima:"Recibir análisis Teresa Joven. Recibir estimación indemnización C&W.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
-  {id:11,nombre:"Leonor / Plaza de los Cubos",bloque:"Pipeline",estado:"Recibido",prioridad:3,tipo:"Mix Used",contraparte:"Merlin",avance:"Modelo Excel enviado (v0). En espera documentación Merlin de CBRE.",proxima:"Pendiente documentación Merlin de CBRE.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
-  {id:12,nombre:"Getxo",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"Telefónica",avance:"Análisis de oportunidad en curso.",proxima:"Preparar one-pager para JME.",responsable:"Desarrollo de Negocio / TPN + BJD + PN",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
-  {id:13,nombre:"Gran Vía de Hortaleza",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"IBA Capital",avance:"Jones Day: uso residencial no aplicable. Posible hospedaje/apartahotel/flexliving con licencia directa.",proxima:"-",responsable:"Desarrollo de Negocio / TPN + BJD + Jurídico",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
-  {id:14,nombre:"Sanxenxo",bloque:"Pipeline",estado:"En análisis",prioridad:1,tipo:"Resi",contraparte:"n.a.",avance:"Preparando propuesta de inversión y modelo.",proxima:"Revisar borrador semana 4 de mayo.",responsable:"Desarrollo de Negocio / TPN + BJD + PN",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
-  {id:17,nombre:"Mateo Inurria [ALTER]",bloque:"Pipeline",estado:"Recibido",prioridad:3,tipo:"Resi",contraparte:"Alter",avance:"En espera - Pendientes de recibir confirmación de la propiedad.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
-  {id:18,nombre:"Mateo Inurria [Mapfre]",bloque:"Pipeline",estado:"Recibido",prioridad:3,tipo:"Resi",contraparte:"Mapfre",avance:"En espera - Mapfre ha renovado el contrato de alquiler.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
-  {id:25,nombre:"Rojas Santa Tecla",bloque:"Pipeline",estado:"Recibido",prioridad:2,tipo:"Resi",contraparte:"Bestinver",avance:"Preparando el modelo hasta una TIR Proyecto 11%-13% financiando construcción",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:""}},
+  {id:6,nombre:"Fuente Fría",bloque:"Pipeline",estado:"En análisis",prioridad:1,tipo:"Resi",contraparte:"Offmarket",avance:"Actualización enviada por Borja el viernes.",proxima:"Enviar modelo de la LOI. Llegar > 42%. Citar en notaría; pago condicionado al % total escriturado.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"dic-2028"}},
+  {id:7,nombre:"PBSA Vallecas",bloque:"Pipeline",estado:"Due diligence",prioridad:1,tipo:"PBSA",contraparte:"Colliers + Praemia",avance:"ONV aceptada. DD iniciado. Encajes Morph presentados (650 hab.). NBO actualizada (excl. 6+5 sem., 50/50). NDA enviado a Addient.",proxima:"Seguimiento encaje MORPH + CDL. Vehiculizar FPA. Convenio Universidad. Llamada PRAEMIA semana 04/05.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"ago-2029"}},
+  {id:8,nombre:"HOSS",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Mix Used",contraparte:"Praemia",avance:"Reunión Felipe (Praemia) 16 abr. Aprobación Plan General prevista pleno fin de abril.",proxima:"Encaje + modelo: presentación JME. Independizar modelos. Confirmar yield AXA. Nota inversión PPT.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"jun-2031"}},
+  {id:9,nombre:"Eucalipto",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"Merlin",avance:"Encaje recibido.",proxima:"Nuevo encaje Morph – semana 27/04. Revisar encaje. Hay que tomar una decisión",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"mar-2030"}},
+  {id:10,nombre:"Suso y Yuso 34",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"Generali",avance:"Teresa Joven analizando edificio (c. 3.250 m² remanentes). C&W consultando indemnización supermercado.",proxima:"Recibir análisis Teresa Joven. Recibir estimación indemnización C&W.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"jul-2030"}},
+  {id:11,nombre:"Leonor / Plaza de los Cubos",bloque:"Pipeline",estado:"Recibido",prioridad:3,tipo:"Mix Used",contraparte:"Merlin",avance:"Modelo Excel enviado (v0). En espera documentación Merlin de CBRE.",proxima:"Pendiente documentación Merlin de CBRE.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"oct-2030"}},
+  {id:12,nombre:"Getxo",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"Telefónica",avance:"Análisis de oportunidad en curso.",proxima:"Preparar one-pager para JME.",responsable:"Desarrollo de Negocio / TPN + BJD + PN",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"feb-2032"}},
+  {id:13,nombre:"Gran Vía de Hortaleza",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"IBA Capital",avance:"Jones Day: uso residencial no aplicable. Posible hospedaje/apartahotel/flexliving con licencia directa.",proxima:"-",responsable:"Desarrollo de Negocio / TPN + BJD + Jurídico",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"may-2030"}},
+  {id:14,nombre:"Sanxenxo",bloque:"Pipeline",estado:"En análisis",prioridad:1,tipo:"Resi",contraparte:"n.a.",avance:"Preparando propuesta de inversión y modelo.",proxima:"Revisar borrador semana 4 de mayo.",responsable:"Desarrollo de Negocio / TPN + BJD + PN",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"nov-2030"}},
+  {id:17,nombre:"Mateo Inurria [ALTER]",bloque:"Pipeline",estado:"Recibido",prioridad:3,tipo:"Resi",contraparte:"Alter",avance:"En espera - Pendientes de recibir confirmación de la propiedad.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"ago-2030"}},
+  {id:18,nombre:"Mateo Inurria [Mapfre]",bloque:"Pipeline",estado:"Recibido",prioridad:3,tipo:"Resi",contraparte:"Mapfre",avance:"En espera - Mapfre ha renovado el contrato de alquiler.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"ago-2030"}},
+  {id:25,nombre:"Rojas Santa Tecla",bloque:"Pipeline",estado:"Recibido",prioridad:2,tipo:"Resi",contraparte:"Bestinver",avance:"Preparando el modelo hasta una TIR Proyecto 11%-13% financiando construcción",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"mar-2029"}},
   {id:26,nombre:"Nestlé – MPPG + Encaje + Modelo",bloque:"Desarrollo / Operación",estado:"Recibido",prioridad:2,tipo:"Cliente",contraparte:"Teresa Joven / PJM",avance:"Encaje en elaboración (Batlle). Honorarios recibidos de Batlle. Pendiente enviar propuesta Nestlé.",proxima:"Preparar actualización del modelo / Seguimiento MPpG",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:""},
   {id:20,nombre:"Mónica – Reporting",bloque:"Clientes / Gestión",estado:"Recibido",prioridad:2,tipo:"Reporting",contraparte:"JAT",avance:"En espera.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
   {id:21,nombre:"Case Study – Terrassa",bloque:"Clientes / Gestión",estado:"Recibido",prioridad:2,tipo:"Case Study",contraparte:"Mónica",avance:"En proceso.",proxima:"Pendiente maqueta. Revisión fotografías (Prisa).",responsable:"Desarrollo de Negocio / TPN",notas:""},
@@ -790,9 +790,10 @@ async function loadFromSupabase() {
     try { localStorage.setItem('acciona_v3', JSON.stringify(projects)); } catch(e) {}
     migrateBloquesLegacy();
     projects.forEach(p => migrateAcciones(p));
-    render();
     const ind = document.getElementById('sb-indicator');
     if(ind) { ind.textContent = '☁ Online'; ind.style.color='#2e5c3e'; }
+  } else {
+    throw new Error('No data from Supabase');
   }
 }
 
@@ -1106,6 +1107,11 @@ function renderDetail() {
     // Col 3
     +'<div class="d-item"><label>Responsable</label><input class="d-input" value="'+p.responsable+'" oninput="saveField('+p.id+',\'responsable\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"><label>'+contraparteLabel(p.bloque)+'</label><input class="d-input" value="'+(p.vendor||p.contraparte||'')+'" placeholder="—" oninput="saveField('+p.id+',\'vendor\',this.value)" onclick="event.stopPropagation()"/></div>'
+    +(p.bloque==='Pipeline'
+      ?'<div class="d-item" onclick="event.stopPropagation()"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" '+(p.fpa?'checked':'')+' style="accent-color:#1a3a2a;cursor:pointer;width:13px;height:13px" onchange="saveField('+p.id+',\'fpa\',this.checked);if(this.checked)document.getElementById(\'fpa-buyer-'+p.id+'\').style.display=\'block\';else document.getElementById(\'fpa-buyer-'+p.id+'\').style.display=\'none\'"/><span style="font-size:11px;font-weight:600;color:var(--text2)">FPA · Forward Purchase</span></label>'
+        +'<div id="fpa-buyer-'+p.id+'" style="display:'+(p.fpa?'block':'none')+'"><input class="d-input" value="'+(p.fpaComprador||'')+'" placeholder="Comprador FPA…" oninput="saveField('+p.id+',\'fpaComprador\',this.value)" onclick="event.stopPropagation()" style="margin-top:4px"/></div>'
+        +'</div>'
+      :'')
     +'<div class="d-item"><label>Broker / Agente</label><input class="d-input" value="'+(p.comprador||'')+'" placeholder="—" oninput="saveField('+p.id+',\'comprador\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'</div>'
     // Full width fields
@@ -1516,8 +1522,9 @@ function renderTabla() {
       +'<span class="group-chevron'+(collapsed?' collapsed':'')+'">▼</span>'
       +'<span class="group-name">'+b+'</span>'
       +'<span class="group-count">'+countTxt+'</span>'
+      +'<span style="flex:1"></span>'
       // Dynamic column labels in header
-      +'<span style="margin-left:auto;display:flex;gap:16px;font-size:9px;font-weight:600;letter-spacing:.08em;opacity:.65;text-transform:uppercase;padding-right:8px">'
+      +'<span style="display:flex;gap:16px;font-size:9px;font-weight:600;letter-spacing:.08em;opacity:.65;text-transform:uppercase;padding-right:8px">'
       +'<span>Tipo</span>'
       +'<span>'+cLabel+(showBroker?' · Broker':'')+'</span>'
       +'<span>Responsable</span>'
@@ -2112,7 +2119,8 @@ function renderTablaOnly() {
       +'<span class="group-chevron'+(collapsed?' collapsed':'')+'">▼</span>'
       +'<span class="group-name">'+b+'</span>'
       +'<span class="group-count">'+countTxt+'</span>'
-      +'<span style="margin-left:auto;display:flex;gap:16px;font-size:9px;font-weight:600;letter-spacing:.08em;opacity:.65;text-transform:uppercase;padding-right:8px">'
+      +'<span style="flex:1"></span>'
+      +'<span style="display:flex;gap:16px;font-size:9px;font-weight:600;letter-spacing:.08em;opacity:.65;text-transform:uppercase;padding-right:8px">'
       +'<span>Tipo</span>'
       +'<span>'+contraparteLabel(b)+((b==='Desinversión'||b==='Pipeline')?' · Broker':'')+'</span>'
       +'<span>Responsable</span>'
@@ -2255,39 +2263,76 @@ function renderPipelineSummary() {
       <span style="font-weight:700;color:#1a1a18">${n}</span>
     </div>`).join('');
 
-  // ── TIMELINE SVG ──────────────────────────────────────────────
-  const withDate=ps.map(p=>({p,d:parseFecha(p.eco?.fechaEntrega)})).filter(x=>x.d).sort((a,b)=>a.d-b.d);
-  let timelineSVG='<div style="font-size:8px;color:#bbb;font-style:italic;padding:4px 0">Sin fechas — añádelas en UW·Modelo de cada proyecto</div>';
-  if(withDate.length>=1){
-    const now=new Date();
-    const minD=new Date(Math.min(withDate[0].d.getTime(),now.getTime()));
-    const maxD=withDate[withDate.length-1].d;
-    const extMax=new Date(maxD.getFullYear(),maxD.getMonth()+2,1);
-    const span=Math.max(extMax-minD,1);
-    const W=680,PAD=14;
-    const px=d=>PAD+(d-minD)/span*(W-2*PAD);
-    const nowX=px(now);
-    let ticks='';
-    for(let y=minD.getFullYear();y<=extMax.getFullYear();y++){
-      const x=px(new Date(y,0,1));
-      if(x>=PAD&&x<=W-PAD)ticks+=`<line x1="${x}" y1="34" x2="${x}" y2="40" stroke="#ddd" stroke-width="1"/>
-        <text x="${x}" y="50" text-anchor="middle" font-size="7" fill="#bbb">${y}</text>`;
-    }
-    let dots='';
-    withDate.forEach(({p,d})=>{
-      const x=Math.min(W-PAD,Math.max(PAD,px(d)));
-      const col=tirc(p.eco?.tirPct||0);
-      const nm=p.nombre.replace(/\|.*/,'').trim().split(' ')[0];
-      dots+=`<circle cx="${x}" cy="34" r="4.5" fill="${col}" stroke="white" stroke-width="1.5"/>
-        <line x1="${x}" y1="28" x2="${x}" y2="18" stroke="${col}" stroke-width="1" opacity="0.6"/>
-        <text x="${x}" y="15" text-anchor="middle" font-size="7" fill="#555" font-weight="500">${nm}</text>`;
+  // ── BAR CHART: Venta + Margen agrupados por año de entrega ──
+  function getYear(v){
+    if(!v||v==='')return null;
+    const m=String(v).match(/(\d{4})/);
+    return m?parseInt(m[1]):null;
+  }
+  const byYear={};
+  ps.forEach(p=>{
+    const yr=getYear(p.eco?.fechaEntrega);
+    if(!yr)return;
+    byYear[yr]=byYear[yr]||{venta:0,margen:0,ps:[]};
+    byYear[yr].venta+=parseInt((p.eco?.ventaEur||'').replace(/\D/g,'')||0);
+    byYear[yr].margen+=parseInt((p.eco?.margenEur||'').replace(/\D/g,'')||0);
+    byYear[yr].ps.push(p.nombre.replace(/\|.*/,'').trim().split(' ')[0]);
+  });
+  const years=Object.keys(byYear).sort();
+  let timelineSVG='<div style="font-size:8px;color:#bbb;font-style:italic;padding:4px 0">Sin fechas de entrega — añádelas en UW·Modelo (campo "Fecha entrega")</div>';
+  if(years.length>0){
+    const minYr=parseInt(years[0]),maxYr=parseInt(years[years.length-1]);
+    const allYears=[];
+    for(let y=minYr;y<=maxYr;y++) allYears.push(String(y));
+    const nYrs=allYears.length;
+
+    const W=660,CHART_H=72,PAD_L=34,PAD_R=8,PAD_T=10,PAD_B=12;
+    const chartW=W-PAD_L-PAD_R;
+    const groupW=chartW/nYrs;
+    const barW=Math.max(8,Math.min(28,groupW*0.38));
+    const gap=2;
+    const maxV=Math.max(...allYears.map(y=>byYear[y]?.venta||0),1);
+
+    // Grid lines — no legend block at top, integrate into axis
+    let svg=`<rect x="${PAD_L}" y="${PAD_T}" width="${chartW}" height="${CHART_H}" fill="#fafaf8" rx="2"/>`;
+    [0,0.25,0.5,0.75,1].forEach(pct=>{
+      const y=PAD_T+CHART_H-pct*CHART_H;
+      const val=pct>0?(pct*maxV>=1e9?Math.round(pct*maxV/1e9)+'B€':pct*maxV>=1e6?Math.round(pct*maxV/1e6)+'M€':Math.round(pct*maxV/1e3)+'K€'):'0';
+      svg+=`<line x1="${PAD_L}" y1="${y}" x2="${W-PAD_R}" y2="${y}" stroke="${pct===0?'#ccc':'#e8e8e4'}" stroke-width="${pct===0?1.2:0.6}"/>`;
+      svg+=`<text x="${PAD_L-3}" y="${y+3}" text-anchor="end" font-size="6.5" fill="#bbb">${val}</text>`;
     });
-    timelineSVG=`<svg viewBox="0 0 ${W} 55" style="width:100%;display:block;overflow:visible">
-      <line x1="${PAD}" y1="34" x2="${W-PAD}" y2="34" stroke="#e0e8e0" stroke-width="1.5"/>
-      ${ticks}${dots}
-      <line x1="${nowX}" y1="26" x2="${nowX}" y2="42" stroke="#f28b82" stroke-width="2"/>
-      <text x="${nowX}" y="22" text-anchor="middle" font-size="6.5" fill="#f28b82">hoy</text>
-    </svg>`;
+    // Axis labels — V and M below axis left side
+
+    // Bars
+    allYears.forEach((yr,i)=>{
+      const {venta=0,margen=0}=byYear[yr]||{};
+      const cx=PAD_L+i*groupW+groupW/2;
+      const isZero=venta===0&&margen===0;
+      const bVenta=Math.max(isZero?1:2,Math.round((venta/maxV)*CHART_H));
+      const bMargen=Math.max(isZero?1:2,Math.round((margen/maxV)*CHART_H));
+      const baseY=PAD_T+CHART_H;
+      const mgPct=venta>0?Math.round(margen/venta*100):0;
+      const fmV=v=>v>=1e9?Math.round(v/1e9)+'B€':v>=1e6?Math.round(v/1e6)+'M€':v>=1e3?Math.round(v/1e3)+'K€':'—';
+
+      // Venta bar
+      const xv=cx-barW-gap/2;
+      svg+=`<rect x="${xv}" y="${baseY-bVenta}" width="${barW}" height="${bVenta}" fill="#1a3a2a" rx="2" opacity="${isZero?0.1:0.9}"/>`;
+      if(venta>0) svg+=`<text x="${xv+barW/2}" y="${baseY-bVenta-3}" text-anchor="middle" font-size="7" font-weight="700" fill="#1a3a2a">${fmV(venta)}</text>`;
+
+      // Margen bar
+      const xm=cx+gap/2;
+      svg+=`<rect x="${xm}" y="${baseY-bMargen}" width="${barW}" height="${bMargen}" fill="#52b788" rx="2" opacity="${isZero?0.1:0.85}"/>`;
+      if(margen>0){
+        const pctStr=mgPct>0?mgPct+'%':'';
+        if(pctStr) svg+=`<text x="${xm+barW/2}" y="${baseY-bMargen-13}" text-anchor="middle" font-size="7" fill="#2d6a4f" font-weight="700">${pctStr}</text>`;
+        svg+=`<text x="${xm+barW/2}" y="${baseY-bMargen-3}" text-anchor="middle" font-size="7" fill="#2d6a4f">${fmV(margen)}</text>`;
+      }
+
+      // Year label
+      svg+=`<text x="${cx}" y="${baseY+11}" text-anchor="middle" font-size="8" fill="${isZero?'#ccc':'#555'}" font-weight="${isZero?'400':'600'}">${yr}</text>`;
+    });
+
+    timelineSVG=`<svg viewBox="0 0 ${W} ${PAD_T+CHART_H+PAD_B}" style="width:100%;display:block" font-family="Aptos,Segoe UI,sans-serif">${svg}</svg>`;
   }
 
   // ── TABLE ROWS ────────────────────────────────────────────────
@@ -2414,9 +2459,15 @@ function renderPipelineSummary() {
           <tbody>${tableRows}</tbody>
         </table>
 
-        <!-- Timeline -->
-        <div style="margin-top:auto;padding-top:8px;border-top:1px solid #f0efe9;flex-shrink:0">
-          <div style="${CT}">Entregas previstas (LPO)</div>
+        <!-- Chart -->
+        <div style="margin-top:auto;padding-top:6px;border-top:1px solid #f0efe9;flex-shrink:0;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+            <div style="${CT.replace('margin-bottom:8px','margin-bottom:0')}">Venta y margen por año de entrega</div>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+              <span style="display:flex;align-items:center;gap:3px;font-size:7.5px;color:#555"><span style="width:8px;height:8px;background:#1a3a2a;border-radius:1px;display:inline-block"></span>Venta</span>
+              <span style="display:flex;align-items:center;gap:3px;font-size:7.5px;color:#555"><span style="width:8px;height:8px;background:#52b788;border-radius:1px;display:inline-block"></span>Margen %</span>
+            </div>
+          </div>
           ${timelineSVG}
         </div>
       </div>
@@ -3376,7 +3427,27 @@ function showDeltaModal(snapshot, imported) {
 function readExcelFile(file){const reader=new FileReader();reader.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});const sn=wb.SheetNames.find(n=>n.toLowerCase()==='resumen')||wb.SheetNames[0];if(!sn){alert('No se encontró hoja Resumen');return;}const data=XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:'',range:5});if(!data.length||!Object.prototype.hasOwnProperty.call(data[0],'SlideKey')){alert('Columna SlideKey no encontrada. Columnas: '+Object.keys(data[0]||{}).join(', '));return;}function cl(v){return(!v&&v!==0)?'':String(v).trim();}function cn(v){if(!v&&v!==0)return '';const n=parseFloat(String(v).replace(/[^\d.,-]/g,'').replace(',','.'));return isNaN(n)?'':String(Math.round(n));}function cp(v){if(!v&&v!==0)return '';const s=String(v),n=parseFloat(s.replace('%','').replace(',','.'));if(isNaN(n))return '';return(n<1&&!s.includes('%')?n*100:n).toFixed(2).replace('.',',');}function cd(v){if(!v)return '';if(v instanceof Date)return v.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});return cl(v);}const maxId=projects.reduce((m,p)=>Math.max(m,p.id),0);let nid=maxId+1;const np=data.filter(r=>cl(r['SlideKey'])).map((r,i)=>({id:nid+i,nombre:cl(r['SlideKey']),bloque:'Pipeline',estado:'En análisis',prioridad:2,tipo:cl(r['Tipo'])||'—',contraparte:'—',responsable:'—',avance:'—',proxima:'—',notas:'',mapUrl:'',imgData:'',ubicacion:'',acciones:[],edificabilidad:cn(r['Edificabilidad N']),nViviendas:cn(r['Unidades N']),eco:{sueloN:cn(r['Suelo N']),sueloEur:cn(r['Suelo €']),sueloEurM2:cn(r['Suelo €/m2']),construccionEur:cn(r['Construcción €']),construccionEurM2:cn(r['Equivalente €/m2']),urbEur:cn(r['Urb. €']),urbEurM2:cn(r['Urb. €/m2']),costeCocinas:cn(r['Coste Cocinas €']),otrosHonorarios:cn(r['Otros Honorarios €']),costoTotal:cn(r['Coste Total €']),ventaEur:cn(r['Venta Total €']),ventaVivEur:cn(r['Venta Viv. €']),ventaEurM2:cn(r['Venta €/m2']),ventaUnidadEur:cn(r['Venta Unidad Viv. €']),noi:cn(r['NOI €']),yieldPct:cp(r['Yield %']),margenEur:cn(r['Margen €']),margenPct:cp(r['Margen %']),tirPct:cp(r['TIR %']),tirAlqPct:cp(r['TIR s/Alq. %']),tirDiPct:cp(r['TIR DI %']),rentasEur:cn(r['Rentas €']),ventasAlqEur:cn(r['Ventas s/ Alq. €']),margenAlqEur:cn(r['Margen s/ Alq. €']),margenAlqPct:cp(r['Margen s/ Alq. %']),inicioProy:cd(r['Inicio Proy. FF']),inicioObras:cd(r['Inicio Obras FF']),fechaEntrega:cd(r['1ª Ocupación FF']),plazoMeses:cn(r['Plazo Obras N']),licenciaN:cn(r['Licencia N']),parkingN:cn(r['Parking N']),comisionSueloPct:cp(r['Comisión Suelo %']),publicidadPct:cp(r['Publicidad %']),feeComercialPct:cp(r['Fee Comercial %']),postventaPct:cp(r['Postventa %']),pago1FF:cd(r['Pago 1 FF']),pago1Pct:cp(r['Pago 1 %']),pago2FF:cd(r['Pago 2 FF']),pago2Pct:cp(r['Pago 2 %']),pago3FF:cd(r['Pago 3 FF']),pago3Pct:cp(r['Pago 3 %']),formaPago:cl(r['Forma Pago']),archivo:cl(r['Archivo'])}}));if(!np.length){alert('Sin datos en SlideKey');return;}
       const snapshot={};projects.filter(p=>p.bloque==='Pipeline').forEach(p=>{snapshot[p.nombre]=JSON.parse(JSON.stringify(p.eco||{}));});
       // Importación aditiva
-      np.forEach(function(newP){const existing=projects.find(p=>p.nombre===newP.nombre&&p.bloque==='Pipeline');if(existing){existing.eco=newP.eco;existing.edificabilidad=newP.edificabilidad;existing.nViviendas=newP.nViviendas;if(existing.tipo==='—')existing.tipo=newP.tipo;}else{projects.push(newP);}});
+      np.forEach(function(newP){
+        const existing=projects.find(p=>p.nombre===newP.nombre&&p.bloque==='Pipeline');
+        if(existing){
+          // Merge eco: only overwrite fields that have a real value in the new import
+          const oldEco=existing.eco||{};
+          const newEco=newP.eco||{};
+          Object.keys(newEco).forEach(k=>{
+            const v=newEco[k];
+            // Only update if new value is non-empty
+            if(v!==''&&v!==null&&v!==undefined) oldEco[k]=v;
+          });
+          existing.eco=oldEco;
+          // Update edificabilidad/nViviendas only if new value present
+          if(newP.edificabilidad!=='') existing.edificabilidad=newP.edificabilidad;
+          if(newP.nViviendas!=='') existing.nViviendas=newP.nViviendas;
+          // Update tipo only if was empty
+          if(!existing.tipo||existing.tipo==='—') existing.tipo=newP.tipo;
+        } else {
+          projects.push(newP);
+        }
+      });
       localStorage.setItem('acciona_last_import',String(Date.now()));persist();
       showDeltaModal(snapshot, np);
       render();}catch(err){console.error(err);alert('Error: '+err.message);}};reader.readAsArrayBuffer(file);}
@@ -3436,21 +3507,41 @@ function sendEmailReport(){
 
 // ─── INIT ──────────────────────────────────────────────────────
 document.getElementById('fecha-hoy').textContent=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
-loadPersisted();
+const _hasLocal = loadPersisted();
 loadBloques();
 migrateBloquesLegacy();
 projects.forEach(p=>migrateAcciones(p));
 checkSession();
 initAiKey();
-addMsg('system','Gestor listo · '+projects.length+' proyectos · Sincronizando con la nube...');
-render();
+
 // Re-render on resize (desktop ↔ mobile)
 let _resizeTimer;
 window.addEventListener('resize', ()=>{ clearTimeout(_resizeTimer); _resizeTimer=setTimeout(render, 150); });
-// Load from Supabase (overrides localStorage with latest cloud data)
-// Skip when running as local file (file://) — no network access
-if(window.location.protocol !== 'file:') loadFromSupabase();
-else { const ind=document.getElementById('sb-indicator'); if(ind){ind.textContent='⚡ Local';ind.style.color='var(--text3)';} }
+
+if(window.location.protocol === 'file:') {
+  // Local file — use hardcoded/localStorage data directly
+  addMsg('system','Gestor listo · '+projects.length+' proyectos · Modo local');
+  const ind=document.getElementById('sb-indicator');
+  if(ind){ind.textContent='⚡ Local';ind.style.color='var(--text3)';}
+  render();
+} else {
+  // GitHub Pages / servidor — mostrar spinner y esperar Supabase antes de renderizar
+  const main = document.getElementById('main');
+  if(main) main.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:16px"><div style="width:32px;height:32px;border:3px solid #eee;border-top-color:#1a3a2a;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="font-size:13px;color:#aaa">Cargando datos…</div></div>';
+  // Add spin animation
+  if(!document.getElementById('spin-style')){const s=document.createElement('style');s.id='spin-style';s.textContent='@keyframes spin{to{transform:rotate(360deg)}}';document.head.appendChild(s);}
+  addMsg('system','Sincronizando con la nube…');
+  loadFromSupabase().then(()=>{
+    // Supabase loaded — render with cloud data
+    if(!projects.length && _hasLocal) loadPersisted(); // fallback to localStorage if Supabase empty
+    addMsg('system','Gestor listo · '+projects.length+' proyectos');
+    render();
+  }).catch(()=>{
+    // Supabase failed — fallback to localStorage or hardcoded
+    addMsg('system','Sin conexión · '+projects.length+' proyectos (datos locales)');
+    render();
+  });
+}
 </script>
 </body>
 </html>
