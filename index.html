@@ -721,7 +721,7 @@ function fmtMiles(n) {
 let projects = [];
 
 // ─── STATE ────────────────────────────────────────────────────
-let S = {view:'dashboard',fBloque:'',fEstado:'',fPrio:'',fSearch:'',selId:null,sortCols:[{col:'prioridad',dir:1},{col:'estado',dir:1}],aiHist:[],pendingDel:null,collapsedGroups:new Set(),detailMin:false};
+let S = {view:'dashboard',fBloque:'',fEstado:'',fPrio:'',fSearch:'',selId:null,sortCols:[{col:'estado',dir:1},{col:'prioridad',dir:1}],aiHist:[],pendingDel:null,collapsedGroups:new Set(),detailMin:false};
 
 // ─── PERSIST ──────────────────────────────────────────────────
 let _sbDataConfirmed = false; // true solo si los datos vinieron de Supabase
@@ -2154,6 +2154,7 @@ function renderTablaOnly() {
 let S_dealId = null;
 let S_dealView = 'ficha'; // 'ficha' | 'pipeline'
 let S_dealPdf  = []; // IDs selected for multi-PDF
+let S_pdfDropOpen = false;
 
 function toggleDealPdf(id, checked) {
   if(checked) { if(!S_dealPdf.includes(id)) S_dealPdf.push(id); }
@@ -2259,8 +2260,8 @@ function renderPipelineSummary() {
   const EC={'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae'};
   function hasEcoData(p){const e=p.eco||{};return !!(e.tirPct||e.ventaEur||e.sueloEur||e.margenPct);}
   const sorted=[...ps].sort((a,b)=>parseFloat(b.eco?.tirPct||0)-parseFloat(a.eco?.tirPct||0));
-  const sortedMain = sorted.filter(p=>hasEcoData(p));
-  const sortedSB   = sorted.filter(p=>!hasEcoData(p));
+  const sortedMain = sorted.filter(p=>hasEcoData(p) && p.estado!=='Stand By');
+  const sortedSB   = sorted.filter(p=>!hasEcoData(p) || p.estado==='Stand By');
   const tirVals=ps.map(p=>parseFloat(p.eco?.tirPct||0)).filter(n=>n>0);
   const mgVals=ps.map(p=>parseFloat(p.eco?.margenPct||0)).filter(n=>n>0);
   const at=tirVals.length?(tirVals.reduce((a,b)=>a+b,0)/tirVals.length).toFixed(1):'—';
@@ -2416,23 +2417,22 @@ function renderPipelineSummary() {
   const CT='font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:3px;margin-bottom:8px';
   // KPI boxes — same top border as CT border
   const kpiBoxes=[
-    // Proyectos — tarjetón especial más rico
-    `<div style="background:#f8f7f3;border-radius:5px;padding:6px 10px;border-top:2px solid #1a3a2a;display:flex;flex-direction:column;gap:4px">
-      <div style="font-size:7px;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin-bottom:1px">Proyectos</div>
-      <div style="font-size:16px;font-weight:800;color:#1a3a2a;line-height:1">${ps.length}</div>
-      <div style="display:flex;gap:6px;border-top:1px solid #e8e8e0;padding-top:4px;margin-top:1px">
-        ${totViv>0?`<div style="flex:1"><div style="font-size:9px;font-weight:700;color:#1a3a2a;line-height:1">${fmtMiles(totViv)}</div><div style="font-size:6.5px;color:#bbb;text-transform:uppercase;letter-spacing:.05em;margin-top:1px">uds</div></div>`:''}
-        ${totViv>0&&totEdif>0?`<div style="width:1px;background:#e8e8e0;align-self:stretch"></div>`:''}
-        ${totEdif>0?`<div style="flex:1"><div style="font-size:9px;font-weight:700;color:#1a3a2a;line-height:1">${totEdif>=1000?fmtMiles(Math.round(totEdif/1000))+'K':fmtMiles(totEdif)}</div><div style="font-size:6.5px;color:#bbb;text-transform:uppercase;letter-spacing:.05em;margin-top:1px">m²</div></div>`:''}
-      </div>
-    </div>`,
-    ['Venta total',fm(tv)],['Construcción',fm(tc2)],['TIR media',at+'%'],['Margen medio',am+'%']
-  ].map(item => Array.isArray(item)
-    ? `<div style="background:#f8f7f3;border-radius:5px;padding:5px 8px;border-top:2px solid #1a3a2a">
-        <div style="font-size:7px;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin-bottom:1px">${item[0]}</div>
-        <div style="font-size:13px;font-weight:800;color:#1a3a2a;line-height:1">${item[1]}</div>
-      </div>`
-    : item
+    ['Proyectos', ps.length, ''],
+    ...(totViv>0||totEdif>0 ? [[
+      'Unidades / Edif.',
+      totViv>0 ? fmtMiles(totViv)+' uds' : '—',
+      totEdif>0 ? fmtMiles(Math.round(totEdif/1000))+'K m²' : ''
+    ]] : []),
+    ['Venta total', fm(tv), ''],
+    ['Construcción', fm(tc2), ''],
+    ['TIR media', at+'%', ''],
+    ['Margen medio', am+'%', ''],
+  ].map(([l,v,sub])=>
+    `<div style="background:#f8f7f3;border-radius:5px;padding:5px 8px;border-top:2px solid #1a3a2a">
+      <div style="font-size:7px;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin-bottom:2px">${l}</div>
+      <div style="font-size:13px;font-weight:800;color:#1a3a2a;line-height:1">${v}</div>
+      ${sub?`<div style="font-size:8px;color:#888;margin-top:2px">${sub}</div>`:''}
+    </div>`
   ).join('');
 
   return `<div style="width:1090px;height:740px;background:white;border-radius:6px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.12);margin:16px auto;font-family:Aptos,'Segoe UI',sans-serif;display:flex;flex-direction:column">
@@ -2505,7 +2505,7 @@ function renderPipelineSummary() {
       <div style="padding:10px 14px;display:flex;flex-direction:column;overflow:hidden">
 
         <!-- KPIs — alineados con el borde del mapa (mismo top que CT) -->
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px">${kpiBoxes}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;margin-bottom:10px">${kpiBoxes}</div>
 
         <div style="${CT}">Proyectos en estudio</div>
         <table style="width:100%;border-collapse:collapse;table-layout:fixed;flex-shrink:0">
@@ -2526,7 +2526,7 @@ function renderPipelineSummary() {
         </table>
 
         <!-- Chart -->
-        <div style="margin-top:auto;padding-top:6px;border-top:1px solid #f0efe9;flex-shrink:0;overflow:hidden">
+        <div style="margin-top:auto;padding-top:6px;border-top:1px solid #f0efe9;flex-shrink:0;height:120px;overflow:hidden">
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
             <div style="${CT.replace('margin-bottom:8px','margin-bottom:0')}">Venta y margen por año de entrega</div>
             <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
@@ -2608,11 +2608,11 @@ function renderDealSheet() {
   const nSel = (S_dealPdf||[]).length;
   const multiDropdown = S_dealView==='ficha'
     ? '<div style="position:relative;display:inline-block">'
-      + '<button onclick="document.getElementById(\'pdf-drop\').classList.toggle(\'open\')" style="font-size:12px;padding:6px 12px;border-radius:var(--r);border:1px solid var(--border2);background:white;color:var(--text2);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px">'
+      + '<button onclick="S_pdfDropOpen=!S_pdfDropOpen;render()" style="font-size:12px;padding:6px 12px;border-radius:var(--r);border:1px solid var(--border2);background:white;color:var(--text2);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px">'
       + '📄 Exportar varios'
       + (nSel>0?'<span style="background:#1a3a2a;color:white;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px">'+nSel+'</span>':'<span style="color:#bbb;font-size:10px">▾</span>')
       + '</button>'
-      + '<div id="pdf-drop" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:white;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.12);z-index:100;min-width:220px;overflow:hidden">'
+      + '<div id="pdf-drop" style="display:'+(S_pdfDropOpen?'block':'none')+';position:absolute;top:calc(100% + 4px);left:0;background:white;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.12);z-index:100;min-width:220px;overflow:hidden">'
       + '<div style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
       + '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Seleccionar proyectos</span>'
       + (nSel>0?'<span onclick="S_dealPdf=[];render()" style="font-size:10px;color:#1a3a2a;cursor:pointer;font-weight:600">Limpiar</span>':'')
@@ -3239,9 +3239,8 @@ function navigateTo(view, filters) {
 // Matrix cell click delegation
 document.addEventListener('click', function(e) {
   // Close pdf dropdown when clicking outside
-  const drop = document.getElementById('pdf-drop');
-  if(drop && drop.classList.contains('open') && !e.target.closest('#pdf-drop') && !e.target.closest('[onclick*="pdf-drop"]')) {
-    drop.classList.remove('open');
+  if(S_pdfDropOpen && !e.target.closest('#pdf-drop') && !e.target.closest('[onclick*="S_pdfDropOpen"]')) {
+    S_pdfDropOpen=false; render();
   }
   const cell = e.target.closest('.mx-cell');
   if(!cell) return;
