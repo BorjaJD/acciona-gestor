@@ -2156,10 +2156,37 @@ let S_dealView = 'ficha'; // 'ficha' | 'pipeline'
 let S_dealPdf  = []; // IDs selected for multi-PDF
 let S_pdfDropOpen = false;
 
+function togglePdfDrop(e) {
+  e.stopPropagation();
+  S_pdfDropOpen = !S_pdfDropOpen;
+  const d = document.getElementById('pdf-drop');
+  if(d) d.style.display = S_pdfDropOpen ? 'block' : 'none';
+}
+
 function toggleDealPdf(id, checked) {
   if(checked) { if(!S_dealPdf.includes(id)) S_dealPdf.push(id); }
   else { S_dealPdf = S_dealPdf.filter(x=>x!==id); }
-  render();
+  // Update checkbox appearance without full re-render
+  const lbl = event.target.closest('label');
+  if(lbl) {
+    const sel = S_dealPdf.includes(id);
+    lbl.style.background = sel ? '#1a3a2a' : 'white';
+    lbl.style.borderColor = sel ? '#1a3a2a' : 'var(--border2)';
+    const svg = lbl.querySelector('svg');
+    if(sel && !svg) lbl.insertAdjacentHTML('afterbegin','<svg width="9" height="9" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>');
+    if(!sel && svg) svg.remove();
+    const span = lbl.querySelector('span');
+    if(span) span.style.color = sel ? 'white' : 'var(--text)';
+  }
+  // Update count badge and export button
+  const badge = document.querySelector('.pdf-drop-badge');
+  if(badge) { badge.textContent = S_dealPdf.length || ''; badge.style.display = S_dealPdf.length ? 'inline' : 'none'; }
+  const expBtn = document.getElementById('pdf-export-btn');
+  if(expBtn) { expBtn.textContent = 'Exportar '+S_dealPdf.length+' PDF'+(S_dealPdf.length!==1?'s':''); expBtn.style.display = S_dealPdf.length ? 'block' : 'none'; }
+  const noSel = document.getElementById('pdf-no-sel');
+  if(noSel) noSel.style.display = S_dealPdf.length ? 'none' : 'block';
+  const clearBtn = document.getElementById('pdf-clear-btn');
+  if(clearBtn) clearBtn.style.display = S_dealPdf.length ? 'inline' : 'none';
 }
 
 function printMultiDealSheet() {
@@ -2261,7 +2288,8 @@ function renderPipelineSummary() {
   function hasEcoData(p){const e=p.eco||{};return !!(e.tirPct||e.ventaEur||e.sueloEur||e.margenPct);}
   const sorted=[...ps].sort((a,b)=>parseFloat(b.eco?.tirPct||0)-parseFloat(a.eco?.tirPct||0));
   const sortedMain = sorted.filter(p=>hasEcoData(p) && p.estado!=='Stand By');
-  const sortedSB   = sorted.filter(p=>!hasEcoData(p) || p.estado==='Stand By');
+  const sortedSB   = sorted.filter(p=>p.estado==='Stand By');
+  const sortedPend = sorted.filter(p=>!hasEcoData(p) && p.estado!=='Stand By');
   const tirVals=ps.map(p=>parseFloat(p.eco?.tirPct||0)).filter(n=>n>0);
   const mgVals=ps.map(p=>parseFloat(p.eco?.margenPct||0)).filter(n=>n>0);
   const at=tirVals.length?(tirVals.reduce((a,b)=>a+b,0)/tirVals.length).toFixed(1):'—';
@@ -2418,15 +2446,11 @@ function renderPipelineSummary() {
   // KPI boxes — same top border as CT border
   const kpiBoxes=[
     ['Proyectos', ps.length, ''],
-    ...(totViv>0||totEdif>0 ? [[
-      'Unidades / Edif.',
-      totViv>0 ? fmtMiles(totViv)+' uds' : '—',
-      totEdif>0 ? fmtMiles(Math.round(totEdif/1000))+'K m²' : ''
-    ]] : []),
     ['Venta total', fm(tv), ''],
     ['Construcción', fm(tc2), ''],
     ['TIR media', at+'%', ''],
     ['Margen medio', am+'%', ''],
+    ...(totViv>0||totEdif>0 ? [['Uds / Edif.', totViv>0?fmtMiles(totViv)+' uds':'—', totEdif>0?fmtMiles(Math.round(totEdif/1000))+'K m²':'']] : []),
   ].map(([l,v,sub])=>
     `<div style="background:#f8f7f3;border-radius:5px;padding:5px 8px;border-top:2px solid #1a3a2a">
       <div style="font-size:7px;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin-bottom:2px">${l}</div>
@@ -2486,12 +2510,11 @@ function renderPipelineSummary() {
           ${estadoRows}
         </div>
 
-        ${sortedSB.length ? `
-        <!-- Sin datos / Pendientes -->
+        ${sortedPend.length ? `
         <div style="margin-top:10px">
           <div style="${CT}">Pendiente análisis</div>
           <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">
-            ${sortedSB.map(p=>`
+            ${sortedPend.map(p=>`
               <div style="display:flex;align-items:center;gap:5px">
                 <span style="width:5px;height:5px;border-radius:50%;background:${EC[p.estado]||'#ccc'};flex-shrink:0"></span>
                 <span style="font-size:8px;color:#555;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${p.nombre}</span>
@@ -2501,32 +2524,49 @@ function renderPipelineSummary() {
         </div>` : ''}
       </div>
 
-      <!-- COL 2: tabla full width -->
-      <div style="padding:10px 14px;display:flex;flex-direction:column;overflow:hidden">
+      <!-- COL 2: tabla + standby a la derecha -->
+      <div style="padding:10px 14px;display:flex;flex-direction:column;overflow:hidden;flex:1;min-width:0">
 
-        <!-- KPIs — alineados con el borde del mapa (mismo top que CT) -->
+        <!-- KPIs -->
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;margin-bottom:10px">${kpiBoxes}</div>
 
-        <div style="${CT}">Proyectos en estudio</div>
-        <table style="width:100%;border-collapse:collapse;table-layout:fixed;flex-shrink:0">
-          <colgroup>
-            <col style="width:20%"> <!-- Proyecto -->
-            <col style="width:8%">  <!-- Provincia -->
-            <col style="width:10%"> <!-- Suelo -->
-            <col style="width:10%"> <!-- Constr -->
-            <col style="width:11%"> <!-- Venta -->
-            <col style="width:7%">  <!-- Inicio -->
-            <col style="width:7%">  <!-- 1ª Ocup -->
-            <col style="width:27%"> <!-- TIR/Mg -->
-          </colgroup>
-          <thead><tr style="border-bottom:2px solid #eee">
-            ${[['Proyecto',false],['Ubicación',false],['Suelo €',true],['Constr. €',true],['Venta €',true],['Inicio',true],['1ª Ocup.',true],['TIR / Margen',false]].map(([h,r])=>`<th style="padding:3px ${r?'4px':'4px 4px 3px 0'};font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#bbb;border-bottom:2px solid #eee;text-align:${r?'right':'left'}">${h}</th>`).join('')}
-          </tr></thead>
-          <tbody>${tableRows}</tbody>
-        </table>
+        <!-- Tabla + Stand By side by side -->
+        <div style="display:flex;gap:10px;flex:1;min-height:0;overflow:hidden">
+          <!-- Tabla principal -->
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+            <div style="${CT};margin-bottom:6px">Proyectos en estudio</div>
+            <table style="width:100%;border-collapse:collapse;table-layout:fixed">
+              <colgroup>
+                <col style="width:22%">
+                <col style="width:8%">
+                <col style="width:10%">
+                <col style="width:10%">
+                <col style="width:11%">
+                <col style="width:7%">
+                <col style="width:7%">
+                <col style="width:25%">
+              </colgroup>
+              <thead><tr style="border-bottom:2px solid #eee">
+                ${[['Proyecto',false],['Ubic.',false],['Suelo €',true],['Constr. €',true],['Venta €',true],['Inicio',true],['1ª Ocup.',true],['TIR / Margen',false]].map(([h,r])=>`<th style="padding:3px 4px;font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#bbb;border-bottom:2px solid #eee;text-align:${r?'right':'left'}">${h}</th>`).join('')}
+              </tr></thead>
+              <tbody>${tableRows}</tbody>
+            </table>
+          </div>
+
+          <!-- Stand By columna derecha -->
+          ${sortedSB.length ? `<div style="width:110px;flex-shrink:0;border-left:1px solid #f0efe9;padding-left:10px;display:flex;flex-direction:column;gap:0">
+            <div style="${CT};margin-bottom:6px">Stand By</div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              ${sortedSB.map(p=>`<div style="display:flex;flex-direction:column;gap:1px">
+                <span style="font-size:8px;font-weight:600;color:#555;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nombre}</span>
+                ${p.ubicacion?`<span style="font-size:7px;color:#bbb">${p.ubicacion}</span>`:''}
+              </div>`).join('')}
+            </div>
+          </div>` : ''}
+        </div>
 
         <!-- Chart -->
-        <div style="margin-top:auto;padding-top:6px;border-top:1px solid #f0efe9;flex-shrink:0;height:120px;overflow:hidden">
+        <div style="padding-top:6px;border-top:1px solid #f0efe9;flex-shrink:0;height:120px;overflow:hidden">
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
             <div style="${CT.replace('margin-bottom:8px','margin-bottom:0')}">Venta y margen por año de entrega</div>
             <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
@@ -2604,35 +2644,35 @@ function renderDealSheet() {
   const opts = '<option value="">— Selecciona un proyecto —</option>'
     + ops.map(p => '<option value="'+p.id+'"'+(S_dealId===p.id?' selected':'')+'>'+p.nombre+'</option>').join('');
 
-  // Multi-select checkboxes for PDF
+  // Multi-select dropdown for PDF export
   const nSel = (S_dealPdf||[]).length;
   const multiDropdown = S_dealView==='ficha'
     ? '<div style="position:relative;display:inline-block">'
-      + '<button onclick="S_pdfDropOpen=!S_pdfDropOpen;render()" style="font-size:12px;padding:6px 12px;border-radius:var(--r);border:1px solid var(--border2);background:white;color:var(--text2);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px">'
+      + '<button onclick="togglePdfDrop(event)" style="font-size:12px;padding:6px 12px;border-radius:var(--r);border:1px solid var(--border2);background:white;color:var(--text2);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px">'
       + '📄 Exportar varios'
-      + (nSel>0?'<span style="background:#1a3a2a;color:white;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px">'+nSel+'</span>':'<span style="color:#bbb;font-size:10px">▾</span>')
+      + (nSel>0?'<span class="pdf-drop-badge" style="background:#1a3a2a;color:white;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px">'+nSel+'</span>':'<span style="color:#bbb;font-size:10px">▾</span>')
       + '</button>'
-      + '<div id="pdf-drop" style="display:'+(S_pdfDropOpen?'block':'none')+';position:absolute;top:calc(100% + 4px);left:0;background:white;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.12);z-index:100;min-width:220px;overflow:hidden">'
+      + '<div id="pdf-drop" style="display:'+(S_pdfDropOpen?'block':'none')+';position:absolute;top:calc(100% + 4px);right:0;background:white;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.12);z-index:200;min-width:240px;overflow:hidden">'
       + '<div style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
       + '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Seleccionar proyectos</span>'
-      + (nSel>0?'<span onclick="S_dealPdf=[];render()" style="font-size:10px;color:#1a3a2a;cursor:pointer;font-weight:600">Limpiar</span>':'')
+      + '<span id="pdf-clear-btn" onclick="S_dealPdf=[];render()" style="display:'+(nSel>0?'inline':'none')+';font-size:10px;color:#1a3a2a;cursor:pointer;font-weight:600">Limpiar</span>'
       + '</div>'
-      + ops.map(p=>{
-          const sel=(S_dealPdf||[]).includes(p.id);
-          return `<label style="display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">`
-            +`<div style="width:16px;height:16px;border-radius:3px;border:2px solid ${sel?'#1a3a2a':'var(--border2)'};background:${sel?'#1a3a2a':'white'};display:flex;align-items:center;justify-content:center;flex-shrink:0">`
+      + ops.map(function(p){
+          var sel=(S_dealPdf||[]).includes(p.id);
+          return '<label style="display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;border-bottom:1px solid var(--border)" onmouseover="this.style.background=\'#f8f7f3\'" onmouseout="this.style.background=\'\'">'
+            +'<div style="width:16px;height:16px;border-radius:3px;border:2px solid '+(sel?'#1a3a2a':'var(--border2)')+';background:'+(sel?'#1a3a2a':'white')+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'
             +(sel?'<svg width="9" height="9" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>':'')
-            +`</div>`
-            +`<input type="checkbox" ${sel?'checked':''} style="display:none" onchange="toggleDealPdf(${p.id},this.checked)"/>`
-            +`<span style="font-size:12px;color:var(--text);flex:1">${p.nombre}</span>`
-            +(p.ubicacion?`<span style="font-size:10px;color:var(--text3)">${p.ubicacion}</span>`:'')
-            +`</label>`;
+            +'</div>'
+            +'<input type="checkbox" '+(sel?'checked':'')+' style="display:none" onchange="toggleDealPdf('+p.id+',this.checked)"/>'
+            +'<span style="font-size:12px;color:'+(sel?'#1a3a2a':'var(--text)')+';font-weight:'+(sel?'600':'400')+';flex:1">'+p.nombre+'</span>'
+            +(p.ubicacion?'<span style="font-size:10px;color:var(--text3)">'+p.ubicacion+'</span>':'')
+            +'</label>';
         }).join('')
-      + (nSel>0
-        ?'<div style="padding:8px 10px"><button onclick="printMultiDealSheet()" style="width:100%;padding:7px;font-size:12px;font-weight:600;border-radius:var(--r);border:none;background:#1a3a2a;color:white;cursor:pointer;font-family:var(--font)">Exportar '+nSel+' PDF'+(nSel!==1?'s':'')+'</button></div>'
-        :'<div style="padding:8px 12px;font-size:11px;color:var(--text3);text-align:center">Selecciona proyectos arriba</div>')
+      + '<div style="padding:8px 10px">'
+      + '<button id="pdf-export-btn" onclick="printMultiDealSheet()" style="display:'+(nSel>0?'block':'none')+';width:100%;padding:7px;font-size:12px;font-weight:600;border-radius:var(--r);border:none;background:#1a3a2a;color:white;cursor:pointer;font-family:var(--font)">Exportar '+nSel+' PDF'+(nSel!==1?'s':'')+'</button>'
+      + '<div id="pdf-no-sel" style="display:'+(nSel>0?'none':'block')+';font-size:11px;color:var(--text3);text-align:center;padding:4px 0">Selecciona proyectos arriba</div>'
       + '</div>'
-      + '</div>'
+      + '</div></div>'
     : '';
 
   const selector = '<div class="ds-toolbar">'
@@ -2640,7 +2680,7 @@ function renderDealSheet() {
     +'<button onclick="S_dealView=\'pipeline\';render()" style="font-size:12px;padding:6px 14px;border-radius:var(--r);border:1px solid '+(S_dealView==='pipeline'?'#1a3a2a':'var(--border2)')+';background:'+(S_dealView==='pipeline'?'#1a3a2a':'transparent')+';color:'+(S_dealView==='pipeline'?'white':'var(--text2)')+';cursor:pointer;font-family:var(--font);font-weight:500">📊 Resumen Pipeline</button>'
     +'<button onclick="S_dealView=\'ficha\';render()" style="font-size:12px;padding:6px 14px;border-radius:var(--r);border:1px solid '+(S_dealView==='ficha'?'#1a3a2a':'var(--border2)')+';background:'+(S_dealView==='ficha'?'#1a3a2a':'transparent')+';color:'+(S_dealView==='ficha'?'white':'var(--text2)')+';cursor:pointer;font-family:var(--font);font-weight:500">📄 Deal Sheet</button>'
     +(S_dealView==='ficha'?'<select class="ds-selector" onchange="S_dealId=parseInt(this.value)||null;render()">'+opts+'</select>':'')
-    +(S_dealView==='ficha'&&S_dealId?'<button class="ds-export-btn" onclick="printDealSheet()">PDF este</button>':'')
+    +(S_dealView==='ficha'&&S_dealId?'<button class="ds-export-btn" onclick="printDealSheet()">Convertir PDF</button>':'')
     +(S_dealView==='pipeline'?'<button class="ds-export-btn" onclick="printPipelineSummary()">Exportar PDF</button>':'')
     +'</div>'
     +(S_dealView==='ficha'?multiDropdown:'')
@@ -3239,8 +3279,10 @@ function navigateTo(view, filters) {
 // Matrix cell click delegation
 document.addEventListener('click', function(e) {
   // Close pdf dropdown when clicking outside
-  if(S_pdfDropOpen && !e.target.closest('#pdf-drop') && !e.target.closest('[onclick*="S_pdfDropOpen"]')) {
-    S_pdfDropOpen=false; render();
+  if(S_pdfDropOpen && !e.target.closest('#pdf-drop') && !e.target.closest('[onclick*="togglePdfDrop"]')) {
+    S_pdfDropOpen=false;
+    const d=document.getElementById('pdf-drop'); if(d) d.style.display='none';
+    const b=document.querySelector('[onclick*="togglePdfDrop"]'); if(b) b.querySelector('span:last-child').textContent=nSel?'':'▾';
   }
   const cell = e.target.closest('.mx-cell');
   if(!cell) return;
