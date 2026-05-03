@@ -65,7 +65,7 @@
   .detail-panel::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.18);border-radius:3px}
   .table-wrap{flex:1;overflow-y:auto;overflow-x:auto;min-height:0}
   table{width:100%;border-collapse:collapse;font-size:12px}
-  thead th{position:sticky;top:0;z-index:2;background:var(--surface2);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+  thead th{position:sticky;top:0;z-index:2;background:var(--surface2);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   thead th:hover{color:var(--text)}
   .th-arr{font-size:9px;margin-left:3px;opacity:.5}
   tbody td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
@@ -129,15 +129,14 @@
   .detail-min-btn:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
   .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 18px}
   .d-item label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);display:block;margin-bottom:2px}
-  .d-full{grid-column:1/-1}
-  .d-input{width:100%;font-size:12px;padding:4px 7px;border-radius:var(--r);border:1px solid transparent;background:transparent;color:var(--text);font-family:var(--font);outline:none;line-height:1.4;transition:border-color .15s,background .15s}
-  .d-input:hover{border-color:var(--border2);background:var(--surface2)}
-  .d-input:focus{border-color:var(--accent);background:#fff}
-  .d-textarea{width:100%;font-size:12px;padding:4px 7px;border-radius:var(--r);border:1px solid transparent;background:transparent;color:var(--text);font-family:var(--font);outline:none;line-height:1.5;resize:none;min-height:40px;transition:border-color .15s,background .15s}
-  .d-textarea:hover{border-color:var(--border2);background:var(--surface2)}
-  .d-textarea:focus{border-color:var(--accent);background:#fff}
-  .d-select{font-size:12px;padding:4px 7px;border-radius:var(--r);border:1px solid transparent;background:transparent;color:var(--text);font-family:var(--font);outline:none;cursor:pointer;width:100%;transition:border-color .15s,background .15s}
-  .d-select:hover{border-color:var(--border2);background:var(--surface2)}
+  .d-input{width:100%;font-size:12px;padding:4px 7px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;line-height:1.4;transition:border-color .15s,background .15s}
+  .d-input:hover{border-color:var(--border2);background:#fff}
+  .d-input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 2px rgba(26,58,42,.08)}
+  .d-textarea{width:100%;font-size:12px;padding:4px 7px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;line-height:1.5;resize:none;min-height:40px;transition:border-color .15s,background .15s}
+  .d-textarea:hover{border-color:var(--border2);background:#fff}
+  .d-textarea:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 2px rgba(26,58,42,.08)}
+  .d-select{font-size:12px;padding:4px 7px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;cursor:pointer;width:100%;transition:border-color .15s,background .15s}
+  .d-select:hover{border-color:var(--border2);background:#fff}
   .d-select:focus{border-color:var(--accent);background:#fff}
   .d-prio-row{display:flex;gap:6px;margin-top:2px}
   .prio-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);cursor:pointer;background:var(--surface2);color:var(--text2);font-family:var(--font);transition:all .12s}
@@ -497,8 +496,8 @@
   </div>
   <nav class="nav-tabs">
     <div class="nav-tab active" data-view="dashboard">Dashboard</div>
-    <div class="nav-tab" data-view="tabla">Tabla</div>
-    <div class="nav-tab" data-view="resumen">Resumen</div>
+    <div class="nav-tab" data-view="resumen">Resumen Ejecutivo</div>
+    <div class="nav-tab" data-view="tabla">Input</div>
     <div class="nav-tab" data-view="economico" style="border-left:1px solid rgba(255,255,255,0.12)">📊 UW | Modelo</div>
     <div class="nav-tab" data-view="dealsheet" style="border-left:1px solid rgba(255,255,255,0.12)">📄 Deal Sheet</div>
   </nav>
@@ -873,6 +872,16 @@ function updateCalcFields(id) {
 // ─── SAVE ─────────────────────────────────────────────────────
 function autoGrow(el) { el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
 
+function toggleFase(id, fase, checked) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  if(!Array.isArray(p.fases)) p.fases = [];
+  if(checked) { if(!p.fases.includes(fase)) p.fases.push(fase); }
+  else { p.fases = p.fases.filter(f=>f!==fase); }
+  persist();
+  const dp = document.querySelector('.detail-panel');
+  if(dp) dp.outerHTML = renderDetail();
+}
+
 function saveField(id, campo, valor) {
   const p = projects.find(x=>x.id===id); if(!p) return;
   p[campo] = valor; persist();
@@ -1062,37 +1071,77 @@ function renderDetail() {
       +'</div></div></div>';
   }
 
+  const fases=Array.isArray(p.fases)?p.fases:[];
+  const pill=(fase)=>{
+    const done=fases.includes(fase);
+    return `<label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:3px 9px;border-radius:20px;border:1.5px solid ${done?'#1a3a2a':'var(--border2)'};background:${done?'#1a3a2a':'white'};transition:all .15s">`
+      +`<input type="checkbox" ${done?'checked':''} style="display:none" onchange="toggleFase(${p.id},'${fase}',this.checked)"/>`
+      +(done?'<svg width="8" height="8" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':'')
+      +`<span style="font-size:10px;font-weight:600;color:${done?'white':'var(--text3)'}">${fase}</span>`
+      +'</label>';
+  };
+
   return '<div class="detail-panel'+(S.detailMin?' minimised':'')+'">'
-    +(p.bloque==='Pipeline'
-      ?'<div class="detail-grid" style="margin-bottom:6px"><div class="d-item d-full"><label>Descripción del proyecto</label><textarea class="d-textarea" placeholder="Descripción general del proyecto…" oninput="saveField('+p.id+',\'notas\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+p.notas+'</textarea></div></div>'
-      :'')
-    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 16px;margin-bottom:8px;margin-top:8px">'
-    // Col 1
+
+    // ── Descripción (Pipeline only, top) ─────────────────────
+    
+
+    // ── Sección: Identificación ───────────────────────────────
+    +'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Identificación</div>'
+    +'<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4px 14px;margin-bottom:10px">'
     +'<div class="d-item"><label>Proyecto</label><input class="d-input" style="font-weight:600" value="'+p.nombre+'" oninput="saveField('+p.id+',\'nombre\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"><label>Estado</label><div style="padding:4px 2px">'+estadoPill(p.estado)+'</div></div>'
     +'<div class="d-item"><label>Prioridad</label><div style="padding:4px 2px;display:flex;align-items:center;gap:6px;font-size:12px">'+pillP(p.prioridad)+'<span style="color:var(--text2)">'+['','Alta','Media','Baja'][p.prioridad]+'</span></div></div>'
-    // Col 2
     +'<div class="d-item"><label>Tipo</label><input class="d-input" value="'+p.tipo+'" oninput="saveField('+p.id+',\'tipo\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"><label>Bloque</label><div style="padding:4px 2px;font-size:12px;color:var(--text2)">'+p.bloque+'</div></div>'
-    +'<div class="d-item"><label>Provincia</label><select class="d-select" onchange="saveField('+p.id+',\'ubicacion\',this.value)" onclick="event.stopPropagation()">'+UBICACIONES_OPTS.map(u=>'<option value="'+u+'"'+(u===(p.ubicacion||'')?'  selected':'')+'>'+u+'</option>').join('')+'</select></div>'
-    // Col 3
     +'<div class="d-item"><label>Responsable</label><input class="d-input" value="'+p.responsable+'" oninput="saveField('+p.id+',\'responsable\',this.value)" onclick="event.stopPropagation()"/></div>'
-    +'<div class="d-item"><label>'+contraparteLabel(p.bloque)+'</label><input class="d-input" value="'+(p.vendor||p.contraparte||'')+'" placeholder="—" oninput="saveField('+p.id+',\'vendor\',this.value)" onclick="event.stopPropagation()"/></div>'
+    +'</div>'
+
+    // ── Sección: Ubicación ────────────────────────────────────
+    +'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Ubicación</div>'
+    +'<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4px 14px;margin-bottom:10px">'
+    +'<div class="d-item"><label>Provincia</label><select class="d-select" onchange="saveField('+p.id+',\'ubicacion\',this.value)" onclick="event.stopPropagation()">'+UBICACIONES_OPTS.map(u=>'<option value="'+u+'"'+(u===(p.ubicacion||'')?'  selected':'')+'>'+u+'</option>').join('')+'</select></div>'
     +'<div class="d-item"><label>Ciudad</label><input class="d-input" value="'+(p.ciudad||'')+'" placeholder="ej. Madrid" oninput="saveField('+p.id+',\'ciudad\',this.value)" onclick="event.stopPropagation()"/></div>'
-    // Row 2 col 1 empty, col 2 FPA, col 3 Broker
     +'<div class="d-item"></div>'
+    +'</div>'
+
+    // ── Sección: Contraparte ──────────────────────────────────
+    +'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Contraparte</div>'
+    +'<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4px 14px;margin-bottom:10px">'
+    +'<div class="d-item"><label>'+contraparteLabel(p.bloque)+'</label><input class="d-input" value="'+(p.vendor||p.contraparte||'')+'" placeholder="—" oninput="saveField('+p.id+',\'vendor\',this.value)" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"><label>Broker / Agente</label><input class="d-input" value="'+(p.comprador||'')+'" placeholder="—" oninput="saveField('+p.id+',\'comprador\',this.value)" onclick="event.stopPropagation()"/></div>'
     +(p.bloque==='Pipeline'
-      ?'<div class="d-item" onclick="event.stopPropagation()"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" '+(p.fpa?'checked':'')+' style="accent-color:#1a3a2a;cursor:pointer;width:13px;height:13px" onchange="saveField('+p.id+',\'fpa\',this.checked);if(this.checked)document.getElementById(\'fpa-buyer-'+p.id+'\').style.display=\'block\';else document.getElementById(\'fpa-buyer-'+p.id+'\').style.display=\'none\'"/><span style="font-size:11px;font-weight:600;color:var(--text2)">FPA · Forward Purchase</span></label>'
-        +'<div id="fpa-buyer-'+p.id+'" style="display:'+(p.fpa?'block':'none')+'"><input class="d-input" value="'+(p.fpaComprador||'')+'" placeholder="Comprador FPA…" oninput="saveField('+p.id+',\'fpaComprador\',this.value)" onclick="event.stopPropagation()" style="margin-top:4px"/></div>'
+      ?'<div class="d-item" onclick="event.stopPropagation()">'
+        +'<label>FPA</label>'
+        +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:3px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:4px 7px">'
+        +'<input type="checkbox" '+(p.fpa?'checked':'')+' style="accent-color:#1a3a2a;cursor:pointer;width:12px;height:12px" onchange="saveField('+p.id+',\'fpa\',this.checked);document.getElementById(\'fpa-buyer-'+p.id+'\').style.display=this.checked?\'block\':\'none\'"/>'
+        +'<span style="font-size:11px;font-weight:600;color:var(--text2)">Forward Purchase</span>'
+        +'</label>'
+        +'<div id="fpa-buyer-'+p.id+'" style="display:'+(p.fpa?'block':'none')+'">'
+        +'<input class="d-input" value="'+(p.fpaComprador||'')+'" placeholder="Comprador FPA…" oninput="saveField('+p.id+',\'fpaComprador\',this.value)" onclick="event.stopPropagation()"/>'
+        +'</div>'
         +'</div>'
       :'<div class="d-item"></div>')
-    +'<div class="d-item"><label>Broker / Agente</label><input class="d-input" value="'+(p.comprador||'')+'" placeholder="—" oninput="saveField('+p.id+',\'comprador\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'</div>'
+
+    // ── Fase del proceso (Pipeline only, inline) ──────────────
+    +(p.bloque==='Pipeline'
+      ?'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Fase del proceso</div>'
+        +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:10px" onclick="event.stopPropagation()">'
+        +pill('NBO')
+        +'<span style="color:var(--border2);font-size:10px">→</span>'
+        +pill('BO')
+        +'<span style="color:var(--border2);font-size:10px">→</span>'
+        +pill('Escritura')
+        +'<span style="color:var(--border);font-size:9px;margin:0 4px">|</span>'
+        +pill('Comité')
+        +'</div>'
+      :'')
     // Full width fields
     +'<div class="detail-grid" style="margin-bottom:6px">'
-    +'<div class="d-item d-full"><label>Último avance</label><textarea class="d-textarea" oninput="saveField('+p.id+',\'avance\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+p.avance+'</textarea></div>'
+    +'<div class="d-item d-full"><label>Notas / Último avance</label><textarea class="d-textarea" oninput="saveField('+p.id+',\'avance\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+p.avance+'</textarea></div>'
     +'<div class="d-item d-full"><label>Seguimiento / Próximas acciones</label>'+renderAcciones(p)+'</div>'
-    +(p.bloque!=='Pipeline'?'<div class="d-item d-full"><label>Notas</label><textarea class="d-textarea" placeholder="Añade notas…" oninput="saveField('+p.id+',\'notas\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+p.notas+'</textarea></div>':'')
+    
     +'</div>'
     + (p.bloque==='Pipeline'||p.bloque==='Pipeline' ? renderUbicSection(p) : '')
     + ecoSec
@@ -1538,7 +1587,7 @@ function renderTabla() {
     +'<option value="2"'+(S.fPrio==='2'?' selected':'')+'>🟡 Media</option>'
     +'<option value="3"'+(S.fPrio==='3'?' selected':'')+'>🟢 Baja</option></select>'
     +'<span class="count-badge">'+f.length+' / '+projects.length+' proyectos</span>'
-    +'<button class="btn-reset-order" onclick="resetBloqueOrder()" title="Volver al orden original">↺ Orden</button>'
+    
     +'<button class="btn-add" onclick="openModal()">＋ Nuevo</button>'
     +'</div>'
     +'<div class="detail-panel-bar" onclick="toggleDetailMin()">'
@@ -1546,94 +1595,22 @@ function renderTabla() {
     +'<button class="detail-min-btn" onclick="event.stopPropagation();toggleDetailMin()">'+(S.detailMin?'▲ Expandir':'▼ Minimizar')+'</button>'
     +'</div>'
     +renderDetail()
-    +'<div class="table-wrap"><table><thead><tr>'+ths+'</tr></thead><tbody>'+rows+'</tbody></table></div>';;
+    +'<div class="table-wrap"><table style="table-layout:fixed;width:100%">'
+    +'<colgroup>'
+    +'<col style="width:22%">'  /* Proyecto */
+    +'<col style="width:9%">'   /* Bloque */
+    +'<col style="width:10%">'  /* Estado */
+    +'<col style="width:9%">'   /* Prioridad */
+    +'<col style="width:8%">'   /* Tipo */
+        +'<col style="width:13%">'  /* Contraparte */
+    +'<col style="width:13%">'  /* Responsable */
+    +'<col style="width:4%">'   /* X */
+    +'</colgroup>'
+    +'<thead><tr>'+ths+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 // ─── VIEWS ────────────────────────────────────────────────────
-function renderResumen() {
-  const fecha = document.getElementById('fecha-hoy').textContent;
-  const hr = '─'.repeat(58);
-  const dbl = '═'.repeat(58);
 
-  const activos  = projects.filter(p=>!['Descartado','Cerrado'].includes(p.estado));
-  const alta     = projects.filter(p=>p.prioridad===1);
-  const dd       = projects.filter(p=>p.estado==='Due diligence');
-  const ejec     = projects.filter(p=>p.estado==='Activo');
-  const neg      = projects.filter(p=>p.estado==='Negociación');
-  const cierre   = projects.filter(p=>p.estado==='En Cierre');
-
-  let txt = '';
-  txt += 'ACCIONA Inmobiliaria — RESUMEN DE PORTFOLIO\n';
-  txt += fecha + '\n';
-  txt += dbl + '\n\n';
-
-  txt += 'SITUACIÓN GENERAL\n';
-  txt += '  Total proyectos en cartera : ' + projects.length + '\n';
-  txt += '  Proyectos activos          : ' + activos.length + '\n';
-  txt += '  En Due Diligence           : ' + dd.length + '\n';
-  txt += '  En Negociación             : ' + neg.length + '\n';
-  txt += '  En Cierre                  : ' + cierre.length + '\n';
-  txt += '  Activo                     : ' + ejec.length + '\n';
-  txt += '  Prioridad Alta 🔴          : ' + alta.length + '\n\n';
-
-  // Por bloque
-  BLOQUES_ORDER.forEach(b => {
-    const bp = projects.filter(p=>p.bloque===b);
-    if(!bp.length) return;
-    txt += hr + '\n';
-    txt += b.toUpperCase() + ' (' + bp.length + ' proyectos)\n\n';
-    bp.forEach(p => {
-      txt += '▸ ' + p.nombre + '\n';
-      txt += '  Estado      : ' + p.estado;
-      txt += '  ·  Prioridad: ' + ['','Alta','Media','Baja'][p.prioridad] + '\n';
-      if(p.tipo && p.tipo!=='—') txt += '  Tipo        : ' + p.tipo + (p.contraparte&&p.contraparte!=='—'?' / '+p.contraparte:'') + '\n';
-      if(p.responsable && p.responsable!=='—') txt += '  Responsable : ' + p.responsable + '\n';
-      if(p.avance && p.avance!=='—') txt += '  Avance      : ' + p.avance + '\n';
-      txt += '  → ' + p.proxima + '\n\n';
-    });
-  });
-
-  txt += dbl + '\n';
-  txt += 'ACCIONES URGENTES — PRIORIDAD ALTA (' + alta.length + ')\n\n';
-  alta.forEach(p => {
-    txt += '  • [' + p.estado + '] ' + p.nombre + '\n';
-    txt += '    → ' + p.proxima.split('.')[0] + '.\n';
-  });
-
-  txt += '\n' + dbl + '\n';
-  txt += 'Fin del resumen · Acciona Inmobiliaria · ' + fecha + '\n';
-
-  // Copy to clipboard button
-  const copyBtn = '<button onclick="copyResumen()" style="padding:7px 16px;font-size:12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--accent);color:white;cursor:pointer;font-family:var(--font);font-weight:500;transition:opacity .15s" onmouseover="this.style.opacity=\'.85\'" onmouseout="this.style.opacity=\'1\'">📋 Copiar para pegar en email</button>';
-
-  return renderKPIs()
-    + '<div class="view-panel">'
-    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
-    + '<h2 style="margin:0">Resumen ejecutivo</h2>'
-    + copyBtn
-    + '</div>'
-    + '<pre class="view-pre" id="resumen-text">' + txt + '</pre>'
-    + '</div>';
-}
-
-function copyResumen() {
-  const el = document.getElementById('resumen-text');
-  if(!el) return;
-  navigator.clipboard.writeText(el.textContent).then(() => {
-    const btn = event.target;
-    const orig = btn.textContent;
-    btn.textContent = '✓ Copiado';
-    setTimeout(() => btn.textContent = orig, 2000);
-  }).catch(() => {
-    // Fallback
-    const range = document.createRange();
-    range.selectNode(el);
-    window.getSelection().removeAllRanges();
-    window.getSelection().addRange(range);
-    document.execCommand('copy');
-    window.getSelection().removeAllRanges();
-  });
-}
 
 function renderEconomico() {
   const np = projects.filter(p => p.bloque==='Pipeline'||p.bloque==='Pipeline');
@@ -2187,23 +2164,27 @@ function renderPipelineSummary() {
   function tirGrey(t){const n=parseFloat(t);return n>=18?'#2a2a2a':n>=15?'#555':n>=12?'#888':'#b8b8b8';}
   function parseFecha(v){
     if(!v||v==='—'||v==='')return null;
-    const M={ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11};
-    const s=String(v).toLowerCase().trim();
-    // "03 may. 2026" or "3 may 2026" — from Excel cd()
-    const m0=s.match(/^\d{1,2}\s+([a-z]{3})\.?\s+(\d{4})$/);
-    if(m0)return new Date(parseInt(m0[2]),(M[m0[1]]??0),1);
+    const s=String(v).toLowerCase().trim().replace(/\./g,'');
+    const M={enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11,
+             ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11};
+    // "02 ene 2028" or "2 ene 2028" or "02 ene. 2028"
+    const m0=s.match(/^\d{1,2}\s+([a-z]+)\s+(\d{4})$/);
+    if(m0&&M[m0[1]]!==undefined)return new Date(parseInt(m0[2]),M[m0[1]],1);
     // "ene-28" or "ene-2028"
-    const m1=s.match(/^([a-z]{3})-(\d{2,4})$/);
-    if(m1){const yr=parseInt(m1[2]);return new Date(yr<100?2000+yr:yr,(M[m1[1]]??0),1);}
+    const m1=s.match(/^([a-z]{3,})-(\d{2,4})$/);
+    if(m1&&M[m1[1]]!==undefined){const yr=parseInt(m1[2]);return new Date(yr<100?2000+yr:yr,M[m1[1]],1);}
     // "2028-01"
     const m2=s.match(/^(\d{4})-(\d{2})/);
     if(m2)return new Date(parseInt(m2[1]),parseInt(m2[2])-1,1);
-    // "ene 2028" or "ene-2028"
-    const m3=s.match(/^([a-z]{3})[- ](\d{4})$/);
-    if(m3)return new Date(parseInt(m3[2]),(M[m3[1]]??0),1);
+    // "ene 2028"
+    const m3=s.match(/^([a-z]{3,})\s+(\d{4})$/);
+    if(m3&&M[m3[1]]!==undefined)return new Date(parseInt(m3[2]),M[m3[1]],1);
     // Just a year "2028"
     const m4=s.match(/^(\d{4})$/);
     if(m4)return new Date(parseInt(m4[1]),0,1);
+    // "T2-28" or "T2 2028" — treat as year only
+    const m5=s.match(/t\d[\s-](\d{2,4})/);
+    if(m5){const yr=parseInt(m5[1]);return new Date(yr<100?2000+yr:yr,0,1);}
     return null;
   }
   function fmFecha(v){const d=parseFecha(v);if(!d)return '—';return d.toLocaleDateString('es-ES',{month:'short',year:'numeric'});}
@@ -2251,9 +2232,8 @@ function renderPipelineSummary() {
 
   // ── BAR CHART: Venta + Margen agrupados por año de entrega ──
   function getYear(v){
-    if(!v||v==='')return null;
-    const m=String(v).match(/(\d{4})/);
-    return m?parseInt(m[1]):null;
+    const d=parseFecha(v);
+    return d?d.getFullYear():null;
   }
   const byYear={};
   ps.forEach(p=>{
@@ -2440,7 +2420,7 @@ function renderPipelineSummary() {
             <col style="width:27%"> <!-- TIR/Mg -->
           </colgroup>
           <thead><tr style="border-bottom:2px solid #eee">
-            ${[['Proyecto',false],['Provincia',false],['Suelo €',true],['Constr. €',true],['Venta €',true],['Inicio',true],['1ª Ocup.',true],['TIR / Margen',false]].map(([h,r])=>`<th style="padding:3px ${r?'4px':'4px 4px 3px 0'};font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#bbb;border-bottom:2px solid #eee;text-align:${r?'right':'left'}">${h}</th>`).join('')}
+            ${[['Proyecto',false],['Ubicación',false],['Suelo €',true],['Constr. €',true],['Venta €',true],['Inicio',true],['1ª Ocup.',true],['TIR / Margen',false]].map(([h,r])=>`<th style="padding:3px ${r?'4px':'4px 4px 3px 0'};font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#bbb;border-bottom:2px solid #eee;text-align:${r?'right':'left'}">${h}</th>`).join('')}
           </tr></thead>
           <tbody>${tableRows}</tbody>
         </table>
@@ -2678,14 +2658,13 @@ function renderDealSheet() {
     // COL 1 — Mapa España + Google Maps + texto superior
     +'<div style="padding:16px 14px;border-right:1px solid #e8e8e0;background:linear-gradient(180deg,#f5f4f0 0%,#fafaf8 100%);display:flex;flex-direction:column;gap:10px;box-shadow:inset -3px 0 8px rgba(0,0,0,0.03)">'
     +'<div>'+spainSVG(prov)+'</div>'
-    // Google Maps embed — convert share URL to embed URL
+    // Google Maps — link button instead of iframe
     +(p.mapUrl
-      ?'<div style="border-radius:4px;overflow:hidden;border:1px solid #ccc;flex-shrink:0">'
-        +'<iframe src="'+googleMapsEmbedUrl(p.mapUrl)+'" width="100%" height="160" style="display:block;border:none" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>'
-        +'</div>'
-      :'<div style="height:160px;background:#f5f4f0;border-radius:4px;border:1px solid #e0dfd8;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
-        +'<span style="font-size:10px;color:#bbb;text-align:center;padding:10px">Añade URL de Google Maps<br>en Tabla → Ubicación</span>'
-        +'</div>')
+      ?'<a href="'+p.mapUrl+'" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#1a3a2a;color:white;text-decoration:none;border-radius:6px;padding:11px 14px;font-size:12px;font-weight:600;font-family:Aptos,Segoe UI,sans-serif;flex-shrink:0">'
+          +'<svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'
+          +'Ver en Google Maps ↗'
+          +'</a>'
+      :'<div style="background:#f5f4f0;border-radius:6px;padding:10px 14px;font-size:10px;color:#bbb;text-align:center;border:1px dashed #ddd;flex-shrink:0">Sin URL de Google Maps<br><span style="font-size:9px">Añádela en Tabla → Ubicación e imagen</span></div>')
     +(p.narrativa
       ?'<div style="font-size:10px;color:#555;line-height:1.7;flex:1">'+fv(p.narrativa)+'</div>'
       :'<div style="font-size:10px;color:#bbb;font-style:italic">Añade descripción en la pestaña Tabla → Ubicación e imagen</div>')
@@ -2703,7 +2682,7 @@ function renderDealSheet() {
 
     // Bloque Ubicación
     +(_dsRowIdx=0,'')+secTitle('Ubicación y características')
-    +dsRow('Provincia / Ciudad', fv(p.ubicacion))
+    +dsRow('Ubicación', fv(p.ubicacion))
     +dsRow('Tipo de activo', fv(p.tipo))
     +dsRow(contraparteLabel(p.bloque), fv(p.contraparte))
     +dsRow(contraparteLabel(p.bloque), fv(p.vendor||p.contraparte))
@@ -2780,7 +2759,7 @@ function renderDashboard() {
     var view=k.view||"tabla";
     kpiCards+="<div class=\"kpi-card\" onclick=\"navigateTo('"+view+"',"+(k.filter?JSON.stringify(k.filter).replace(/"/g,"'")+")":"{}"+")")+"\" title=\"Ver proyectos\" style=\"border-top:3px solid "+k.accent+"\">"
       +"<div class=\"kpi-card-label\">"+k.label+"</div>"
-      +"<div class=\"kpi-card-value\" style=\"color:"+k.accent+"\">"+k.value+"</div>"
+      +"<div class=\"kpi-card-value private-val\" style=\"color:"+k.accent+"\">"+k.value+"</div>"
       +"<div class=\"kpi-card-sub\">"+k.sub+"</div>"
       +"</div>";
   });
@@ -2942,8 +2921,11 @@ function renderDashboard() {
     "</div>"+
     // Fila 3: Urgentes ancho completo
     "<div class=\"dash-card\" style=\"margin-bottom:12px\"><div class=\"dash-card-title\">Acciones urgentes \u2014 Prioridad Alta</div>"+urgHtml+"</div>"+
-    // Fila 4: Estudio
-    "<div style=\"margin-top:4px\"><div style=\"font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px\">Pipeline</div>"+renderEstudioSection()+"</div>"+
+    // Fila 4: Pipeline dentro de dash-card
+    "<div class=\"dash-card\" style=\"margin-top:4px\">"
+    +"<div class=\"dash-card-title\">Pipeline</div>"
+    +renderEstudioSection()
+    +"</div>"+
   "</div>";
 }
 
@@ -2977,8 +2959,8 @@ function renderEstudioSection() {
   function tarjeton(title,main,sub,color){
     return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;border-top:3px solid '+(color||'var(--accent)')+'">'
       +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px">'+title+'</div>'
-      +'<div style="font-size:15px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:3px">'+main+'</div>'
-      +(sub?'<div style="font-size:13px;font-weight:500;color:var(--text2)">'+sub+'</div>':'')
+      +'<div class="private-val" style="font-size:15px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:3px">'+main+'</div>'
+      +(sub?'<div class="private-val" style="font-size:13px;font-weight:500;color:var(--text2)">'+sub+'</div>':'')
       +'</div>';
   }
 
@@ -3106,104 +3088,134 @@ document.addEventListener('click', function(e) {
 
 // ─── RESUMEN ──────────────────────────────────────────────────
 function renderResumen() {
-  const fecha=document.getElementById('fecha-hoy').textContent;
-  const alta=projects.filter(p=>p.prioridad===1);
-  const activos=projects.filter(p=>!['Descartado','Cerrado'].includes(p.estado));
+  const fecha = document.getElementById('fecha-hoy').textContent;
+  const SKIP  = ['Descartado','Cerrado'];
+  const activos = projects.filter(p=>!SKIP.includes(p.estado));
+  const alta    = activos.filter(p=>p.prioridad===1);
+  const dd      = activos.filter(p=>p.estado==='Due diligence');
+  const wip     = activos.filter(p=>p.estado==='WIP');
 
-  // ── VERSIÓN LARGA ──
-  let txt='Acciona Real Estate\n'+fecha+'\n\n';
-  txt+=projects.length+' proyectos en cartera  ·  '+activos.length+' activos  ·  '+alta.length+' prioridad alta\n';
+  const EC = {'Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2',
+              'WIP':'#1a3a2a','Stand By':'#c8b89a','Descartado':'#bbb','Cerrado':'#ddd'};
+  const PRIO = ['','🔴','🟡','🟢'];
+
+  // ── EMAIL texto plano ─────────────────────────────────────────
+  let email = `Acciona Real Estate · ${fecha}\n${'─'.repeat(50)}\n`;
+  email += `Portfolio: ${activos.length} proyectos activos · ${alta.length} prioridad alta · ${dd.length} en DD\n`;
   BLOQUES_ORDER.forEach(b=>{
-    const bp=projects.filter(p=>p.bloque===b);
+    const bp = activos.filter(p=>p.bloque===b);
     if(!bp.length) return;
-    txt+='\n'+'━'.repeat(44)+'\n'+b.toUpperCase()+'\n'+'━'.repeat(44)+'\n\n';
-    bp.forEach(p=>{
-      const prio=['','🔴','🟡','🟢'][p.prioridad]||'';
-      txt+=prio+' '+p.nombre+'\n';
-      txt+='   Estado: '+p.estado+(p.responsable&&p.responsable!=='—'?'  ·  '+p.responsable.split('/')[0].trim():'')+'\n';
-      if(p.avance&&p.avance!=='—') txt+='   '+p.avance+'\n';
-      const acc=Array.isArray(p.acciones)?p.acciones.filter(a=>!a.d):[];
-      if(acc.length) acc.forEach(a=>{ txt+='   → '+a.t+'\n'; });
-      txt+='\n';
+    email += `\n\n${b.toUpperCase()}\n${'─'.repeat(30)}\n`;
+    [...bp].sort((a,b2)=>a.prioridad-b2.prioridad).forEach(p=>{
+      const prio=['','[ALTA]','[MEDIA]','[BAJA]'][p.prioridad]||'';
+      const acc=(Array.isArray(p.acciones)?p.acciones.filter(a=>!a.d):[]);
+      email += `\n${prio} ${p.nombre}  [${p.estado}]\n`;
+      if(p.avance&&p.avance!=='—') email += `${p.avance}\n`;
+      acc.slice(0,3).forEach(a=>{ email += `→ ${a.t}\n`; });
     });
   });
+  email += `\n${'─'.repeat(50)}\nAcciona Inmobiliaria · Uso interno\n`;
 
-  // ── VERSIÓN EJECUTIVA (HTML visual) ──
-  const ESTADO_COLOR={'Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','WIP':'#1a3a2a','Stand By':'#c8b89a','Descartado':'#c8cfc9','Cerrado':'#e0e0e0'};
-  const ESTADO_BG={'Due diligence':'#eef2f8','En análisis':'#e8f4f8','Recibido':'#f4f4f3','WIP':'#e8f4ef','Stand By':'#fdf3ec','Descartado':'#f4f0ed','Cerrado':'#f8eded'};
-  const PRIO_LABEL=['','🔴 Alta','🟡 Media','🟢 Baja'];
-
-  let execHtml='<div style="font-family:Aptos,Segoe UI,Arial,sans-serif;font-size:13px;color:#1a1a1a">';
-
-  // Header
-  execHtml+='<div style="margin-bottom:18px">'
-    +'<div style="font-size:18px;font-weight:700;color:#1a3a2a;margin-bottom:2px">Acciona Real Estate</div>'
-    +'<div style="font-size:12px;color:#888">'+fecha+'</div>'
-    +'<div style="display:flex;gap:16px;margin-top:10px">'
-    +['Total: '+projects.length,'Activos: '+activos.length,'🔴 Alta: '+alta.length].map(s=>'<span style="font-size:12px;background:#f0efe9;border-radius:4px;padding:3px 10px;color:#444">'+s+'</span>').join('')
-    +'</div></div>';
-
-  // Por bloque
+  // ── TARJETAS ──────────────────────────────────────────────────
+  let cards = '';
   BLOQUES_ORDER.forEach(b=>{
-    const bp=projects.filter(p=>p.bloque===b&&!['Descartado','Cerrado'].includes(p.estado));
+    const bp = activos.filter(p=>p.bloque===b);
     if(!bp.length) return;
-    execHtml+='<div style="margin-bottom:16px">'
-      +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #1a3a2a">'+b+'</div>'
-      +'<div style="display:flex;flex-direction:column;gap:6px">';
-    bp.forEach(p=>{
-      const dot=ESTADO_COLOR[p.estado]||'#aaa';
-      const bg=ESTADO_BG[p.estado]||'#f8f8f8';
-      const acc=Array.isArray(p.acciones)?p.acciones.filter(a=>!a.d):[];
-      const firstAcc=acc.length?acc[0].t:'';
-      execHtml+='<div style="background:'+bg+';border-radius:6px;padding:10px 12px;border-left:3px solid '+dot+'">'
-        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
-        +'<span style="font-weight:600;font-size:13px">'+p.nombre+'</span>'
-        +'<div style="display:flex;gap:6px;align-items:center">'
-        +'<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:'+dot+';color:white">'+p.estado+'</span>'
-        +(p.prioridad===1?'<span style="font-size:10px">🔴</span>':'')
-        +'</div></div>'
-        +(p.tipo&&p.tipo!=='—'?'<span style="font-size:11px;color:#666">'+p.tipo+(p.contraparte&&p.contraparte!=='—'?' · '+p.contraparte:'')+'</span><br>':'')
-        +(firstAcc?'<span style="font-size:11px;color:#444;margin-top:4px;display:inline-block">→ '+firstAcc+'</span>':'')
-        +'</div>';
-    });
-    execHtml+='</div></div>';
-  });
-  execHtml+='</div>';
+    const sorted = [...bp].sort((a,b2)=>a.prioridad-b2.prioridad);
 
-  const copyBtn='<button onclick="copyResumen()" style="padding:7px 16px;font-size:12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--accent);color:white;cursor:pointer;font-family:var(--font);font-weight:500">📋 Copiar texto</button>';
-  const copyExecBtn='<button onclick="copyResumenExec()" style="padding:7px 16px;font-size:12px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:500">📋 Copiar ejecutivo</button>';
+    cards += `<div style="margin-bottom:28px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="height:2px;flex:1;background:#1a3a2a;border-radius:1px"></div>
+        <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;white-space:nowrap">${b}</span>
+        <span style="font-size:8.5px;color:#aaa;white-space:nowrap">${bp.length} proyecto${bp.length!==1?'s':''}</span>
+        <div style="height:2px;flex:1;background:#e8e8e0;border-radius:1px"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">`;
+
+    sorted.forEach(p=>{
+      const dot = EC[p.estado]||'#aaa';
+      const acc = (Array.isArray(p.acciones)?p.acciones.filter(a=>!a.d):[]);
+      const vend = p.vendor||p.contraparte||'';
+      const loc  = [p.ubicacion,p.ciudad].filter(Boolean).join(', ');
+
+      cards += `<div style="background:white;border-radius:8px;overflow:hidden;
+                             box-shadow:0 1px 6px rgba(0,0,0,0.07);
+                             border:1px solid #eee;
+                             display:flex;flex-direction:column">
+        <!-- Color bar top -->
+        <div style="height:3px;background:${dot}"></div>
+        <div style="padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:6px">
+          <!-- Header row -->
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
+            <div style="font-weight:700;font-size:13px;color:#1a1a18;line-height:1.3;flex:1">${PRIO[p.prioridad]||''} ${p.nombre}</div>
+            <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:${dot};color:white;white-space:nowrap;flex-shrink:0;margin-top:2px">${p.estado}</span>
+          </div>
+          <!-- Meta row -->
+          ${(p.tipo&&p.tipo!=='—')||vend||loc?`<div style="display:flex;flex-wrap:wrap;gap:4px">
+            ${p.tipo&&p.tipo!=='—'?`<span style="font-size:9.5px;background:#f0f7f2;color:#2d6a4f;padding:1px 7px;border-radius:20px;font-weight:600">${p.tipo}</span>`:''}
+            ${vend?`<span style="font-size:9.5px;background:#f5f4f0;color:#888;padding:1px 7px;border-radius:20px">${vend}</span>`:''}
+            ${loc?`<span style="font-size:9.5px;background:#f0f0f5;color:#888;padding:1px 7px;border-radius:20px">📍 ${loc}</span>`:''}
+          </div>`:''}
+          <!-- Avance -->
+          ${p.avance&&p.avance!=='—'?`<div class="private-val" style="font-size:11px;color:#555;line-height:1.55;background:#fafaf8;border-radius:4px;padding:6px 8px;border-left:2px solid ${dot}">${p.avance}</div>`:''}
+          <!-- Acciones -->
+          ${acc.length?`<div style="margin-top:2px;display:flex;flex-direction:column;gap:2px">
+            ${acc.slice(0,3).map(a=>`<div style="font-size:10.5px;color:#1a3a2a;display:flex;gap:5px;align-items:flex-start">
+              <span style="margin-top:1px;flex-shrink:0;color:#52b788;font-weight:700">→</span>
+              <span style="line-height:1.4">${a.t}</span>
+            </div>`).join('')}
+          </div>`:''}
+        </div>
+        <!-- Footer -->
+        ${p.responsable&&p.responsable!=='—'?`<div style="padding:6px 14px;border-top:1px solid #f0efe9;font-size:9.5px;color:#aaa;background:#fafaf8">
+          👤 ${p.responsable.split('/')[0].trim()}
+        </div>`:''}
+      </div>`;
+    });
+    cards += '</div></div>';
+  });
+
+  // ── KPIs barra superior ───────────────────────────────────────
+  const kpiBubbles = [
+    ['Activos', activos.length, '#1a3a2a'],
+    ['🔴 Alta', alta.length, '#8b3030'],
+    ['Due diligence', dd.length, '#2d6a4f'],
+    ['WIP', wip.length, '#1a3a2a'],
+  ].map(([l,v,c])=>`<div style="background:white;border-radius:var(--r);padding:5px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-left:3px solid ${c};display:flex;align-items:center;gap:8px">
+    <span class="private-val" style="font-size:16px;font-weight:800;color:${c};line-height:1">${v}</span>
+    <span style="font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:#aaa">${l}</span>
+  </div>`).join('');
 
   return renderKPIs()
-    +'<div class="view-panel" style="display:flex;gap:20px;align-items:flex-start">'
-    // Col 1 — Versión larga
-    +'<div style="flex:1;min-width:0">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
-    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Versión completa</div>'
-    +copyBtn+'</div>'
-    +'<div id="resumen-text" style="background:white;border:1px solid var(--border);border-radius:var(--r);padding:22px 24px;font-family:Aptos,Segoe UI,Arial,sans-serif;font-size:12px;line-height:1.9;color:#1a1a1a;white-space:pre-wrap;box-shadow:0 1px 4px rgba(0,0,0,0.06)">'+txt+'</div>'
-    +'</div>'
-    // Col 2 — Versión ejecutiva
-    +'<div style="flex:1;min-width:0">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
-    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Versión ejecutiva</div>'
-    +copyExecBtn+'</div>'
-    +'<div id="resumen-exec" style="background:white;border:1px solid var(--border);border-radius:var(--r);padding:22px 24px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">'+execHtml+'</div>'
-    +'</div>'
-    +'</div>';
+    + '<div class="view-panel">'
+    // Top bar
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">'
+    + '<div>'
+    + '<h2 style="margin:0 0 2px;font-size:16px;font-weight:800;color:#1a1a18">Resumen ejecutivo</h2>'
+    + '<div style="font-size:11px;color:#aaa">'+fecha+'</div>'
+    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:10px">'
+    + '<div style="display:flex;gap:8px">' + kpiBubbles + '</div>'
+    + '<button onclick="copyEmailResumen()" style="padding:5px 14px;font-size:12px;border-radius:var(--r);border:none;background:#1a3a2a;color:white;cursor:pointer;font-family:var(--font);font-weight:600;white-space:nowrap;align-self:stretch">✉ Copiar email</button>'
+    + '</div>'
+    + '</div>'
+    // Cards
+    + '<div id="resumen-cards" style="background:#f8f7f3;border-radius:10px;padding:20px">' + cards + '</div>'
+    + '<textarea id="resumen-email-txt" style="position:absolute;left:-9999px;opacity:0" readonly>' + email.replace(/</g,'&lt;') + '</textarea>'
+    + '</div>';
 }
-function copyResumen(){const el=document.getElementById('resumen-text');if(!el)return;navigator.clipboard.writeText(el.textContent).then(()=>{const btn=event.target,orig=btn.textContent;btn.textContent='✓ Copiado';setTimeout(()=>btn.textContent=orig,2000);}).catch(()=>{const r=document.createRange();r.selectNode(el);window.getSelection().removeAllRanges();window.getSelection().addRange(r);document.execCommand('copy');window.getSelection().removeAllRanges();});}
-function copyResumenExec(){
-  const el=document.getElementById('resumen-exec');if(!el)return;
-  const btn=event.target,orig=btn.textContent;
-  try {
-    const blob=new Blob([el.innerHTML],{type:'text/html'});
-    const plain=new Blob([el.innerText||el.textContent],{type:'text/plain'});
-    const item=new ClipboardItem({'text/html':blob,'text/plain':plain});
-    navigator.clipboard.write([item]).then(()=>{btn.textContent='✓ Copiado';setTimeout(()=>btn.textContent=orig,2000);});
-  } catch(e) {
-    // Fallback for browsers that don't support ClipboardItem
-    navigator.clipboard.writeText(el.innerText||el.textContent).then(()=>{btn.textContent='✓ Copiado (texto)';setTimeout(()=>btn.textContent=orig,2000);});
-  }
+
+function copyEmailResumen(){
+  const el=document.getElementById('resumen-email-txt');
+  if(!el) return;
+  el.style.position='fixed'; el.style.opacity='1';
+  el.select();
+  navigator.clipboard.writeText(el.value).then(()=>{
+    const btn=event.target,orig=btn.textContent;
+    btn.textContent='✓ Copiado';
+    setTimeout(()=>{btn.textContent=orig;},2000);
+  }).catch(()=>{ document.execCommand('copy'); });
+  el.style.position='absolute'; el.style.opacity='0';
 }
 
 // ─── AI ───────────────────────────────────────────────────────
