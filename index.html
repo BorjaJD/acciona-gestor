@@ -723,9 +723,13 @@ let projects = [];
 let S = {view:'dashboard',fBloque:'',fEstado:'',fPrio:'',fSearch:'',selId:null,sortCols:[{col:'bloque',dir:1}],aiHist:[],pendingDel:null,collapsedGroups:new Set(),detailMin:false};
 
 // ─── PERSIST ──────────────────────────────────────────────────
+let _sbDataConfirmed = false; // true solo si los datos vinieron de Supabase
+
 function persist() {
   try { localStorage.setItem('acciona_v3', JSON.stringify(projects)); } catch(e) {}
-  // Save to Supabase async (fire and forget)
+  // Solo guardar en Supabase si los datos originales vinieron de Supabase
+  // Esto evita que datos locales/fallback machaquen la nube
+  if(!_sbDataConfirmed) return;
   sbSave(projects).then(ok => {
     if(ok) {
       const ind = document.getElementById('sb-indicator');
@@ -758,6 +762,7 @@ async function loadFromSupabase() {
       try { localStorage.setItem('acciona_v3', JSON.stringify(projects)); } catch(e) {}
       migrateBloquesLegacy();
       projects.forEach(p => migrateAcciones(p));
+      _sbDataConfirmed = true; // ✅ Solo ahora se permite guardar de vuelta a Supabase
       const ind = document.getElementById('sb-indicator');
       if(ind) { ind.textContent = '☁ Online'; ind.style.color='#2e5c3e'; }
       return true;
