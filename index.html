@@ -1128,6 +1128,8 @@ function renderDetail() {
     +(p.bloque==='Pipeline'
       ?'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Fase del proceso</div>'
         +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:10px" onclick="event.stopPropagation()">'
+        +pill('NDA')
+        +'<span style="color:var(--border2);font-size:10px">→</span>'
         +pill('NBO')
         +'<span style="color:var(--border2);font-size:10px">→</span>'
         +pill('BO')
@@ -1314,7 +1316,7 @@ function saveImg(id, input) {
     p.imgData = e.target.result;
     persist();
     const dp = document.querySelector('.detail-panel');
-    if(dp) { const newHtml = renderDetail(); dp.outerHTML = newHtml; }
+    if(dp) { const wasOpen=document.getElementById('ubic-body')?.classList.contains('open'); const newHtml=renderDetail(); dp.outerHTML=newHtml; if(wasOpen){const nb=document.getElementById('ubic-body');const na=document.getElementById('ubic-arrow');if(nb)nb.classList.add('open');if(na)na.classList.add('open');} }
   };
   reader.readAsDataURL(file);
 }
@@ -1324,7 +1326,7 @@ function deleteImg(id) {
   if(!confirm('¿Eliminar la imagen?')) return;
   p.imgData = ''; persist();
   const dp = document.querySelector('.detail-panel');
-  if(dp) { dp.outerHTML = renderDetail(); }
+  if(dp) { const wasOpen=document.getElementById('ubic-body')?.classList.contains('open'); dp.outerHTML=renderDetail(); if(wasOpen){const nb=document.getElementById('ubic-body');const na=document.getElementById('ubic-arrow');if(nb)nb.classList.add('open');if(na)na.classList.add('open');} }
 }
 
 function saveImg2(id, input) {
@@ -1336,7 +1338,7 @@ function saveImg2(id, input) {
     p.imgData2 = e.target.result;
     persist();
     const dp = document.querySelector('.detail-panel');
-    if(dp) { dp.outerHTML = renderDetail(); }
+    if(dp) { const wasOpen=document.getElementById('ubic-body')?.classList.contains('open'); dp.outerHTML=renderDetail(); if(wasOpen){const nb=document.getElementById('ubic-body');const na=document.getElementById('ubic-arrow');if(nb)nb.classList.add('open');if(na)na.classList.add('open');} }
   };
   reader.readAsDataURL(file);
 }
@@ -1346,7 +1348,7 @@ function deleteImg2(id) {
   if(!confirm('¿Eliminar la imagen secundaria?')) return;
   p.imgData2 = ''; persist();
   const dp = document.querySelector('.detail-panel');
-  if(dp) { dp.outerHTML = renderDetail(); }
+  if(dp) { const wasOpen=document.getElementById('ubic-body')?.classList.contains('open'); dp.outerHTML=renderDetail(); if(wasOpen){const nb=document.getElementById('ubic-body');const na=document.getElementById('ubic-arrow');if(nb)nb.classList.add('open');if(na)na.classList.add('open');} }
 }
 
 // ─── TABLE ────────────────────────────────────────────────────
@@ -1996,7 +1998,15 @@ function renderMobile() {
         </div>
         <div id="mp-${p.id}" style="display:${pExp?'block':'none'};padding:0 14px 12px;background:var(--surface)">
           ${p.avance&&p.avance!=='—'?`<div style="font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:10px;padding:8px 10px;background:var(--surface2);border-radius:8px;border-left:3px solid ${dot}">${p.avance}</div>`:''}
-          ${acc.length?`<div style="margin-bottom:${hasEco?'10':'0'}px">${acc.map(a=>`<div style="font-size:11px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.4">→ ${a.t}</div>`).join('')}</div>`:''}
+          ${acc.length?`<div style="margin-bottom:10px">${acc.map(a=>`<div style="font-size:11px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.4">→ ${a.t}</div>`).join('')}</div>`:''}
+          ${isPipeline?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
+            ${(p.ubicacion||p.ciudad)?`<span style="font-size:10px;background:var(--surface2);padding:2px 8px;border-radius:20px;color:var(--text2)">📍 ${[p.ubicacion,p.ciudad].filter(Boolean).join(', ')}</span>`:''}
+            ${(p.vendor||p.contraparte)?`<span style="font-size:10px;background:var(--surface2);padding:2px 8px;border-radius:20px;color:var(--text2)">🤝 ${p.vendor||p.contraparte}</span>`:''}
+            ${p.fpa?`<span style="font-size:10px;background:#e8f4ef;padding:2px 8px;border-radius:20px;color:#1a3a2a;font-weight:600">FPA${p.fpaComprador?' · '+p.fpaComprador:''}</span>`:''}
+          </div>`:''}
+          ${isPipeline&&Array.isArray(p.fases)&&p.fases.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
+            ${p.fases.map(f=>`<span style="font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#1a3a2a;color:white">✓ ${f}</span>`).join('')}
+          </div>`:''}
           ${hasEco?`<div style="background:var(--surface2);border-radius:10px;padding:10px 12px">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:${bloqColor};margin-bottom:8px">Datos económicos</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -2006,6 +2016,8 @@ function renderMobile() {
               ${vu?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">€/unidad</div><div style="font-size:13px;font-weight:700;color:var(--text)">${vu}</div></div>`:''}
               ${mg?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Margen €</div><div style="font-size:13px;font-weight:700;color:var(--text)">${mg}</div>${mp?`<div style="font-size:10px;color:var(--text3)">${mp}</div>`:''}</div>`:''}
               ${ti?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">TIR</div><div style="font-size:13px;font-weight:700;color:${parseFloat(eco.tirPct)>=20?'#1a3a2a':parseFloat(eco.tirPct)>=13?'#2d6a4f':'#8b3030'}">${ti}</div></div>`:''}
+              ${eco.inicioProy?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Inicio</div><div style="font-size:12px;font-weight:600;color:var(--text)">${eco.inicioProy}</div></div>`:''}
+              ${eco.fechaEntrega?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">1ª Ocup.</div><div style="font-size:12px;font-weight:600;color:var(--text)">${eco.fechaEntrega}</div></div>`:''}
             </div>
           </div>`:''}
         </div>
@@ -2118,6 +2130,38 @@ function renderTablaOnly() {
 // ─── DEAL SHEET ────────────────────────────────────────────────
 let S_dealId = null;
 let S_dealView = 'ficha'; // 'ficha' | 'pipeline'
+let S_dealPdf  = []; // IDs selected for multi-PDF
+
+function toggleDealPdf(id, checked) {
+  if(checked) { if(!S_dealPdf.includes(id)) S_dealPdf.push(id); }
+  else { S_dealPdf = S_dealPdf.filter(x=>x!==id); }
+  render();
+}
+
+function printMultiDealSheet() {
+  if(!S_dealPdf.length) return;
+  const origId = S_dealId;
+  // Print each selected project sequentially using window.print per page
+  // Simplest: open a new window with all sheets stacked, then print
+  const win = window.open('','_blank','width=1200,height=800');
+  if(!win) { alert('Permite ventanas emergentes para exportar PDF'); return; }
+  const styles = Array.from(document.styleSheets).map(s=>{
+    try { return '<style>'+Array.from(s.cssRules).map(r=>r.cssText).join('\n')+'</style>'; } catch(e){return '';}
+  }).join('');
+  const sheets = S_dealPdf.map(id=>{
+    const p = projects.find(x=>x.id===id); if(!p) return '';
+    S_dealId = id;
+    // Temporarily generate the deal sheet HTML
+    const tmp = document.createElement('div');
+    tmp.innerHTML = renderDealSheet();
+    const sheet = tmp.querySelector('.ds-sheet');
+    return sheet ? sheet.outerHTML : '';
+  }).join('<div style="page-break-after:always"></div>');
+  S_dealId = origId;
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Deal Sheets</title>${styles}<style>@media print{@page{size:A4 landscape;margin:6mm}body{margin:0}.ds-sheet{box-shadow:none!important;border-radius:0!important;margin:0!important;width:100%!important;max-width:100%!important}}</style></head><body style="margin:0;background:white">${sheets}</body></html>`);
+  win.document.close();
+  setTimeout(()=>win.print(), 800);
+}
 
 function renderPipelineSummary() {
   const SKIP = ['Descartado','Cerrado'];
@@ -2503,13 +2547,27 @@ function renderDealSheet() {
   const ops = projects.filter(p => p.bloque === 'Pipeline');
   const opts = '<option value="">— Selecciona un proyecto —</option>'
     + ops.map(p => '<option value="'+p.id+'"'+(S_dealId===p.id?' selected':'')+'>'+p.nombre+'</option>').join('');
-  const selector = '<div class="ds-toolbar">'
+
+  // Multi-select checkboxes for PDF
+  const multiSelect = S_dealView==='ficha'
+    ? '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+      + ops.map(p=>`<label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;padding:3px 8px;border-radius:20px;border:1px solid ${(S_dealPdf||[]).includes(p.id)?'#1a3a2a':'var(--border2)'};background:${(S_dealPdf||[]).includes(p.id)?'#1a3a2a':'transparent'};color:${(S_dealPdf||[]).includes(p.id)?'white':'var(--text2)'}">
+          <input type="checkbox" ${(S_dealPdf||[]).includes(p.id)?'checked':''} style="display:none" onchange="toggleDealPdf(${p.id},this.checked)"/>
+          ${p.nombre.replace(/\|.*/,'').trim().split(' ').slice(0,2).join(' ')}
+        </label>`).join('')
+      + ((S_dealPdf||[]).length>0?'<button class="ds-export-btn" onclick="printMultiDealSheet()" style="margin-left:4px">Exportar '+((S_dealPdf||[]).length)+' PDF</button>':'')
+      + '</div>'
+    : '';
+
+  const selector = '<div class="ds-toolbar" style="flex-wrap:wrap;gap:8px">'
+    +'<div style="display:flex;gap:6px;align-items:center">'
     +'<button onclick="S_dealView=\'pipeline\';render()" style="font-size:12px;padding:6px 14px;border-radius:var(--r);border:1px solid '+(S_dealView==='pipeline'?'#1a3a2a':'var(--border2)')+';background:'+(S_dealView==='pipeline'?'#1a3a2a':'transparent')+';color:'+(S_dealView==='pipeline'?'white':'var(--text2)')+';cursor:pointer;font-family:var(--font);font-weight:500">📊 Resumen Pipeline</button>'
     +'<button onclick="S_dealView=\'ficha\';render()" style="font-size:12px;padding:6px 14px;border-radius:var(--r);border:1px solid '+(S_dealView==='ficha'?'#1a3a2a':'var(--border2)')+';background:'+(S_dealView==='ficha'?'#1a3a2a':'transparent')+';color:'+(S_dealView==='ficha'?'white':'var(--text2)')+';cursor:pointer;font-family:var(--font);font-weight:500">📄 Deal Sheet</button>'
     +(S_dealView==='ficha'?'<select class="ds-selector" onchange="S_dealId=parseInt(this.value)||null;render()">'+opts+'</select>':'')
-    +(S_dealView==='ficha'&&S_dealId?'<button class="ds-export-btn" onclick="printDealSheet()">Exportar PDF</button>':'')
+    +(S_dealView==='ficha'&&S_dealId?'<button class="ds-export-btn" onclick="printDealSheet()">PDF este</button>':'')
     +(S_dealView==='pipeline'?'<button class="ds-export-btn" onclick="printPipelineSummary()">Exportar PDF</button>':'')
-    +'<span style="font-size:11px;color:var(--text3);margin-left:auto">Ctrl+P para exportar PDF</span>'
+    +'</div>'
+    +(S_dealView==='ficha'?'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+multiSelect+'</div>':'')
     +'</div>';
 
   if(S_dealView==='pipeline') return '<div class="ds-wrap">'+selector+renderPipelineSummary()+'</div>';
@@ -2704,23 +2762,25 @@ function renderDealSheet() {
     +'</div>'
 
     // COL 3 — Imagen(s) + texto inferior alineado abajo
-    +'<div style="display:flex;flex-direction:column;height:100%;background:#fafaf8">'
-    +'<div style="padding:12px 12px 6px;height:'+(p.imgData2?'280px':'440px')+'">'
-    +(p.imgData?'<img src="'+p.imgData+'" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.12)"/>'
-      :'<div style="width:100%;height:100%;background:#f0efe9;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px">Sin imagen</div>')
-    +'</div>'
+    +'<div style="display:flex;flex-direction:column;height:100%;background:#fafaf8;overflow:hidden">'
+    +(p.imgData
+      ?'<div style="flex:'+(p.imgData2?'1 1 0':'1 1 0')+';min-height:0;overflow:hidden"><img src="'+p.imgData+'" style="width:100%;height:100%;object-fit:cover;display:block"/></div>'
+      :'<div style="flex:1;min-height:0;background:#f0efe9;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px">Sin imagen</div>')
     +(p.imgData2
-      ?'<div style="padding:0 12px 6px;height:200px"><img src="'+p.imgData2+'" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.12)"/></div>'
+      ?'<div style="flex:1 1 0;min-height:0;overflow:hidden;border-top:2px solid white"><img src="'+p.imgData2+'" style="width:100%;height:100%;object-fit:cover;display:block"/></div>'
       :'')
-    +'<div style="padding:10px 14px;flex:1;display:flex;flex-direction:column;justify-content:flex-end">'
     +(p.narrativaBottom&&p.narrativaBottom!=='—'
-      ?'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:4px;margin-bottom:8px">Proceso</div>'
-       +'<div style="font-size:10px;color:#555;line-height:1.7">'+fv(p.narrativaBottom)+'</div>'
+      ?'<div style="padding:10px 14px;flex-shrink:0;border-top:1px solid #e8e8e0">'
+        +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:4px;margin-bottom:8px">Proceso</div>'
+        +'<div style="font-size:10px;color:#555;line-height:1.7">'+fv(p.narrativaBottom)+'</div>'
+        +'</div>'
       :(pending.length
-        ?'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:4px;margin-bottom:8px">Próximas acciones</div>'
-         +pending.map(a=>'<div style="font-size:10px;color:#555;padding:3px 0;border-bottom:1px solid #f0efe9">→ '+a.t+'</div>').join('')
+        ?'<div style="padding:10px 14px;flex-shrink:0;border-top:1px solid #e8e8e0">'
+          +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:4px;margin-bottom:8px">Próximas acciones</div>'
+          +pending.map(a=>'<div style="font-size:10px;color:#555;padding:3px 0;border-bottom:1px solid #f0efe9">→ '+a.t+'</div>').join('')
+          +'</div>'
         :''))
-    +'</div></div>'
+    +'</div>'
 
     +'</div>'
     +'<div class="ds-footer" style="background:linear-gradient(135deg,#f0efe9,#f5f4f0);border-top:1px solid #e0dfd8">'
