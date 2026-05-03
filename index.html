@@ -718,39 +718,7 @@ function fmtMiles(n) {
   return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-let projects = [
-  {id:1,nombre:"Argis - Tetuán",bloque:"Desinversión",estado:"Due diligence",prioridad:1,tipo:"Resi",contraparte:"Argis",avance:"Firma prevista mayo (TBD). Jurídico preparando doc. Bustillo del Oro 22, Luis Missón 13, Panizo 29.",proxima:"Confirmar fecha firma. Iniciar proceso EPCV + Documentación",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
-  {id:2,nombre:"Argis - La Solana RUL 10+11",bloque:"Desinversión",estado:"Due diligence",prioridad:1,tipo:"Suelo",contraparte:"Argis",avance:"NBO Aceptada (31,5 M€) - 31/03/2026. DD iniciado.",proxima:"Firma CAE: Topografía + geotécnico. Solicitud documentación.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
-  {id:3,nombre:"Argis - Terrassa P3",bloque:"Desinversión",estado:"Due diligence",prioridad:1,tipo:"Resi",contraparte:"Argis",avance:"NBO Aceptada (26,5 M€) - 31/03/2026. DD iniciado.",proxima:"Montar carpeta DD. Revisión fotografías (Prisa). Calendario Acordado: Cierre 26 de junio",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
-  {id:4,nombre:"Cantueso",bloque:"Desinversión",estado:"En análisis",prioridad:2,tipo:"Suelo",contraparte:"n.a.",avance:"EGL tiene oferta por 3M€ - Argis la ha rechazado.",proxima:"Trabajar para obtener dos ofertas adicionales.",responsable:"EGL",notas:""},
-  {id:5,nombre:"Proyecto Trophy: Vistahermosa y Tenerife",bloque:"Desinversión",estado:"En análisis",prioridad:2,tipo:"Hotelero",contraparte:"JLL",avance:"Tenerife: varios inversores; forward purchase pide más tiempo. Vistahermosa: modelo con dificultades estacionalidad (NOI).",proxima:"Esperar actualización JLL - Modelo Vistahermosa. El fondo que lo está viendo como un FPA está On Hold",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
-  {id:15,nombre:"P4 Terrassa – Coliving",bloque:"Desinversión",estado:"En análisis",prioridad:2,tipo:"Flex",contraparte:"Ardian",avance:"—",proxima:"Modelo coliving. Reunión Ayuntamiento. DD estructura. Coordinar Acciona Construcción.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:""},
-  {id:16,nombre:"Zorrotzaurre",bloque:"Desinversión",estado:"Recibido",prioridad:3,tipo:"Resi",contraparte:"n.a.",avance:"En espera - Argis presentó oferta por xxM€",proxima:"Seguimiento + Confirmar si han hablado con JLL.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:""},
-  {id:22,nombre:"Loiu",bloque:"Desinversión",estado:"Recibido",prioridad:2,tipo:"Log",contraparte:"CBRE",avance:"Modelo en revisión.",proxima:"Revisión interna y dar seguimiento con CBRE",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + PN",notas:""},
-  {id:24,nombre:"A&G – Madrid Nuevo Norte + Suelos",bloque:"Desinversión",estado:"Recibido",prioridad:2,tipo:"Resi",contraparte:"A&G",avance:"En espera.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
-  {id:27,nombre:"Bensaude",bloque:"Desinversión",estado:"Due diligence",prioridad:1,tipo:"Suelo",contraparte:"VIZTA",avance:"Seguimiento obras urbanización.",proxima:"Confirmar próximo Steering Committee. Seguimiento email addenda al contrato.",responsable:"Desarrollo de Negocio / BJD",notas:""},
-  {id:6,nombre:"Fuente Fría",bloque:"Pipeline",estado:"En análisis",prioridad:1,tipo:"Resi",contraparte:"Offmarket",avance:"Actualización enviada por Borja el viernes.",proxima:"Enviar modelo de la LOI. Llegar > 42%. Citar en notaría; pago condicionado al % total escriturado.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"dic-2028"}},
-  {id:7,nombre:"PBSA Vallecas",bloque:"Pipeline",estado:"Due diligence",prioridad:1,tipo:"PBSA",contraparte:"Colliers + Praemia",avance:"ONV aceptada. DD iniciado. Encajes Morph presentados (650 hab.). NBO actualizada (excl. 6+5 sem., 50/50). NDA enviado a Addient.",proxima:"Seguimiento encaje MORPH + CDL. Vehiculizar FPA. Convenio Universidad. Llamada PRAEMIA semana 04/05.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"ago-2029"}},
-  {id:8,nombre:"HOSS",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Mix Used",contraparte:"Praemia",avance:"Reunión Felipe (Praemia) 16 abr. Aprobación Plan General prevista pleno fin de abril.",proxima:"Encaje + modelo: presentación JME. Independizar modelos. Confirmar yield AXA. Nota inversión PPT.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"jun-2031"}},
-  {id:9,nombre:"Eucalipto",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"Merlin",avance:"Encaje recibido.",proxima:"Nuevo encaje Morph – semana 27/04. Revisar encaje. Hay que tomar una decisión",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"mar-2030"}},
-  {id:10,nombre:"Suso y Yuso 34",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"Generali",avance:"Teresa Joven analizando edificio (c. 3.250 m² remanentes). C&W consultando indemnización supermercado.",proxima:"Recibir análisis Teresa Joven. Recibir estimación indemnización C&W.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"jul-2030"}},
-  {id:11,nombre:"Leonor / Plaza de los Cubos",bloque:"Pipeline",estado:"Recibido",prioridad:3,tipo:"Mix Used",contraparte:"Merlin",avance:"Modelo Excel enviado (v0). En espera documentación Merlin de CBRE.",proxima:"Pendiente documentación Merlin de CBRE.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"oct-2030"}},
-  {id:12,nombre:"Getxo",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"Telefónica",avance:"Análisis de oportunidad en curso.",proxima:"Preparar one-pager para JME.",responsable:"Desarrollo de Negocio / TPN + BJD + PN",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"feb-2032"}},
-  {id:13,nombre:"Gran Vía de Hortaleza",bloque:"Pipeline",estado:"En análisis",prioridad:2,tipo:"Resi",contraparte:"IBA Capital",avance:"Jones Day: uso residencial no aplicable. Posible hospedaje/apartahotel/flexliving con licencia directa.",proxima:"-",responsable:"Desarrollo de Negocio / TPN + BJD + Jurídico",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"may-2030"}},
-  {id:14,nombre:"Sanxenxo",bloque:"Pipeline",estado:"En análisis",prioridad:1,tipo:"Resi",contraparte:"n.a.",avance:"Preparando propuesta de inversión y modelo.",proxima:"Revisar borrador semana 4 de mayo.",responsable:"Desarrollo de Negocio / TPN + BJD + PN",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"nov-2030"}},
-  {id:17,nombre:"Mateo Inurria [ALTER]",bloque:"Pipeline",estado:"Recibido",prioridad:3,tipo:"Resi",contraparte:"Alter",avance:"En espera - Pendientes de recibir confirmación de la propiedad.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"ago-2030"}},
-  {id:18,nombre:"Mateo Inurria [Mapfre]",bloque:"Pipeline",estado:"Recibido",prioridad:3,tipo:"Resi",contraparte:"Mapfre",avance:"En espera - Mapfre ha renovado el contrato de alquiler.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"ago-2030"}},
-  {id:25,nombre:"Rojas Santa Tecla",bloque:"Pipeline",estado:"Recibido",prioridad:2,tipo:"Resi",contraparte:"Bestinver",avance:"Preparando el modelo hasta una TIR Proyecto 11%-13% financiando construcción",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:"",mapUrl:"",imgData:"",edificabilidad:"",nViviendas:"",eco:{sueloEur:"",sueloEurM2:"",ventaEur:"",ventaEurM2:"",construccionEur:"",construccionEurM2:"",plazoMeses:"",fechaEntrega:"mar-2029"}},
-  {id:26,nombre:"Nestlé – MPPG + Encaje + Modelo",bloque:"Desarrollo / Operación",estado:"Recibido",prioridad:2,tipo:"Cliente",contraparte:"Teresa Joven / PJM",avance:"Encaje en elaboración (Batlle). Honorarios recibidos de Batlle. Pendiente enviar propuesta Nestlé.",proxima:"Preparar actualización del modelo / Seguimiento MPpG",responsable:"Desarrollo de Negocio / TPN + BJD + MAG + MTJ",notas:""},
-  {id:20,nombre:"Mónica – Reporting",bloque:"Clientes / Gestión",estado:"Recibido",prioridad:2,tipo:"Reporting",contraparte:"JAT",avance:"En espera.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
-  {id:21,nombre:"Case Study – Terrassa",bloque:"Clientes / Gestión",estado:"Recibido",prioridad:2,tipo:"Case Study",contraparte:"Mónica",avance:"En proceso.",proxima:"Pendiente maqueta. Revisión fotografías (Prisa).",responsable:"Desarrollo de Negocio / TPN",notas:""},
-  {id:23,nombre:"Suelo Adeje",bloque:"Clientes / Gestión",estado:"Recibido",prioridad:2,tipo:"Mix Used",contraparte:"KISS FM",avance:"En espera.",proxima:"Seguimiento.",responsable:"Desarrollo de Negocio / TPN + BJD",notas:""},
-  {id:28,nombre:"AEG",bloque:"Postventa",estado:"Recibido",prioridad:2,tipo:"Ushuaia",contraparte:"Obras",avance:"Sustitución Cerraduras. Coordinación Parking. Informe Comercialización.",proxima:"Seguimiento",responsable:"MGG",notas:""},
-  {id:31,nombre:"AEG PBSA",bloque:"Postventa",estado:"Recibido",prioridad:2,tipo:"PBSA",contraparte:"Ardian + Rockfield",avance:"Tramitar acta de entrega.",proxima:"Seguimiento.",responsable:"MGG",notas:""},
-  {id:32,nombre:"Atalayuela – Aval defectos",bloque:"Postventa",estado:"Recibido",prioridad:2,tipo:"Logístico",contraparte:"Aberdeen",avance:"Tramitando marcado CE puertas de entrada",proxima:"Gestionar aval de defectos.",responsable:"BJD",notas:""},
-  {id:33,nombre:"Méndez Álvaro",bloque:"Postventa",estado:"Recibido",prioridad:2,tipo:"Resi",contraparte:"Greystar",avance:"Pendiente devolución del aval",proxima:"Seguimiento ventanas núcleos + devolución aval.",responsable:"BJD",notas:""},
-  {id:34,nombre:"Museo del Niño",bloque:"Postventa",estado:"Recibido",prioridad:2,tipo:"Dotacional",contraparte:"Acciona Cultura",avance:"Se está buscando potencial implantación para un nuevo museo",proxima:"Preparando email: Dotacionales donde estamos / Alcobendas no descartado, Ayto. envía fichas urbanísticas",responsable:"MAG / Emi",notas:""},
-];
+let projects = [];
 
 // ─── STATE ────────────────────────────────────────────────────
 let S = {view:'dashboard',fBloque:'',fEstado:'',fPrio:'',fSearch:'',selId:null,sortCols:[{col:'bloque',dir:1}],aiHist:[],pendingDel:null,collapsedGroups:new Set(),detailMin:false};
@@ -783,18 +751,22 @@ function loadPersisted() {
 }
 
 async function loadFromSupabase() {
-  const data = await sbLoad();
-  if(data && data.length > 0) {
-    projects.length = 0;
-    data.forEach(p => projects.push(p));
-    try { localStorage.setItem('acciona_v3', JSON.stringify(projects)); } catch(e) {}
-    migrateBloquesLegacy();
-    projects.forEach(p => migrateAcciones(p));
-    const ind = document.getElementById('sb-indicator');
-    if(ind) { ind.textContent = '☁ Online'; ind.style.color='#2e5c3e'; }
-  } else {
-    throw new Error('No data from Supabase');
+  try {
+    const data = await sbLoad();
+    if(data && data.length > 0) {
+      projects.length = 0;
+      data.forEach(p => projects.push(p));
+      try { localStorage.setItem('acciona_v3', JSON.stringify(projects)); } catch(e) {}
+      migrateBloquesLegacy();
+      projects.forEach(p => migrateAcciones(p));
+      const ind = document.getElementById('sb-indicator');
+      if(ind) { ind.textContent = '☁ Online'; ind.style.color='#2e5c3e'; }
+      return true;
+    }
+  } catch(e) {
+    console.warn('Supabase error:', e);
   }
+  return false;
 }
 
 
@@ -1091,10 +1063,9 @@ function renderDetail() {
   }
 
   return '<div class="detail-panel'+(S.detailMin?' minimised':'')+'">'
-    // Ubic + eco FIRST (only for Ops blocks)
-    + (p.bloque==='Pipeline'||p.bloque==='Pipeline' ? renderUbicSection(p) : '')
-    + ecoSec
-    // Then the fields grid
+    +(p.bloque==='Pipeline'
+      ?'<div class="detail-grid" style="margin-bottom:6px"><div class="d-item d-full"><label>Descripción del proyecto</label><textarea class="d-textarea" placeholder="Descripción general del proyecto…" oninput="saveField('+p.id+',\'notas\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+p.notas+'</textarea></div></div>'
+      :'')
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 16px;margin-bottom:8px;margin-top:8px">'
     // Col 1
     +'<div class="d-item"><label>Proyecto</label><input class="d-input" style="font-weight:600" value="'+p.nombre+'" oninput="saveField('+p.id+',\'nombre\',this.value)" onclick="event.stopPropagation()"/></div>'
@@ -1103,23 +1074,28 @@ function renderDetail() {
     // Col 2
     +'<div class="d-item"><label>Tipo</label><input class="d-input" value="'+p.tipo+'" oninput="saveField('+p.id+',\'tipo\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"><label>Bloque</label><div style="padding:4px 2px;font-size:12px;color:var(--text2)">'+p.bloque+'</div></div>'
-    +'<div class="d-item"><label>Ubicación</label><select class="d-select" onchange="saveField('+p.id+',\'ubicacion\',this.value)" onclick="event.stopPropagation()">'+UBICACIONES_OPTS.map(u=>'<option value="'+u+'"'+(u===(p.ubicacion||'')?'  selected':'')+'>'+u+'</option>').join('')+'</select></div>'
+    +'<div class="d-item"><label>Provincia</label><select class="d-select" onchange="saveField('+p.id+',\'ubicacion\',this.value)" onclick="event.stopPropagation()">'+UBICACIONES_OPTS.map(u=>'<option value="'+u+'"'+(u===(p.ubicacion||'')?'  selected':'')+'>'+u+'</option>').join('')+'</select></div>'
     // Col 3
     +'<div class="d-item"><label>Responsable</label><input class="d-input" value="'+p.responsable+'" oninput="saveField('+p.id+',\'responsable\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"><label>'+contraparteLabel(p.bloque)+'</label><input class="d-input" value="'+(p.vendor||p.contraparte||'')+'" placeholder="—" oninput="saveField('+p.id+',\'vendor\',this.value)" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"><label>Ciudad</label><input class="d-input" value="'+(p.ciudad||'')+'" placeholder="ej. Madrid" oninput="saveField('+p.id+',\'ciudad\',this.value)" onclick="event.stopPropagation()"/></div>'
+    // Row 2 col 1 empty, col 2 FPA, col 3 Broker
+    +'<div class="d-item"></div>'
     +(p.bloque==='Pipeline'
       ?'<div class="d-item" onclick="event.stopPropagation()"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" '+(p.fpa?'checked':'')+' style="accent-color:#1a3a2a;cursor:pointer;width:13px;height:13px" onchange="saveField('+p.id+',\'fpa\',this.checked);if(this.checked)document.getElementById(\'fpa-buyer-'+p.id+'\').style.display=\'block\';else document.getElementById(\'fpa-buyer-'+p.id+'\').style.display=\'none\'"/><span style="font-size:11px;font-weight:600;color:var(--text2)">FPA · Forward Purchase</span></label>'
         +'<div id="fpa-buyer-'+p.id+'" style="display:'+(p.fpa?'block':'none')+'"><input class="d-input" value="'+(p.fpaComprador||'')+'" placeholder="Comprador FPA…" oninput="saveField('+p.id+',\'fpaComprador\',this.value)" onclick="event.stopPropagation()" style="margin-top:4px"/></div>'
         +'</div>'
-      :'')
+      :'<div class="d-item"></div>')
     +'<div class="d-item"><label>Broker / Agente</label><input class="d-input" value="'+(p.comprador||'')+'" placeholder="—" oninput="saveField('+p.id+',\'comprador\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'</div>'
     // Full width fields
     +'<div class="detail-grid" style="margin-bottom:6px">'
     +'<div class="d-item d-full"><label>Último avance</label><textarea class="d-textarea" oninput="saveField('+p.id+',\'avance\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+p.avance+'</textarea></div>'
     +'<div class="d-item d-full"><label>Seguimiento / Próximas acciones</label>'+renderAcciones(p)+'</div>'
-    +'<div class="d-item d-full"><label>Notas</label><textarea class="d-textarea" placeholder="Añade notas…" oninput="saveField('+p.id+',\'notas\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+p.notas+'</textarea></div>'
+    +(p.bloque!=='Pipeline'?'<div class="d-item d-full"><label>Notas</label><textarea class="d-textarea" placeholder="Añade notas…" oninput="saveField('+p.id+',\'notas\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+p.notas+'</textarea></div>':'')
     +'</div>'
+    + (p.bloque==='Pipeline'||p.bloque==='Pipeline' ? renderUbicSection(p) : '')
+    + ecoSec
     +'</div>';
 }
 
@@ -2212,15 +2188,25 @@ function renderPipelineSummary() {
   function parseFecha(v){
     if(!v||v==='—'||v==='')return null;
     const M={ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11};
-    const m1=String(v).match(/^([a-z]{3})-(\d{2,4})$/i);
-    if(m1){const yr=parseInt(m1[2]);return new Date(yr<100?2000+yr:yr,(M[m1[1].toLowerCase()]||0),1);}
-    const m2=String(v).match(/^(\d{4})-(\d{2})/);
+    const s=String(v).toLowerCase().trim();
+    // "03 may. 2026" or "3 may 2026" — from Excel cd()
+    const m0=s.match(/^\d{1,2}\s+([a-z]{3})\.?\s+(\d{4})$/);
+    if(m0)return new Date(parseInt(m0[2]),(M[m0[1]]??0),1);
+    // "ene-28" or "ene-2028"
+    const m1=s.match(/^([a-z]{3})-(\d{2,4})$/);
+    if(m1){const yr=parseInt(m1[2]);return new Date(yr<100?2000+yr:yr,(M[m1[1]]??0),1);}
+    // "2028-01"
+    const m2=s.match(/^(\d{4})-(\d{2})/);
     if(m2)return new Date(parseInt(m2[1]),parseInt(m2[2])-1,1);
-    const m3=String(v).match(/^([a-z]{3})[- ](\d{4})$/i);
-    if(m3)return new Date(parseInt(m3[2]),(M[m3[1].toLowerCase()]||0),1);
+    // "ene 2028" or "ene-2028"
+    const m3=s.match(/^([a-z]{3})[- ](\d{4})$/);
+    if(m3)return new Date(parseInt(m3[2]),(M[m3[1]]??0),1);
+    // Just a year "2028"
+    const m4=s.match(/^(\d{4})$/);
+    if(m4)return new Date(parseInt(m4[1]),0,1);
     return null;
   }
-  function fmFecha(v){const d=parseFecha(v);if(!d)return '—';return d.toLocaleDateString('es-ES',{month:'short',year:'2-digit'});}
+  function fmFecha(v){const d=parseFecha(v);if(!d)return '—';return d.toLocaleDateString('es-ES',{month:'short',year:'numeric'});}
 
   const EC={'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae'};
   const sorted=[...ps].sort((a,b)=>parseFloat(b.eco?.tirPct||0)-parseFloat(a.eco?.tirPct||0));
@@ -3514,31 +3500,27 @@ projects.forEach(p=>migrateAcciones(p));
 checkSession();
 initAiKey();
 
-// Re-render on resize (desktop ↔ mobile)
 let _resizeTimer;
 window.addEventListener('resize', ()=>{ clearTimeout(_resizeTimer); _resizeTimer=setTimeout(render, 150); });
 
 if(window.location.protocol === 'file:') {
-  // Local file — use hardcoded/localStorage data directly
   addMsg('system','Gestor listo · '+projects.length+' proyectos · Modo local');
   const ind=document.getElementById('sb-indicator');
   if(ind){ind.textContent='⚡ Local';ind.style.color='var(--text3)';}
   render();
 } else {
-  // GitHub Pages / servidor — mostrar spinner y esperar Supabase antes de renderizar
+  // En GitHub: mostrar spinner, esperar Supabase
   const main = document.getElementById('main');
   if(main) main.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:16px"><div style="width:32px;height:32px;border:3px solid #eee;border-top-color:#1a3a2a;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="font-size:13px;color:#aaa">Cargando datos…</div></div>';
-  // Add spin animation
   if(!document.getElementById('spin-style')){const s=document.createElement('style');s.id='spin-style';s.textContent='@keyframes spin{to{transform:rotate(360deg)}}';document.head.appendChild(s);}
   addMsg('system','Sincronizando con la nube…');
-  loadFromSupabase().then(()=>{
-    // Supabase loaded — render with cloud data
-    if(!projects.length && _hasLocal) loadPersisted(); // fallback to localStorage if Supabase empty
-    addMsg('system','Gestor listo · '+projects.length+' proyectos');
-    render();
-  }).catch(()=>{
-    // Supabase failed — fallback to localStorage or hardcoded
-    addMsg('system','Sin conexión · '+projects.length+' proyectos (datos locales)');
+  loadFromSupabase().then(ok=>{
+    if(!ok && !_hasLocal) {
+      // Solo si no hay NADA en ningún sitio, usar hardcodeados
+      addMsg('system','Sin datos en la nube — usando datos base');
+    } else {
+      addMsg('system','Gestor listo · '+projects.length+' proyectos');
+    }
     render();
   });
 }
