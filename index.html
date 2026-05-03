@@ -2544,6 +2544,34 @@ function renderDealSheet() {
   const zone = ZONE[prov]||'';
 
   // Simplified Spain SVG — major regions as rough polygons
+  function googleMapsEmbedUrl(url) {
+    if(!url) return '';
+    // Already an embed URL
+    if(url.includes('/maps/embed')) return url;
+    // Extract query from share URL and convert to embed
+    // e.g. https://www.google.com/maps/place/Madrid → embed with q=Madrid
+    // e.g. https://maps.google.com/?q=40.416,-3.703
+    try {
+      // Extract coordinates if present
+      const coordMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if(coordMatch) {
+        return `https://www.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&output=embed&z=15`;
+      }
+      // Extract place name from /place/XXX
+      const placeMatch = url.match(/\/place\/([^/@?]+)/);
+      if(placeMatch) {
+        const place = decodeURIComponent(placeMatch[1]).replace(/\+/g,' ');
+        return `https://www.google.com/maps?q=${encodeURIComponent(place)}&output=embed`;
+      }
+      // Try ?q= param
+      const qMatch = url.match(/[?&]q=([^&]+)/);
+      if(qMatch) return `https://www.google.com/maps?q=${qMatch[1]}&output=embed`;
+      // Fallback — just try appending output=embed
+      const sep = url.includes('?') ? '&' : '?';
+      return url + sep + 'output=embed';
+    } catch(e) { return ''; }
+  }
+
   function spainSVG(prov) {
     // Map ubicacion → province name in GeoJSON
     const P2NAME={
@@ -2626,9 +2654,17 @@ function renderDealSheet() {
     // ── BODY 3 COLS ──────────────────────────────────────────
     +'<div class="ds-body-grid" style="display:grid;grid-template-columns:200px 1fr 1fr;gap:0;min-height:520px">'
 
-    // COL 1 — Mapa + texto superior
+    // COL 1 — Mapa España + Google Maps + texto superior
     +'<div style="padding:16px 14px;border-right:1px solid #e8e8e0;background:linear-gradient(180deg,#f5f4f0 0%,#fafaf8 100%);display:flex;flex-direction:column;gap:10px;box-shadow:inset -3px 0 8px rgba(0,0,0,0.03)">'
     +'<div>'+spainSVG(prov)+'</div>'
+    // Google Maps embed — convert share URL to embed URL
+    +(p.mapUrl
+      ?'<div style="border-radius:4px;overflow:hidden;border:1px solid #ccc;flex-shrink:0">'
+        +'<iframe src="'+googleMapsEmbedUrl(p.mapUrl)+'" width="100%" height="160" style="display:block;border:none" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>'
+        +'</div>'
+      :'<div style="height:160px;background:#f5f4f0;border-radius:4px;border:1px solid #e0dfd8;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+        +'<span style="font-size:10px;color:#bbb;text-align:center;padding:10px">Añade URL de Google Maps<br>en Tabla → Ubicación</span>'
+        +'</div>')
     +(p.narrativa
       ?'<div style="font-size:10px;color:#555;line-height:1.7;flex:1">'+fv(p.narrativa)+'</div>'
       :'<div style="font-size:10px;color:#bbb;font-style:italic">Añade descripción en la pestaña Tabla → Ubicación e imagen</div>')
