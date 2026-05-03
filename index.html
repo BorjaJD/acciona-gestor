@@ -762,10 +762,11 @@ async function loadFromSupabase() {
       if(ind) { ind.textContent = '☁ Online'; ind.style.color='#2e5c3e'; }
       return true;
     }
+    return false;
   } catch(e) {
-    console.warn('Supabase error:', e);
+    console.warn('Supabase load error:', e);
+    return false;
   }
-  return false;
 }
 
 
@@ -1128,6 +1129,8 @@ function renderDetail() {
     +(p.bloque==='Pipeline'
       ?'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Fase del proceso</div>'
         +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:10px" onclick="event.stopPropagation()">'
+        +pill('NDA')
+        +'<span style="color:var(--border2);font-size:10px">→</span>'
         +pill('NBO')
         +'<span style="color:var(--border2);font-size:10px">→</span>'
         +pill('BO')
@@ -1996,7 +1999,15 @@ function renderMobile() {
         </div>
         <div id="mp-${p.id}" style="display:${pExp?'block':'none'};padding:0 14px 12px;background:var(--surface)">
           ${p.avance&&p.avance!=='—'?`<div style="font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:10px;padding:8px 10px;background:var(--surface2);border-radius:8px;border-left:3px solid ${dot}">${p.avance}</div>`:''}
-          ${acc.length?`<div style="margin-bottom:${hasEco?'10':'0'}px">${acc.map(a=>`<div style="font-size:11px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.4">→ ${a.t}</div>`).join('')}</div>`:''}
+          ${acc.length?`<div style="margin-bottom:10px">${acc.map(a=>`<div style="font-size:11px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.4">→ ${a.t}</div>`).join('')}</div>`:''}
+          ${isPipeline?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
+            ${(p.ubicacion||p.ciudad)?`<span style="font-size:10px;background:var(--surface2);padding:2px 8px;border-radius:20px;color:var(--text2)">📍 ${[p.ubicacion,p.ciudad].filter(Boolean).join(', ')}</span>`:''}
+            ${(p.vendor||p.contraparte)?`<span style="font-size:10px;background:var(--surface2);padding:2px 8px;border-radius:20px;color:var(--text2)">🤝 ${p.vendor||p.contraparte}</span>`:''}
+            ${p.fpa?`<span style="font-size:10px;background:#e8f4ef;padding:2px 8px;border-radius:20px;color:#1a3a2a;font-weight:600">FPA${p.fpaComprador?' · '+p.fpaComprador:''}</span>`:''}
+          </div>`:''}
+          ${isPipeline&&Array.isArray(p.fases)&&p.fases.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
+            ${p.fases.map(f=>`<span style="font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#1a3a2a;color:white">✓ ${f}</span>`).join('')}
+          </div>`:''}
           ${hasEco?`<div style="background:var(--surface2);border-radius:10px;padding:10px 12px">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:${bloqColor};margin-bottom:8px">Datos económicos</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -2006,6 +2017,8 @@ function renderMobile() {
               ${vu?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">€/unidad</div><div style="font-size:13px;font-weight:700;color:var(--text)">${vu}</div></div>`:''}
               ${mg?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Margen €</div><div style="font-size:13px;font-weight:700;color:var(--text)">${mg}</div>${mp?`<div style="font-size:10px;color:var(--text3)">${mp}</div>`:''}</div>`:''}
               ${ti?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">TIR</div><div style="font-size:13px;font-weight:700;color:${parseFloat(eco.tirPct)>=20?'#1a3a2a':parseFloat(eco.tirPct)>=13?'#2d6a4f':'#8b3030'}">${ti}</div></div>`:''}
+              ${eco.inicioProy?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Inicio</div><div style="font-size:12px;font-weight:600;color:var(--text)">${eco.inicioProy}</div></div>`:''}
+              ${eco.fechaEntrega?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">1ª Ocup.</div><div style="font-size:12px;font-weight:600;color:var(--text)">${eco.fechaEntrega}</div></div>`:''}
             </div>
           </div>`:''}
         </div>
@@ -3574,15 +3587,16 @@ if(window.location.protocol === 'file:') {
   if(main) main.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:16px"><div style="width:32px;height:32px;border:3px solid #eee;border-top-color:#1a3a2a;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="font-size:13px;color:#aaa">Cargando datos…</div></div>';
   if(!document.getElementById('spin-style')){const s=document.createElement('style');s.id='spin-style';s.textContent='@keyframes spin{to{transform:rotate(360deg)}}';document.head.appendChild(s);}
   addMsg('system','Sincronizando con la nube…');
-  loadFromSupabase().then(ok=>{
-    if(!ok && !_hasLocal) {
-      // Solo si no hay NADA en ningún sitio, usar hardcodeados
-      addMsg('system','Sin datos en la nube — usando datos base');
-    } else {
-      addMsg('system','Gestor listo · '+projects.length+' proyectos');
-    }
-    render();
-  });
+  loadFromSupabase()
+    .then(ok=>{
+      addMsg('system', ok ? 'Gestor listo · '+projects.length+' proyectos' : 'Sin conexión — datos locales');
+      render();
+    })
+    .catch(err=>{
+      console.error('Init error:', err);
+      addMsg('system','Error de conexión — '+projects.length+' proyectos locales');
+      render();
+    });
 }
 </script>
 </body>
