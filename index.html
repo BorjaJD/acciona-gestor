@@ -1145,6 +1145,8 @@ function renderDetail() {
     +(p.bloque==='Pipeline'
       ?'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Fase del proceso</div>'
         +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:10px" onclick="event.stopPropagation()">'
+        +pill('Teaser/IM')
+        +'<span style="color:var(--border2);font-size:10px">→</span>'
         +pill('NDA')
         +'<span style="color:var(--border2);font-size:10px">→</span>'
         +pill('NBO')
@@ -1805,7 +1807,7 @@ function renderEconomico() {
   const thS2 = 'padding:6px 8px;text-align:center;font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.03em;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface2)';
 
   // Group header row
-  let grpHeaderRow = '<tr><th style="'+thGroupStyle('','background:var(--surface2);position:sticky;left:0;z-index:4')+'"></th>';
+  let grpHeaderRow = '<tr><th style="'+thGroupStyle('','background:var(--surface2);position:sticky;left:0;z-index:4')+'"></th><th style="'+thGroupStyle('','background:var(--surface2)')+'"></th>';
   GROUPS.forEach(g => {
     const open = isGrpOpen(g.id);
     const span = visibleCols(g).length;
@@ -1818,7 +1820,7 @@ function renderEconomico() {
   grpHeaderRow += '</tr>';
 
   // Sub-header row
-  let subHeaderRow = '<tr><th style="'+thS2.replace('text-align:right','text-align:left')+';position:sticky;left:0;z-index:3;min-width:220px">Proyecto</th>';
+  let subHeaderRow = '<tr><th style="'+thS2.replace('text-align:right','text-align:left')+';position:sticky;left:0;z-index:3;min-width:220px">Proyecto</th><th style="'+thS2.replace('text-align:right','text-align:left')+'">Estado</th>';
   GROUPS.forEach(g => {
     visibleCols(g).forEach(col => {
       subHeaderRow += '<th style="'+thS2+'">'+col.label+'</th>';
@@ -1835,10 +1837,12 @@ function renderEconomico() {
     const eco = p.eco || {};
     const c = calcEco(p);
     const bg = i%2===0 ? '' : 'background:var(--surface2)';
+    const dot = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${EDOT[p.estado]||'#aaa'};margin-right:4px;flex-shrink:0"></span>`;
     let row = '<tr style="'+bg+';cursor:pointer" onclick="goToProject('+p.id+')" title="Clic para editar">'
       +'<td style="'+tdStyleL+';position:sticky;left:0;z-index:1;'+bg+';font-weight:500;min-width:220px">'
         +'<div style="display:flex;align-items:center;gap:6px">'+pillP(p.prioridad)+'<div style="flex:1;min-width:0"><div>'+p.nombre+'</div><div style="font-size:10px;color:var(--text3);margin-top:1px;font-weight:400">'+p.tipo+(p.ubicacion?' · '+p.ubicacion:'')+'</div></div></div>'
-      +'</td>';
+      +'</td>'
+      +'<td style="'+tdStyleL+';min-width:100px">'+dot+'<span style="font-size:11px;color:var(--text2)">'+p.estado+'</span></td>';
     GROUPS.forEach(g => {
       visibleCols(g).forEach(col => {
         row += '<td style="'+tdStyle+'">'+col.fn(eco,c)+'</td>';
@@ -1849,7 +1853,7 @@ function renderEconomico() {
   }).join('');
 
   // Totals row
-  let totalsRow = '<tr style="background:#1a1a1a"><td style="'+tdStyleL+';color:white;font-weight:600;position:sticky;left:0;background:#1a1a1a;min-width:220px">TOTALES</td>';
+  let totalsRow = '<tr style="background:#1a1a1a"><td style="'+tdStyleL+';color:white;font-weight:600;position:sticky;left:0;background:#1a1a1a;min-width:220px">TOTALES</td><td style="'+tdStyleL+';color:#888">—</td>';
   const totMap = {sueloEur:totSuelo, construccionEur:totConstr, ventaEur:totVenta};
   GROUPS.forEach(g => {
     visibleCols(g).forEach(col => {
