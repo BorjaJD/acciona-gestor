@@ -1634,6 +1634,7 @@ function renderTabla() {
 
 
 function renderEconomico() {
+  const EDOT={'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae','Descartado':'#c8cfc9','Cerrado':'#e0e0e0'};
   const np = projects.filter(p => p.bloque==='Pipeline').sort((a,b)=>{
     const pd = a.prioridad - b.prioridad;
     if(pd!==0) return pd;
