@@ -2166,27 +2166,7 @@ function togglePdfDrop(e) {
 function toggleDealPdf(id, checked) {
   if(checked) { if(!S_dealPdf.includes(id)) S_dealPdf.push(id); }
   else { S_dealPdf = S_dealPdf.filter(x=>x!==id); }
-  // Update checkbox appearance without full re-render
-  const lbl = event.target.closest('label');
-  if(lbl) {
-    const sel = S_dealPdf.includes(id);
-    lbl.style.background = sel ? '#1a3a2a' : 'white';
-    lbl.style.borderColor = sel ? '#1a3a2a' : 'var(--border2)';
-    const svg = lbl.querySelector('svg');
-    if(sel && !svg) lbl.insertAdjacentHTML('afterbegin','<svg width="9" height="9" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>');
-    if(!sel && svg) svg.remove();
-    const span = lbl.querySelector('span');
-    if(span) span.style.color = sel ? 'white' : 'var(--text)';
-  }
-  // Update count badge and export button
-  const badge = document.querySelector('.pdf-drop-badge');
-  if(badge) { badge.textContent = S_dealPdf.length || ''; badge.style.display = S_dealPdf.length ? 'inline' : 'none'; }
-  const expBtn = document.getElementById('pdf-export-btn');
-  if(expBtn) { expBtn.textContent = 'Exportar '+S_dealPdf.length+' PDF'+(S_dealPdf.length!==1?'s':''); expBtn.style.display = S_dealPdf.length ? 'block' : 'none'; }
-  const noSel = document.getElementById('pdf-no-sel');
-  if(noSel) noSel.style.display = S_dealPdf.length ? 'none' : 'block';
-  const clearBtn = document.getElementById('pdf-clear-btn');
-  if(clearBtn) clearBtn.style.display = S_dealPdf.length ? 'inline' : 'none';
+  render();
 }
 
 function printMultiDealSheet() {
@@ -2296,9 +2276,11 @@ function renderPipelineSummary() {
   const am=mgVals.length?(mgVals.reduce((a,b)=>a+b,0)/mgVals.length).toFixed(1):'—';
   // Stand By con UW para tarjetón adicional
   const sbWithUW = sortedSB.filter(p=>hasEcoData(p));
-  const sbTIR = sbWithUW.length?(sbWithUW.map(p=>parseFloat(p.eco?.tirPct||0)).filter(n=>n>0).reduce((a,b)=>a+b,0)/sbWithUW.filter(p=>parseFloat(p.eco?.tirPct||0)>0).length||0).toFixed(1):'—';
-  const sbVenta = sbWithUW.reduce((s,p)=>s+parseInt((p.eco?.ventaEur||'').replace(/\D/g,'')||0),0);
-  const sbMargen = sbWithUW.length?(sbWithUW.map(p=>parseFloat(p.eco?.margenPct||0)).filter(n=>n>0).reduce((a,b)=>a+b,0)/sbWithUW.filter(p=>parseFloat(p.eco?.margenPct||0)>0).length||0).toFixed(1):'—';
+  const sbTIRVals = sbWithUW.map(p=>parseFloat(p.eco?.tirPct||0)).filter(n=>n>0);
+  const sbMgVals  = sbWithUW.map(p=>parseFloat(p.eco?.margenPct||0)).filter(n=>n>0);
+  const sbTIR     = sbTIRVals.length?(sbTIRVals.reduce((a,b)=>a+b,0)/sbTIRVals.length).toFixed(1):'—';
+  const sbMargen  = sbMgVals.length?(sbMgVals.reduce((a,b)=>a+b,0)/sbMgVals.length).toFixed(1):'—';
+  const sbVenta   = sbWithUW.reduce((s,p)=>s+parseInt((p.eco?.ventaEur||'').replace(/\D/g,'')||0),0);
   const psActive=ps.filter(p=>p.estado!=='Stand By');
   const tv=psActive.reduce((s,p)=>s+parseInt((p.eco?.ventaEur||'').replace(/\D/g,'')||0),0);
   const tc2=psActive.reduce((s,p)=>s+parseInt((p.eco?.construccionEur||'').replace(/\D/g,'')||0),0);
@@ -2637,35 +2619,16 @@ function renderDealSheet() {
   const opts = '<option value="">— Selecciona un proyecto —</option>'
     + ops.map(p => '<option value="'+p.id+'"'+(S_dealId===p.id?' selected':'')+'>'+p.nombre+'</option>').join('');
 
-  // Multi-select dropdown for PDF export
   const nSel = (S_dealPdf||[]).length;
   const multiDropdown = S_dealView==='ficha'
-    ? '<div style="position:relative;display:inline-block">'
-      + '<button onclick="togglePdfDrop(event)" style="font-size:12px;padding:6px 12px;border-radius:var(--r);border:1px solid var(--border2);background:white;color:var(--text2);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px">'
-      + '📄 Exportar varios'
-      + (nSel>0?'<span class="pdf-drop-badge" style="background:#1a3a2a;color:white;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px">'+nSel+'</span>':'<span style="color:#bbb;font-size:10px">▾</span>')
-      + '</button>'
-      + '<div id="pdf-drop" style="display:'+(S_pdfDropOpen?'block':'none')+';position:absolute;top:calc(100% + 4px);right:0;background:white;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.18);z-index:9999;min-width:280px;max-height:70vh;overflow-y:auto">'
-      + '<div style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
-      + '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Seleccionar proyectos</span>'
-      + '<span id="pdf-clear-btn" onclick="S_dealPdf=[];render()" style="display:'+(nSel>0?'inline':'none')+';font-size:10px;color:#1a3a2a;cursor:pointer;font-weight:600">Limpiar</span>'
-      + '</div>'
+    ? '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'
       + ops.map(function(p){
           var sel=(S_dealPdf||[]).includes(p.id);
-          return '<label style="display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;border-bottom:1px solid var(--border)" onmouseover="this.style.background=\'#f8f7f3\'" onmouseout="this.style.background=\'\'">'
-            +'<div style="width:16px;height:16px;border-radius:3px;border:2px solid '+(sel?'#1a3a2a':'var(--border2)')+';background:'+(sel?'#1a3a2a':'white')+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'
-            +(sel?'<svg width="9" height="9" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>':'')
-            +'</div>'
-            +'<input type="checkbox" '+(sel?'checked':'')+' style="display:none" onchange="toggleDealPdf('+p.id+',this.checked)"/>'
-            +'<span style="font-size:12px;color:'+(sel?'#1a3a2a':'var(--text)')+';font-weight:'+(sel?'600':'400')+';flex:1">'+p.nombre+'</span>'
-            +(p.ubicacion?'<span style="font-size:10px;color:var(--text3)">'+p.ubicacion+'</span>':'')
-            +'</label>';
+          var nombre=p.nombre.replace(/\s*[|·].*$/,'').trim().split(' ').slice(0,2).join(' ');
+          return '<button onclick="toggleDealPdf('+p.id+','+!sel+')" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1.5px solid '+(sel?'#1a3a2a':'var(--border2)')+';background:'+(sel?'#1a3a2a':'transparent')+';color:'+(sel?'white':'var(--text2)')+';cursor:pointer;font-family:var(--font);font-weight:'+(sel?'600':'400')+';transition:all .15s">'+nombre+'</button>';
         }).join('')
-      + '<div style="padding:8px 10px">'
-      + '<button id="pdf-export-btn" onclick="printMultiDealSheet()" style="display:'+(nSel>0?'block':'none')+';width:100%;padding:7px;font-size:12px;font-weight:600;border-radius:var(--r);border:none;background:#1a3a2a;color:white;cursor:pointer;font-family:var(--font)">Exportar '+nSel+' PDF'+(nSel!==1?'s':'')+'</button>'
-      + '<div id="pdf-no-sel" style="display:'+(nSel>0?'none':'block')+';font-size:11px;color:var(--text3);text-align:center;padding:4px 0">Selecciona proyectos arriba</div>'
+      + (nSel>0?'<button onclick="printMultiDealSheet()" style="font-size:11px;padding:4px 12px;border-radius:20px;border:none;background:#52b788;color:white;cursor:pointer;font-family:var(--font);font-weight:600;margin-left:4px">Exportar '+nSel+' PDF'+(nSel!==1?'s':'')+'</button>':'')
       + '</div>'
-      + '</div></div>'
     : '';
 
   const selector = '<div class="ds-toolbar">'
