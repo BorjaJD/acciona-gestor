@@ -3302,10 +3302,11 @@ function renderResumen() {
       const vend = p.vendor||p.contraparte||'';
       const loc  = [p.ubicacion,p.ciudad].filter(Boolean).join(', ');
 
-      cards += `<div style="background:white;border-radius:8px;overflow:hidden;
+      cards += `<div onclick="navigateTo('tabla',{id:${p.id}})" style="background:white;border-radius:8px;overflow:hidden;
                              box-shadow:0 1px 6px rgba(0,0,0,0.07);
                              border:1px solid #eee;
-                             display:flex;flex-direction:column">
+                             display:flex;flex-direction:column;cursor:pointer;transition:box-shadow .15s"
+               onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.13)'" onmouseout="this.style.boxShadow='0 1px 6px rgba(0,0,0,0.07)'">
         <!-- Color bar top -->
         <div style="height:3px;background:${dot}"></div>
         <div style="padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:6px">
@@ -3320,20 +3321,19 @@ function renderResumen() {
             ${vend?`<span style="font-size:9.5px;background:#f5f4f0;color:#888;padding:1px 7px;border-radius:20px">${vend}</span>`:''}
             ${loc?`<span style="font-size:9.5px;background:#f0f0f5;color:#888;padding:1px 7px;border-radius:20px">📍 ${loc}</span>`:''}
           </div>`:''}
-          <!-- Avance -->
-          ${p.avance&&p.avance!=='—'?`<div class="private-val" style="font-size:11px;color:#555;line-height:1.55;background:#fafaf8;border-radius:4px;padding:6px 8px;border-left:2px solid ${dot}">${p.avance}</div>`:''}
-          <!-- Acciones -->
-          ${acc.length?`<div style="margin-top:2px;display:flex;flex-direction:column;gap:2px">
-            ${acc.slice(0,3).map(a=>`<div style="font-size:10.5px;color:#1a3a2a;display:flex;gap:5px;align-items:flex-start">
+          <!-- Acciones — todas -->
+          ${acc.length?`<div style="display:flex;flex-direction:column;gap:3px">
+            ${acc.map(a=>`<div style="font-size:10.5px;color:#1a3a2a;display:flex;gap:5px;align-items:flex-start">
               <span style="margin-top:1px;flex-shrink:0;color:#52b788;font-weight:700">→</span>
               <span style="line-height:1.4">${a.t}</span>
             </div>`).join('')}
-          </div>`:''}
+          </div>`:'<div style="font-size:10px;color:#ccc;font-style:italic">Sin acciones pendientes</div>'}
         </div>
         <!-- Footer -->
-        ${p.responsable&&p.responsable!=='—'?`<div style="padding:6px 14px;border-top:1px solid #f0efe9;font-size:9.5px;color:#aaa;background:#fafaf8">
-          👤 ${p.responsable.split('/')[0].trim()}
-        </div>`:''}
+        <div style="padding:6px 14px;border-top:1px solid #f0efe9;font-size:9.5px;color:#aaa;background:#fafaf8;display:flex;justify-content:space-between;align-items:center">
+          ${p.responsable&&p.responsable!=='—'?`<span>👤 ${p.responsable.split('/')[0].trim()}</span>`:'<span></span>'}
+          <span style="color:#c8c8c0;font-size:9px">Editar →</span>
+        </div>
       </div>`;
     });
     cards += '</div></div>';
