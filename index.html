@@ -579,7 +579,6 @@
             <option value="">Seleccionar…</option>
             <option value="Desinversión">Desinversión</option>
             <option value="Pipeline">Pipeline</option>
-            <option value="Pipeline">Pipeline</option>
             <option value="Desarrollo / Operación">Desarrollo / Operación</option>
             <option value="Clientes / Gestión">Clientes / Gestión</option>
             <option value="Postventa">Postventa</option>
@@ -588,12 +587,11 @@
         <div class="modal-field">
           <label>Estado</label>
           <select id="m-estado">
-            <option value="Pendiente">Pendiente</option>
-            <option value="En análisis">En análisis</option>
-            <option value="Negociación">Negociación</option>
+            <option value="WIP">WIP</option>
             <option value="Due diligence">Due diligence</option>
-            <option value="En Cierre">En Cierre</option>
-            <option value="Activo">Activo</option>
+            <option value="En análisis">En análisis</option>
+            <option value="Recibido">Recibido</option>
+            <option value="Stand By">Stand By</option>
             <option value="Descartado">Descartado</option>
             <option value="Cerrado">Cerrado</option>
           </select>
@@ -2289,9 +2287,9 @@ function renderPipelineSummary() {
 
   // ── MAP ───────────────────────────────────────────────────────
   const provTIR={};
-  ps.forEach(p=>{const g=UBI2GEO[p.ubicacion||''];if(!g)return;const t=parseFloat(p.eco?.tirPct||0);if(!provTIR[g]||t>provTIR[g])provTIR[g]=t;});
-  const mapPaths=(SPAIN_PATHS||[]).map(p=>{const t=provTIR[p.n];const h=t>0;
-    return `<path d="${p.d}" fill="${h?tirGrey(t):'#f0f0f0'}" stroke="${h?'rgba(255,255,255,0.4)':'#aaa'}" stroke-width="${h?'0.8':'0.4'}" stroke-linejoin="round"/>`;
+  ps.forEach(p=>{const g=UBI2GEO[p.ubicacion||''];if(!g)return;provTIR[g]=true;});
+  const mapPaths=(SPAIN_PATHS||[]).map(p=>{const active=provTIR[p.n];
+    return `<path d="${p.d}" fill="${active?'#1a3a2a':'#f0f0f0'}" stroke="${active?'rgba(255,255,255,0.4)':'#aaa'}" stroke-width="${active?'0.8':'0.4'}" stroke-linejoin="round"/>`;
   }).join('');
 
   // ── FUNNEL ────────────────────────────────────────────────────
@@ -2475,7 +2473,7 @@ function renderPipelineSummary() {
             ${mapPaths}
           </svg>
           <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
-            ${[['≥18%','#2a2a2a'],['15–17%','#555'],['12–14%','#888'],['<12%','#b8b8b8']].map(([l,c])=>`<div style="display:flex;align-items:center;gap:2px;font-size:7.5px;color:#888"><span style="width:8px;height:8px;border-radius:2px;background:${c};display:inline-block"></span>${l}</div>`).join('')}
+            <div style="display:flex;gap:6px;margin-top:4px;align-items:center"><div style="width:10px;height:10px;background:#1a3a2a;border-radius:2px;flex-shrink:0"></div><span style="font-size:7.5px;color:#888">Con proyectos</span></div>
           </div>
         </div>
 
@@ -3268,7 +3266,7 @@ function renderResumen() {
     const bp = activos.filter(p=>p.bloque===b);
     if(!bp.length) return;
     email += `\n\n${b.toUpperCase()}\n${'─'.repeat(30)}\n`;
-    [...bp].sort((a,b2)=>a.prioridad-b2.prioridad).forEach(p=>{
+    [...bp].sort((a,b2)=>{const ai=ESTADO_ORDER.indexOf(a.estado),bi=ESTADO_ORDER.indexOf(b2.estado);const ed=(ai===-1?99:ai)-(bi===-1?99:bi);return ed!==0?ed:a.prioridad-b2.prioridad;}).forEach(p=>{
       const prio=['','[ALTA]','[MEDIA]','[BAJA]'][p.prioridad]||'';
       const acc=(Array.isArray(p.acciones)?p.acciones.filter(a=>!a.d):[]);
       email += `\n${prio} ${p.nombre}  [${p.estado}]\n`;
@@ -3283,7 +3281,7 @@ function renderResumen() {
   BLOQUES_ORDER.forEach(b=>{
     const bp = activos.filter(p=>p.bloque===b);
     if(!bp.length) return;
-    const sorted = [...bp].sort((a,b2)=>a.prioridad-b2.prioridad);
+    const sorted = [...bp].sort((a,b2)=>{const ai=ESTADO_ORDER.indexOf(a.estado),bi=ESTADO_ORDER.indexOf(b2.estado);const ed=(ai===-1?99:ai)-(bi===-1?99:bi);return ed!==0?ed:a.prioridad-b2.prioridad;});
 
     cards += `<div style="margin-bottom:28px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
