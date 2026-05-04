@@ -2266,6 +2266,7 @@ function renderPipelineSummary() {
 
   const EC={'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae'};
   function hasEcoData(p){const e=p.eco||{};return !!(e.tirPct||e.ventaEur||e.sueloEur||e.margenPct);}
+  const psActive=ps.filter(p=>p.estado!=='Stand By');
   const sorted=[...ps].sort((a,b)=>parseFloat(b.eco?.tirPct||0)-parseFloat(a.eco?.tirPct||0));
   const sortedMain = sorted.filter(p=>hasEcoData(p) && p.estado!=='Stand By');
   const sortedSB   = sorted.filter(p=>p.estado==='Stand By');
@@ -2274,14 +2275,12 @@ function renderPipelineSummary() {
   const mgVals=psActive.map(p=>parseFloat(p.eco?.margenPct||0)).filter(n=>n>0);
   const at=tirVals.length?(tirVals.reduce((a,b)=>a+b,0)/tirVals.length).toFixed(1):'—';
   const am=mgVals.length?(mgVals.reduce((a,b)=>a+b,0)/mgVals.length).toFixed(1):'—';
-  // Stand By con UW para tarjetón adicional
   const sbWithUW = sortedSB.filter(p=>hasEcoData(p));
   const sbTIRVals = sbWithUW.map(p=>parseFloat(p.eco?.tirPct||0)).filter(n=>n>0);
   const sbMgVals  = sbWithUW.map(p=>parseFloat(p.eco?.margenPct||0)).filter(n=>n>0);
   const sbTIR     = sbTIRVals.length?(sbTIRVals.reduce((a,b)=>a+b,0)/sbTIRVals.length).toFixed(1):'—';
   const sbMargen  = sbMgVals.length?(sbMgVals.reduce((a,b)=>a+b,0)/sbMgVals.length).toFixed(1):'—';
   const sbVenta   = sbWithUW.reduce((s,p)=>s+parseInt((p.eco?.ventaEur||'').replace(/\D/g,'')||0),0);
-  const psActive=ps.filter(p=>p.estado!=='Stand By');
   const tv=psActive.reduce((s,p)=>s+parseInt((p.eco?.ventaEur||'').replace(/\D/g,'')||0),0);
   const tc2=psActive.reduce((s,p)=>s+parseInt((p.eco?.construccionEur||'').replace(/\D/g,'')||0),0);
   const totViv=psActive.reduce((s,p)=>s+parseInt(String(p.nViviendas||'').replace(/\D/g,'')||0),0);
