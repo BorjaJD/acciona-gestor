@@ -1849,7 +1849,7 @@ function renderEconomico() {
   grpHeaderRow += '</tr>';
 
   // Sub-header row
-  let subHeaderRow = '<tr><th style="'+thS2.replace('text-align:right','text-align:left')+';position:sticky;left:0;z-index:3;min-width:220px">Proyecto</th><th style="'+thS2.replace('text-align:right','text-align:left')+'">Estado</th>';
+  let subHeaderRow = '<tr><th style="'+thS2.replace('text-align:center','text-align:left')+';position:sticky;left:0;z-index:3;min-width:220px;padding-left:14px">Proyecto</th><th style="'+thS2.replace('text-align:center','text-align:left')+'">Estado</th>';
   GROUPS.forEach(g => {
     visibleCols(g).forEach(col => {
       subHeaderRow += '<th style="'+thS2+'">'+col.label+'</th>';
@@ -1860,7 +1860,7 @@ function renderEconomico() {
   const thead = '<thead>'+grpHeaderRow+subHeaderRow+'</thead>';
 
   const tdStyle  = 'padding:8px 8px;text-align:center;border-bottom:1px solid var(--border);font-size:11px;white-space:nowrap;vertical-align:middle';
-  const tdStyleL = tdStyle.replace('text-align:right','text-align:left');
+  const tdStyleL = tdStyle.replace('text-align:center','text-align:left');
 
   const npWithUW    = np.filter(p=>hasUW(p));
   const npWithoutUW = np.filter(p=>!hasUW(p));
@@ -1870,8 +1870,8 @@ function renderEconomico() {
     const bg = i%2===0 ? '' : 'background:var(--surface2)';
     const dot = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${EDOT[p.estado]||'#aaa'};margin-right:4px;flex-shrink:0"></span>`;
     let row = '<tr style="'+bg+';cursor:pointer" onclick="goToProject('+p.id+')" title="Clic para editar">'
-      +'<td style="'+tdStyleL+';position:sticky;left:0;z-index:1;'+bg+';font-weight:500;min-width:220px">'
-        +'<div style="display:flex;align-items:center;gap:6px">'+pillP(p.prioridad)+'<div style="flex:1;min-width:0"><div>'+p.nombre+'</div><div style="font-size:10px;color:var(--text3);margin-top:1px;font-weight:400">'+p.tipo+(p.ubicacion?' · '+p.ubicacion:'')+'</div></div></div>'
+      +'<td style="'+tdStyleL+';position:sticky;left:0;z-index:1;'+(bg||'background:var(--surface)')+';font-weight:500;min-width:220px;padding-left:14px">'
+        +'<div style="display:flex;align-items:center;gap:8px"><div style="flex:1;min-width:0"><div>'+p.nombre+'</div><div style="font-size:10px;color:var(--text3);margin-top:1px;font-weight:400">'+p.tipo+(p.ubicacion?' · '+p.ubicacion:'')+'</div></div>'+pillP(p.prioridad)+'</div>'
       +'</td>'
       +'<td style="'+tdStyleL+';min-width:100px">'+dot+'<span style="font-size:11px;color:var(--text2)">'+p.estado+'</span></td>';
     GROUPS.forEach(g => {
@@ -1884,7 +1884,7 @@ function renderEconomico() {
   }).join('');
 
   // Totals row
-  let totalsRow = '<tr style="background:#1a1a1a"><td style="'+tdStyleL+';color:white;font-weight:600;position:sticky;left:0;background:#1a1a1a;min-width:220px">TOTALES</td><td style="'+tdStyleL+';color:#888">—</td>';
+  let totalsRow = '<tr style="background:#1a1a1a"><td style="'+tdStyleL+';color:white;font-weight:600;position:sticky;left:0;background:#1a1a1a;min-width:220px;padding-left:14px">TOTALES</td><td style="'+tdStyleL+';color:#888">—</td>';
   const totMap = {sueloEur:totSuelo, construccionEur:totConstr, ventaEur:totVenta};
   GROUPS.forEach(g => {
     visibleCols(g).forEach(col => {
@@ -1934,8 +1934,8 @@ function renderEconomico() {
               const bg=i%2===0?'background:#fafaf8':'background:var(--surface2)';
               const dot=`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${EDOT[p.estado]||'#aaa'};margin-right:4px"></span>`;
               let r='<tr style="'+bg+';cursor:pointer;opacity:0.6" onclick="goToProject('+p.id+')" title="Sin datos UW">'
-                +'<td style="'+tdStyleL+';position:sticky;left:0;z-index:1;'+bg+';font-weight:500;min-width:220px">'
-                  +'<div style="display:flex;align-items:center;gap:6px">'+pillP(p.prioridad)+'<div style="flex:1;min-width:0"><div>'+p.nombre+'</div><div style="font-size:10px;color:var(--text3);margin-top:1px;font-weight:400">'+p.tipo+(p.ubicacion?' · '+p.ubicacion:'')+'</div></div></div>'
+                +'<td style="'+tdStyleL+';position:sticky;left:0;z-index:1;'+bg+';font-weight:500;min-width:220px;padding-left:14px">'
+                  +'<div style="display:flex;align-items:center;gap:8px"><div style="flex:1;min-width:0"><div>'+p.nombre+'</div><div style="font-size:10px;color:var(--text3);margin-top:1px;font-weight:400">'+p.tipo+(p.ubicacion?' · '+p.ubicacion:'')+'</div></div>'+pillP(p.prioridad)+'</div>'
                 +'</td>'
                 +'<td style="'+tdStyleL+';min-width:100px">'+dot+'<span style="font-size:11px;color:var(--text2)">'+p.estado+'</span></td>';
               GROUPS.forEach(g=>{ visibleCols(g).forEach(()=>{ r+='<td style="'+tdStyle+';color:#ddd">—</td>'; }); });
@@ -1999,7 +1999,7 @@ function renderMobile() {
   function mfm2(v){if(!v||v==='')return null;const n=parseInt(String(v).replace(/\./g,'').replace(/,/g,''),10);return isNaN(n)?null:fmtMiles(Math.round(n))+' €/m²';}
 
   // ── HEADER ──────────────────────────────────────────────────
-  let html = `<div style="background:linear-gradient(135deg,#1a3a2a,#2d6a4f);padding:14px 16px 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.2)">
+  let html = `<div style="background:#1a3a2a;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);padding:14px 16px 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.2)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:8px">
         <div>
@@ -2082,13 +2082,11 @@ function renderMobile() {
           <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
             <div style="width:4px;height:36px;border-radius:2px;background:${dot};flex-shrink:0"></div>
             <div style="min-width:0;flex:1">
-              <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3;display:flex;align-items:center;gap:6px;min-width:0">
-                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">${p.nombre}</span>
-                ${isPipeline&&hasUW(p)?`<span title="Underwriting" style="font-size:8px;font-weight:700;letter-spacing:.08em;color:#2d6a4f;flex-shrink:0;opacity:.85">UW</span>`:''}
-              </div>
+              <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nombre}</div>
               <div style="display:flex;gap:5px;margin-top:4px;align-items:center;flex-wrap:wrap">
                 <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:${dot};color:white">${p.estado}</span>
                 ${p.tipo?`<span style="font-size:10px;color:var(--text3)">${p.tipo}</span>`:''}
+                ${isPipeline&&hasUW(p)?`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;background:#dceee2;color:#2e5c3e;border:1px solid #b6d9c2">✓ UW</span>`:''}
               </div>
             </div>
           </div>
@@ -2123,7 +2121,7 @@ function renderMobile() {
             ${(p.vendor||p.contraparte)?`<span style="font-size:10px;background:var(--surface2);padding:2px 8px;border-radius:20px;color:var(--text2)">🤝 ${p.vendor||p.contraparte}</span>`:''}
             ${p.fpa?`<span style="font-size:10px;background:#e8f4ef;padding:2px 8px;border-radius:20px;color:#1a3a2a;font-weight:600">FPA${p.fpaComprador?' · '+p.fpaComprador:''}</span>`:''}
           </div>`:''}
-          ${(!isPipeline&&p.mapUrl)?`<a href="${p.mapUrl.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;margin-bottom:10px;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);border-radius:10px;text-decoration:none;color:white;font-size:12px;font-weight:600;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 6px rgba(26,58,42,0.2)"><span style="font-size:14px">📍</span><span>Ver ubicación en Google Maps</span><span style="font-size:11px;opacity:.8;margin-left:auto">↗</span></a>`:''}
+          ${p.mapUrl?`<a href="${p.mapUrl.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;margin-bottom:10px;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);border-radius:10px;text-decoration:none;color:white;font-size:12px;font-weight:600;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 6px rgba(26,58,42,0.2)"><span style="font-size:14px">📍</span><span>Ver ubicación en Google Maps</span><span style="font-size:11px;opacity:.8;margin-left:auto">↗</span></a>`:''}
           ${hasEco?`<div style="background:var(--surface2);border-radius:10px;padding:10px 12px">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:${bloqColor};margin-bottom:8px">Datos económicos</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -3145,66 +3143,101 @@ function renderDashboard() {
 
   // ─── AVANCE DE OPORTUNIDAD (Pipeline + Desinversión) ───────────
   const FASES_FLOW = ['NDA','Teaser/IM','NBO','BO','Escritura'];
-  function buildFunnel(bloqueName, accentColor){
+  function buildMatrix(bloqueName, accentColor){
     const ps = projects.filter(p=>p.bloque===bloqueName && !['Descartado','Cerrado'].includes(p.estado));
-    if(!ps.length) return '<div style="font-size:11px;color:var(--text3);padding:18px 6px;text-align:center">Sin oportunidades activas</div>';
-    // Cada proyecto se cuenta en TODAS las fases por las que ha pasado (acumulado)
-    const buckets = {};
-    FASES_FLOW.forEach(f=>buckets[f]=[]);
-    const sinFase = [];
-    ps.forEach(p=>{
-      const fs = Array.isArray(p.fases)?p.fases:[];
-      const passed = FASES_FLOW.filter(f=>fs.includes(f));
-      if(!passed.length) sinFase.push(p);
-      else passed.forEach(f=>buckets[f].push(p));
+    if(!ps.length) return '<div style="font-size:11px;color:var(--text3);padding:18px 6px;text-align:center;font-style:italic">Sin oportunidades activas</div>';
+    // Ordenar por nº de fases completadas (descendente), luego por estado
+    const psSorted = ps.slice().sort((a,b)=>{
+      const af = (a.fases||[]).filter(f=>FASES_FLOW.includes(f)).length;
+      const bf = (b.fases||[]).filter(f=>FASES_FLOW.includes(f)).length;
+      if(af!==bf) return bf-af;
+      const ai=ESTADO_ORDER.indexOf(a.estado), bi=ESTADO_ORDER.indexOf(b.estado);
+      return (ai===-1?99:ai)-(bi===-1?99:bi);
     });
-    const comiteList = ps.filter(p=>Array.isArray(p.fases)&&p.fases.includes('Comité'));
-    const maxN = Math.max(1, ...FASES_FLOW.map(f=>buckets[f].length));
+    // Totales por fase
+    const totals = {};
+    FASES_FLOW.forEach(f=>totals[f]=ps.filter(p=>(p.fases||[]).includes(f)).length);
+    const totalCom = ps.filter(p=>(p.fases||[]).includes('Comité')).length;
+    const totalPosibles = ps.length * FASES_FLOW.length;
+    const totalCompletas = FASES_FLOW.reduce((s,f)=>s+totals[f],0);
+    const pctGlobal = totalPosibles ? Math.round(totalCompletas/totalPosibles*100) : 0;
 
-    function row(label, list){
-      const n = list.length;
-      const pct = (n/maxN)*100;
-      const muted = n===0;
-      const chips = n
-        ? list.slice(0,6).map(p=>`<span style="font-size:9.5px;background:var(--surface2);border:1px solid var(--border);padding:1px 7px;border-radius:20px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="navigateTo('tabla',{id:${p.id}})">${p.nombre}</span>`).join('')
-            + (list.length>6?`<span style="font-size:9.5px;color:var(--text3);align-self:center">+${list.length-6}</span>`:'')
-        : '';
-      return `<div style="display:grid;grid-template-columns:74px 1fr 26px;align-items:center;gap:10px;padding:5px 0;${muted?'opacity:.45':''}">
-        <div style="font-size:10.5px;font-weight:600;color:var(--text2);text-align:right;letter-spacing:.02em">${label}</div>
-        <div>
-          <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${pct}%;background:${accentColor};border-radius:3px;transition:width .3s"></div>
-          </div>
-          ${chips?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px">${chips}</div>`:''}
-        </div>
-        <div style="font-size:13px;font-weight:700;color:${muted?'var(--text3)':accentColor};text-align:right;font-variant-numeric:tabular-nums">${n}</div>
-      </div>`;
-    }
-    let html = '';
-    FASES_FLOW.forEach(f => { html += row(f, buckets[f]); });
-    if(comiteList.length){
-      html += `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)">Comité</span>
-        <span style="font-size:11px;font-weight:700;color:${accentColor}">${comiteList.length}</span>
-        <div style="display:flex;flex-wrap:wrap;gap:3px;flex:1">
-          ${comiteList.slice(0,5).map(p=>`<span style="font-size:9.5px;background:#e8f4ef;border:1px solid #b6d9c2;padding:1px 7px;border-radius:20px;color:#1a3a2a;font-weight:600;cursor:pointer" onclick="navigateTo('tabla',{id:${p.id}})">${p.nombre}</span>`).join('')}
-          ${comiteList.length>5?`<span style="font-size:9.5px;color:var(--text3);align-self:center">+${comiteList.length-5}</span>`:''}
-        </div>
-      </div>`;
-    }
-    // Footer: total + sin iniciar
-    html += `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text3)">
-      <span>${ps.length} oportunidad${ps.length!==1?'es':''} activa${ps.length!==1?'s':''}</span>
-      ${sinFase.length?`<span title="${sinFase.map(p=>p.nombre).join(', ')}">${sinFase.length} sin iniciar</span>`:''}
-      <span style="font-weight:600;color:var(--text2)">${Math.round((1 - sinFase.length/ps.length)*100)}% iniciadas</span>
-    </div>`;
+    const ESTADO_COLOR = {'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae','Descartado':'#c8cfc9','Cerrado':'#e0e0e0'};
+    const cellSize = 28;
+    const dotOn = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${accentColor}"></span>`;
+    const dotOff = `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#e0e0e0"></span>`;
+    const dotComOn = `<span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#1a3a2a;border:1px solid #1a3a2a" title="Pasado por comité"></span>`;
+    const dotComOff = `<span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:transparent;border:1px solid #d8d8d0"></span>`;
+
+    // Header
+    let html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-family:var(--font)">';
+    html += '<thead><tr>';
+    html += `<th style="text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:6px 8px 8px 0;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1">Proyecto</th>`;
+    FASES_FLOW.forEach(f=>{
+      html += `<th style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:6px 4px 8px;border-bottom:1px solid var(--border);width:${cellSize}px;text-align:center;background:var(--surface);position:sticky;top:0;z-index:1"><div title="${f}">${f.replace('Teaser/IM','TIM')}</div></th>`;
+    });
+    html += `<th style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#1a3a2a;padding:6px 4px 8px 10px;border-bottom:1px solid var(--border);width:${cellSize}px;text-align:center;background:var(--surface);position:sticky;top:0;z-index:1;border-left:1px dashed var(--border)">Cmt</th>`;
+    html += `<th style="text-align:right;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:6px 0 8px 10px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:1">%</th>`;
+    html += '</tr></thead><tbody>';
+
+    psSorted.forEach((p,idx)=>{
+      const fs = p.fases||[];
+      const completas = FASES_FLOW.filter(f=>fs.includes(f)).length;
+      const pctP = Math.round(completas/FASES_FLOW.length*100);
+      const bg = idx%2===0 ? 'var(--surface)' : 'var(--surface2)';
+      const estadoColor = ESTADO_COLOR[p.estado] || '#aaa';
+      html += `<tr style="background:${bg};cursor:pointer;transition:background .12s" onmouseover="this.style.background='#f0ede5'" onmouseout="this.style.background='${bg}'" onclick="navigateTo('tabla',{id:${p.id}})">`;
+      html += `<td style="padding:7px 8px 7px 0;font-size:11px;color:var(--text);border-bottom:1px solid var(--border);max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${estadoColor};margin-right:7px;vertical-align:middle"></span><span style="font-weight:500;vertical-align:middle">${p.nombre}</span></td>`;
+      FASES_FLOW.forEach(f=>{
+        html += `<td style="padding:7px 4px;text-align:center;border-bottom:1px solid var(--border);vertical-align:middle">${fs.includes(f)?dotOn:dotOff}</td>`;
+      });
+      html += `<td style="padding:7px 4px 7px 10px;text-align:center;border-bottom:1px solid var(--border);border-left:1px dashed var(--border);vertical-align:middle">${fs.includes('Comité')?dotComOn:dotComOff}</td>`;
+      html += `<td style="padding:7px 0 7px 10px;text-align:right;font-size:10.5px;color:var(--text2);font-weight:600;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--border)">${pctP}%</td>`;
+      html += '</tr>';
+    });
+
+    // Footer con totales por columna
+    html += '<tr style="background:#fafaf8">';
+    html += `<td style="padding:8px 8px 8px 0;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Totales</td>`;
+    FASES_FLOW.forEach(f=>{
+      html += `<td style="padding:8px 4px;text-align:center;font-size:11px;font-weight:700;color:${accentColor};font-variant-numeric:tabular-nums">${totals[f]}</td>`;
+    });
+    html += `<td style="padding:8px 4px 8px 10px;text-align:center;font-size:11px;font-weight:700;color:#1a3a2a;border-left:1px dashed var(--border);font-variant-numeric:tabular-nums">${totalCom}</td>`;
+    html += `<td style="padding:8px 0 8px 10px;text-align:right;font-size:11px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums">${pctGlobal}%</td>`;
+    html += '</tr>';
+    html += '</tbody></table></div>';
     return html;
   }
-  const funnelPipeline = buildFunnel('Pipeline', '#2d6a4f');
-  const funnelDesinv = buildFunnel('Desinversión', '#1a3a2a');
-  const avanceBlock = '<div class="dash-row dash-row-2" style="margin-bottom:12px">'
-    +'<div class="dash-card"><div class="dash-card-title" style="display:flex;align-items:center;justify-content:space-between"><span>Avance &mdash; Pipeline</span><span style="font-size:9px;color:#2d6a4f;font-weight:700;letter-spacing:.05em">ADQUISICIÓN</span></div>'+funnelPipeline+'</div>'
-    +'<div class="dash-card"><div class="dash-card-title" style="display:flex;align-items:center;justify-content:space-between"><span>Avance &mdash; Desinversión</span><span style="font-size:9px;color:#1a3a2a;font-weight:700;letter-spacing:.05em">VENTA</span></div>'+funnelDesinv+'</div>'
+
+  const matrixPipeline = buildMatrix('Pipeline', '#2d6a4f');
+  const matrixDesinv = buildMatrix('Desinversión', '#1a3a2a');
+  const totalPip = projects.filter(p=>p.bloque==='Pipeline' && !['Descartado','Cerrado'].includes(p.estado)).length;
+  const totalDes = projects.filter(p=>p.bloque==='Desinversión' && !['Descartado','Cerrado'].includes(p.estado)).length;
+  const avanceBlock = '<div class="dash-card" style="margin-bottom:12px">'
+    +'<div class="dash-card-title" style="display:flex;align-items:center;justify-content:space-between">'
+      +'<span>Avance de oportunidades</span>'
+      +'<span style="font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.04em">PROYECTO × FASE</span>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr;gap:18px">'
+      +'<div>'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+          +'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#2d6a4f"></span>'
+          +'<span style="font-size:11px;font-weight:700;color:#2d6a4f;letter-spacing:.02em">Pipeline</span>'
+          +'<span style="font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.05em">ADQUISICIÓN</span>'
+          +`<span style="font-size:10px;color:var(--text3);margin-left:auto">${totalPip} activo${totalPip!==1?'s':''}</span>`
+        +'</div>'
+        +matrixPipeline
+      +'</div>'
+      +'<div>'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-top:14px;border-top:1px dashed var(--border)">'
+          +'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#1a3a2a"></span>'
+          +'<span style="font-size:11px;font-weight:700;color:#1a3a2a;letter-spacing:.02em">Desinversión</span>'
+          +'<span style="font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.05em">VENTA</span>'
+          +`<span style="font-size:10px;color:var(--text3);margin-left:auto">${totalDes} activo${totalDes!==1?'s':''}</span>`
+        +'</div>'
+        +matrixDesinv
+      +'</div>'
+    +'</div>'
   +'</div>';
 
   return "<div class=\"dash\">"+
