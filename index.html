@@ -200,10 +200,10 @@
 
   /* ── RESPONSIVE MÓVIL ───────────────────────────────────── */
   @media (max-width: 768px) {
-    html,body{overflow:auto;height:auto;min-height:100vh;margin:0;padding:0}
-    .app-body{flex-direction:column;overflow:auto;height:auto;margin:0;padding:0}
+    body{overflow:auto}
+    .app-body{flex-direction:column;overflow:auto;height:auto}
     .topbar{display:none!important}
-    .main-area{overflow:visible;min-height:0;height:auto;margin:0;padding:0}
+    .main-area{overflow:visible;min-height:0;height:auto}
     .sidebar{display:none!important}
     .kpi-bar{display:grid;grid-template-columns:1fr 1fr;gap:1px}
     .kpi-cell{padding:8px 12px}
@@ -1635,11 +1635,14 @@ function renderTabla() {
 
 function renderEconomico() {
   const EDOT={'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae','Descartado':'#c8cfc9','Cerrado':'#e0e0e0'};
+  function hasUW(p){const e=p.eco||{};return !!(e.tirPct||e.margenPct||e.ventaEur||e.sueloEur);}
   const np = projects.filter(p => p.bloque==='Pipeline').sort((a,b)=>{
-    const pd = a.prioridad - b.prioridad;
-    if(pd!==0) return pd;
+    const aHas=hasUW(a)?0:1, bHas=hasUW(b)?0:1;
+    if(aHas!==bHas) return aHas-bHas;
     const ai=ESTADO_ORDER.indexOf(a.estado), bi=ESTADO_ORDER.indexOf(b.estado);
-    return (ai===-1?99:ai)-(bi===-1?99:bi);
+    const ed=(ai===-1?99:ai)-(bi===-1?99:bi);
+    if(ed!==0) return ed;
+    return a.prioridad-b.prioridad;
   });
   const withData = np.filter(p => p.eco && (p.eco.sueloEur || p.eco.ventaEur || p.eco.construccionEur || p.edificabilidad));
 
@@ -1887,7 +1890,7 @@ function renderEconomico() {
     +summaryBar
     +'<div class="eco-table-wrap">'
     +'<table style="width:max-content;min-width:100%;border-collapse:collapse;font-size:12px">'+thead
-    +'<tbody>'+rows+totalsRow+'</tbody>'
+    +'<tbody>'+rows+'</tbody>'
     +'</table>'
     +'</div>'
     +legend
@@ -3752,7 +3755,7 @@ if(window.location.protocol === 'file:') {
 } else {
   // En GitHub: mostrar spinner, esperar Supabase
   const main = document.getElementById('main');
-  if(main) main.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:16px"><div style="width:32px;height:32px;border:3px solid #eee;border-top-color:#1a3a2a;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="font-size:13px;color:#aaa">Cargando datos…</div></div>';
+  if(main) main.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px;background:var(--bg)"><div style="width:32px;height:32px;border:3px solid #eee;border-top-color:#1a3a2a;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="font-size:13px;color:#aaa">Cargando datos…</div></div>';
   if(!document.getElementById('spin-style')){const s=document.createElement('style');s.id='spin-style';s.textContent='@keyframes spin{to{transform:rotate(360deg)}}';document.head.appendChild(s);}
   addMsg('system','Sincronizando con la nube…');
   loadFromSupabase()
