@@ -200,11 +200,11 @@
 
   /* ── RESPONSIVE MÓVIL ───────────────────────────────────── */
   @media (max-width: 768px) {
-    body{overflow:auto}
-    .app-body{flex-direction:column;overflow:auto;height:auto}
-    .main-area{overflow:visible;min-height:0;height:auto}
-    .sidebar{display:none!important}
+    html,body{overflow:auto;height:auto;min-height:100vh;margin:0;padding:0}
+    .app-body{flex-direction:column;overflow:auto;height:auto;margin:0;padding:0}
     .topbar{display:none!important}
+    .main-area{overflow:visible;min-height:0;height:auto;margin:0;padding:0}
+    .sidebar{display:none!important}
     .kpi-bar{display:grid;grid-template-columns:1fr 1fr;gap:1px}
     .kpi-cell{padding:8px 12px}
     .kpi-value{font-size:18px}
@@ -1142,7 +1142,7 @@ function renderDetail() {
     +'</div>'
 
     // ── Fase del proceso (Pipeline only, inline) ──────────────
-    +(p.bloque==='Pipeline'
+    +(p.bloque==='Pipeline'||p.bloque==='Desinversión'
       ?'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Fase del proceso</div>'
         +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:10px" onclick="event.stopPropagation()">'
         +pill('Teaser/IM')
@@ -2009,11 +2009,12 @@ function renderMobile() {
           style="padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:space-between;gap:8px">
           <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
             <div style="width:4px;height:36px;border-radius:2px;background:${dot};flex-shrink:0"></div>
-            <div style="min-width:0">
+            <div style="min-width:0;flex:1">
               <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nombre}</div>
               <div style="display:flex;gap:5px;margin-top:4px;align-items:center;flex-wrap:wrap">
                 <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:${dot};color:white">${p.estado}</span>
                 ${p.tipo?`<span style="font-size:10px;color:var(--text3)">${p.tipo}</span>`:''}
+                ${isPipeline&&hasUW(p)?`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;background:#dceee2;color:#2e5c3e;border:1px solid #b6d9c2">✓ UW</span>`:''}
               </div>
             </div>
           </div>
@@ -2025,12 +2026,30 @@ function renderMobile() {
         <div id="mp-${p.id}" style="display:${pExp?'block':'none'};padding:0 14px 12px;background:var(--surface)">
           ${p.avance&&p.avance!=='—'?`<div style="font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:10px;padding:8px 10px;background:var(--surface2);border-radius:8px;border-left:3px solid ${dot}">${p.avance}</div>`:''}
           ${acc.length?`<div style="margin-bottom:10px">${acc.map(a=>`<div style="font-size:11px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.4">→ ${a.t}</div>`).join('')}</div>`:''}
+          ${(isPipeline||p.bloque==='Desinversión')&&Array.isArray(p.fases)&&p.fases.length?`
+            <div style="margin-bottom:10px">
+              <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:5px">Fase del proceso</div>
+              <div style="display:flex;gap:0;align-items:flex-start">
+                ${['Teaser/IM','NDA','NBO','BO','Escritura'].map((f,i,arr)=>{
+                  const done=p.fases.includes(f);
+                  const isLast=i===arr.length-1;
+                  return `<div style="display:flex;align-items:center;flex:1">
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+                      <div style="width:100%;height:4px;background:${done?'#1a3a2a':'#e8e8e0'};border-radius:2px"></div>
+                      <span style="font-size:7.5px;color:${done?'#1a3a2a':'#bbb'};font-weight:${done?'700':'400'};white-space:nowrap">${done?'✓ ':''}${f}</span>
+                    </div>
+                    ${!isLast?'<div style="width:3px"></div>':''}
+                  </div>`;
+                }).join('')}
+                ${p.fases.includes('Comité')?`<div style="margin-left:6px;font-size:8px;font-weight:700;padding:2px 7px;border-radius:20px;background:#1a3a2a;color:white;white-space:nowrap;flex-shrink:0">✓ Comité</div>`:''}
+              </div>
+            </div>`:''}
           ${isPipeline?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
             ${(p.ubicacion||p.ciudad)?`<span style="font-size:10px;background:var(--surface2);padding:2px 8px;border-radius:20px;color:var(--text2)">📍 ${[p.ubicacion,p.ciudad].filter(Boolean).join(', ')}</span>`:''}
             ${(p.vendor||p.contraparte)?`<span style="font-size:10px;background:var(--surface2);padding:2px 8px;border-radius:20px;color:var(--text2)">🤝 ${p.vendor||p.contraparte}</span>`:''}
             ${p.fpa?`<span style="font-size:10px;background:#e8f4ef;padding:2px 8px;border-radius:20px;color:#1a3a2a;font-weight:600">FPA${p.fpaComprador?' · '+p.fpaComprador:''}</span>`:''}
           </div>`:''}
-          ${isPipeline&&Array.isArray(p.fases)&&p.fases.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
+          ${(isPipeline||p.bloque==='Desinversión')&&Array.isArray(p.fases)&&p.fases.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
             ${p.fases.map(f=>`<span style="font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#1a3a2a;color:white">✓ ${f}</span>`).join('')}
           </div>`:''}
           ${hasEco?`<div style="background:var(--surface2);border-radius:10px;padding:10px 12px">
@@ -3302,6 +3321,24 @@ function renderResumen() {
       const acc = (Array.isArray(p.acciones)?p.acciones.filter(a=>!a.d):[]);
       const vend = p.vendor||p.contraparte||'';
       const loc  = [p.ubicacion,p.ciudad].filter(Boolean).join(', ');
+      const fases = Array.isArray(p.fases)?p.fases:[];
+      const FASE_ORDER = ['Teaser/IM','NDA','NBO','BO','Escritura'];
+      const fasesHtml = (p.bloque==='Pipeline'||p.bloque==='Desinversión')
+        ? `<div style="display:flex;align-items:center;gap:0;margin-top:2px">
+            ${FASE_ORDER.map((f,i)=>{
+              const done = fases.includes(f);
+              const isLast = i===FASE_ORDER.length-1;
+              return `<div style="display:flex;align-items:center;flex:1">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+                  <div style="width:100%;height:4px;background:${done?'#1a3a2a':'#e8e8e0'};border-radius:2px;transition:background .2s"></div>
+                  <span style="font-size:8px;color:${done?'#1a3a2a':'#bbb'};font-weight:${done?'700':'400'};white-space:nowrap">${done?'✓ ':''} ${f}</span>
+                </div>
+                ${!isLast?`<div style="width:4px;flex-shrink:0"></div>`:''}
+              </div>`;
+            }).join('')}
+            ${fases.includes('Comité')?`<div style="margin-left:6px;font-size:8px;font-weight:700;padding:1px 6px;border-radius:20px;background:#1a3a2a;color:white;white-space:nowrap;flex-shrink:0">✓ Comité</div>`:''}
+          </div>`
+        : '';
 
       cards += `<div onclick="navigateTo('tabla',{id:${p.id}})" style="background:white;border-radius:8px;overflow:hidden;
                              box-shadow:0 1px 6px rgba(0,0,0,0.07);
@@ -3322,7 +3359,8 @@ function renderResumen() {
             ${vend?`<span style="font-size:9.5px;background:#f5f4f0;color:#888;padding:1px 7px;border-radius:20px">${vend}</span>`:''}
             ${loc?`<span style="font-size:9.5px;background:#f0f0f5;color:#888;padding:1px 7px;border-radius:20px">📍 ${loc}</span>`:''}
           </div>`:''}
-          <!-- Acciones — todas -->
+          <!-- Fases Pipeline -->
+          ${fasesHtml}
           ${acc.length?`<div style="display:flex;flex-direction:column;gap:3px">
             ${acc.map(a=>`<div style="font-size:10.5px;color:#1a3a2a;display:flex;gap:5px;align-items:flex-start">
               <span style="margin-top:1px;flex-shrink:0;color:#52b788;font-weight:700">→</span>
