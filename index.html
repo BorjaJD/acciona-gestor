@@ -3144,27 +3144,24 @@ function renderDashboard() {
   }
 
   // ─── AVANCE DE OPORTUNIDAD (Pipeline + Desinversión) ───────────
-  const FASES_FLOW = ['Teaser/IM','NDA','NBO','BO','Escritura'];
+  const FASES_FLOW = ['NDA','Teaser/IM','NBO','BO','Escritura'];
   function buildFunnel(bloqueName, accentColor){
     const ps = projects.filter(p=>p.bloque===bloqueName && !['Descartado','Cerrado'].includes(p.estado));
     if(!ps.length) return '<div style="font-size:11px;color:var(--text3);padding:18px 6px;text-align:center">Sin oportunidades activas</div>';
-    // Cada proyecto se cuenta en su fase MÁS AVANZADA alcanzada
+    // Cada proyecto se cuenta en TODAS las fases por las que ha pasado (acumulado)
     const buckets = {};
     FASES_FLOW.forEach(f=>buckets[f]=[]);
     const sinFase = [];
     ps.forEach(p=>{
       const fs = Array.isArray(p.fases)?p.fases:[];
-      let lastIdx = -1;
-      FASES_FLOW.forEach((f,i)=>{ if(fs.includes(f)) lastIdx = i; });
-      if(lastIdx===-1) sinFase.push(p);
-      else buckets[FASES_FLOW[lastIdx]].push(p);
+      const passed = FASES_FLOW.filter(f=>fs.includes(f));
+      if(!passed.length) sinFase.push(p);
+      else passed.forEach(f=>buckets[f].push(p));
     });
     const comiteList = ps.filter(p=>Array.isArray(p.fases)&&p.fases.includes('Comité'));
-    const maxN = Math.max(1, sinFase.length, ...FASES_FLOW.map(f=>buckets[f].length));
+    const maxN = Math.max(1, ...FASES_FLOW.map(f=>buckets[f].length));
 
-    let html = '';
-    // Fila "Sin iniciar" — sólo si hay proyectos
-    function row(label, list, isInitial){
+    function row(label, list){
       const n = list.length;
       const pct = (n/maxN)*100;
       const muted = n===0;
@@ -3183,8 +3180,8 @@ function renderDashboard() {
         <div style="font-size:13px;font-weight:700;color:${muted?'var(--text3)':accentColor};text-align:right;font-variant-numeric:tabular-nums">${n}</div>
       </div>`;
     }
-    if(sinFase.length) html += row('Sin fase', sinFase, true);
-    FASES_FLOW.forEach(f => { html += row(f, buckets[f], false); });
+    let html = '';
+    FASES_FLOW.forEach(f => { html += row(f, buckets[f]); });
     if(comiteList.length){
       html += `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)">Comité</span>
@@ -3195,9 +3192,10 @@ function renderDashboard() {
         </div>
       </div>`;
     }
-    // Footer: total
+    // Footer: total + sin iniciar
     html += `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text3)">
       <span>${ps.length} oportunidad${ps.length!==1?'es':''} activa${ps.length!==1?'s':''}</span>
+      ${sinFase.length?`<span title="${sinFase.map(p=>p.nombre).join(', ')}">${sinFase.length} sin iniciar</span>`:''}
       <span style="font-weight:600;color:var(--text2)">${Math.round((1 - sinFase.length/ps.length)*100)}% iniciadas</span>
     </div>`;
     return html;
