@@ -899,6 +899,8 @@ function toggleFase(id, fase, checked) {
   if(dp) dp.outerHTML = renderDetail();
 }
 
+function hasUW(p){const e=(p&&p.eco)||{};return !!(e.tirPct||e.margenPct||e.ventaEur||e.sueloEur);}
+
 function saveField(id, campo, valor) {
   const p = projects.find(x=>x.id===id); if(!p) return;
   p[campo] = valor; persist();
@@ -2028,7 +2030,8 @@ function renderMobile() {
   html += '<div style="padding:12px;background:var(--bg);min-height:calc(100vh - 110px)">';
 
   // ── BLOQUE ACCORDION GROUPS ─────────────────────────────────
-  BLOQUES_ORDER.forEach(b => {
+  const MOBILE_BLOQUES_ORDER = ['Pipeline','Desinversión','Desarrollo / Operación','Clientes / Gestión','Postventa'];
+  MOBILE_BLOQUES_ORDER.forEach(b => {
     const bp = filtered.filter(p=>p.bloque===b);
     if(!bp.length) return;
     const bloqColor = BLOQ_COLOR[b]||'#1a3a2a';
@@ -2116,6 +2119,7 @@ function renderMobile() {
           ${(isPipeline||p.bloque==='Desinversión')&&Array.isArray(p.fases)&&p.fases.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
             ${p.fases.map(f=>`<span style="font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#1a3a2a;color:white">✓ ${f}</span>`).join('')}
           </div>`:''}
+          ${(!isPipeline&&p.mapUrl)?`<a href="${p.mapUrl.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;margin-bottom:10px;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);border-radius:10px;text-decoration:none;color:white;font-size:12px;font-weight:600;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 6px rgba(26,58,42,0.2)"><span style="font-size:14px">📍</span><span>Ver ubicación en Google Maps</span><span style="font-size:11px;opacity:.8;margin-left:auto">↗</span></a>`:''}
           ${hasEco?`<div style="background:var(--surface2);border-radius:10px;padding:10px 12px">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:${bloqColor};margin-bottom:8px">Datos económicos</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
