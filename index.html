@@ -2931,20 +2931,20 @@ function renderDealSheet() {
     +'</div>'
 
     // COL 3 — Imagen(s) + texto inferior alineado abajo
-    +'<div style="display:flex;flex-direction:column;height:100%;background:#fafaf8;overflow:hidden">'
+    +'<div style="display:flex;flex-direction:column;height:100%;background:#fafaf8;overflow:hidden;padding:10px;gap:10px;box-sizing:border-box">'
     +(p.imgData
-      ?'<div style="flex:'+(p.imgData2?'1 1 0':'1 1 0')+';min-height:0;overflow:hidden"><img src="'+p.imgData+'" style="width:100%;height:100%;object-fit:cover;display:block"/></div>'
-      :'<div style="flex:1;min-height:0;background:#f0efe9;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px">Sin imagen</div>')
+      ?'<div style="aspect-ratio:3/2;width:100%;overflow:hidden;flex-shrink:0;border-radius:3px"><img src="'+p.imgData+'" style="width:100%;height:100%;object-fit:cover;display:block"/></div>'
+      :'<div style="aspect-ratio:3/2;width:100%;background:#f0efe9;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px;flex-shrink:0">Sin imagen</div>')
     +(p.imgData2
-      ?'<div style="flex:1 1 0;min-height:0;overflow:hidden;border-top:2px solid white"><img src="'+p.imgData2+'" style="width:100%;height:100%;object-fit:cover;display:block"/></div>'
-      :'')
+      ?'<div style="aspect-ratio:3/2;width:100%;overflow:hidden;flex-shrink:0;border-radius:3px"><img src="'+p.imgData2+'" style="width:100%;height:100%;object-fit:cover;display:block"/></div>'
+      :'<div style="aspect-ratio:3/2;width:100%;background:#f0efe9;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:11px;flex-shrink:0">Sin segunda imagen</div>')
     +(p.narrativaBottom&&p.narrativaBottom!=='—'
-      ?'<div style="padding:10px 14px;flex-shrink:0;border-top:1px solid #e8e8e0">'
+      ?'<div style="padding:10px 4px 4px;flex:1;min-height:0;overflow:hidden;border-top:1px solid #e8e8e0;margin-top:4px">'
         +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:4px;margin-bottom:8px">Proceso</div>'
         +'<div style="font-size:10px;color:#555;line-height:1.7">'+fv(p.narrativaBottom)+'</div>'
         +'</div>'
       :(pending.length
-        ?'<div style="padding:10px 14px;flex-shrink:0;border-top:1px solid #e8e8e0">'
+        ?'<div style="padding:10px 4px 4px;flex:1;min-height:0;overflow:hidden;border-top:1px solid #e8e8e0;margin-top:4px">'
           +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:4px;margin-bottom:8px">Próximas acciones</div>'
           +pending.map(a=>'<div style="font-size:10px;color:#555;padding:3px 0;border-bottom:1px solid #f0efe9">→ '+a.t+'</div>').join('')
           +'</div>'
@@ -3169,9 +3169,9 @@ function renderDashboard() {
     const cellW = 24;
     const rowH = 20;
 
-    let html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:separate;border-spacing:2px 2px;font-family:var(--font);table-layout:fixed">';
+    let html = '<div style="overflow-x:auto"><table style="border-collapse:separate;border-spacing:2px 2px;font-family:var(--font);table-layout:fixed">';
     html += '<colgroup>';
-    html += '<col/>'; // Proyecto: flexible
+    html += '<col style="width:200px"/>'; // Proyecto: ancho fijo
     FASES_FLOW.forEach(()=>{ html += `<col style="width:${cellW}px"/>`; });
     html += `<col style="width:${cellW+8}px"/>`;   // Comité (con margen)
     html += '<col style="width:90px"/>'; // Avance + %
@@ -3245,7 +3245,7 @@ function renderDashboard() {
   }
 
   const matrixPipeline = buildMatrix('Pipeline', '#2d6a4f');
-  const matrixDesinv = buildMatrix('Desinversión', '#1a3a2a');
+  const matrixDesinv = buildMatrix('Desinversión', '#2d6a4f');
   const totalPip = projects.filter(p=>p.bloque==='Pipeline' && !['Descartado','Cerrado'].includes(p.estado)).length;
   const totalDes = projects.filter(p=>p.bloque==='Desinversión' && !['Descartado','Cerrado'].includes(p.estado)).length;
   const avanceBlock = '<div class="dash-card" style="margin-bottom:12px">'
@@ -3261,8 +3261,8 @@ function renderDashboard() {
       +'</div>'
       +'<div style="min-width:0">'
         +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">'
-          +'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#1a3a2a"></span>'
-          +'<span style="font-size:11px;font-weight:700;color:#1a3a2a">Desinversión</span>'
+          +'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2d6a4f"></span>'
+          +'<span style="font-size:11px;font-weight:700;color:#2d6a4f">Desinversión</span>'
           +`<span style="font-size:10px;color:var(--text3);margin-left:auto">${totalDes} activo${totalDes!==1?'s':''}</span>`
         +'</div>'
         +matrixDesinv
