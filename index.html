@@ -3146,13 +3146,15 @@ function renderDashboard() {
   function buildMatrix(bloqueName, accentColor){
     const ps = projects.filter(p=>p.bloque===bloqueName && !['Descartado','Cerrado'].includes(p.estado));
     if(!ps.length) return '<div style="font-size:11px;color:var(--text3);padding:18px 6px;text-align:center;font-style:italic">Sin oportunidades activas</div>';
-    // Ordenar por nº de fases completadas (descendente), luego por estado
+    // Ordenar por estado (WIP primero, Cerrado al final), luego nº fases, luego prioridad
     const psSorted = ps.slice().sort((a,b)=>{
+      const ai=ESTADO_ORDER.indexOf(a.estado), bi=ESTADO_ORDER.indexOf(b.estado);
+      const ed=(ai===-1?99:ai)-(bi===-1?99:bi);
+      if(ed!==0) return ed;
       const af = (a.fases||[]).filter(f=>FASES_FLOW.includes(f)).length;
       const bf = (b.fases||[]).filter(f=>FASES_FLOW.includes(f)).length;
       if(af!==bf) return bf-af;
-      const ai=ESTADO_ORDER.indexOf(a.estado), bi=ESTADO_ORDER.indexOf(b.estado);
-      return (ai===-1?99:ai)-(bi===-1?99:bi);
+      return (a.prioridad||3)-(b.prioridad||3);
     });
     // Totales por fase
     const totals = {};
@@ -3164,17 +3166,16 @@ function renderDashboard() {
 
     const ESTADO_COLOR = {'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae','Descartado':'#c8cfc9','Cerrado':'#e0e0e0'};
 
-    // Estilos de celda (padding/altura)
-    const cellPad = 'padding:6px 6px';
-    const rowH = 30; // alto consistente
+    const cellPad = 'padding:4px 6px';
+    const rowH = 24;
 
-    // Header
-    let html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:separate;border-spacing:3px 4px;font-family:var(--font);table-layout:fixed">';
+    // Header con anchos compactos
+    let html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:separate;border-spacing:3px 3px;font-family:var(--font);table-layout:fixed">';
     html += '<colgroup>';
-    html += '<col style="width:auto"/>';
-    FASES_FLOW.forEach(()=>{ html += '<col style="width:11%"/>'; });
-    html += '<col style="width:8%"/>';   // Comité
-    html += '<col style="width:120px"/>'; // % + barra
+    html += '<col/>'; // Proyecto: flexible
+    FASES_FLOW.forEach(()=>{ html += '<col style="width:54px"/>'; });
+    html += '<col style="width:54px"/>';   // Comité
+    html += '<col style="width:140px"/>'; // Avance + %
     html += '</colgroup>';
 
     html += '<thead><tr>';
@@ -3182,8 +3183,8 @@ function renderDashboard() {
     FASES_FLOW.forEach(f=>{
       html += `<th style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:4px 4px 6px;text-align:center" title="${f}">${f.replace('Teaser/IM','TIM')}</th>`;
     });
-    html += `<th style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#1a3a2a;padding:4px 4px 6px 12px;text-align:center" title="Pasado por comité">Cmt</th>`;
-    html += `<th style="text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:4px 4px 6px 14px">Avance</th>`;
+    html += `<th style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#1a3a2a;padding:4px 4px 6px;text-align:center" title="Pasado por comité">Cmt</th>`;
+    html += `<th style="text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:4px 4px 6px 12px">Avance</th>`;
     html += '</tr></thead><tbody>';
 
     psSorted.forEach((p)=>{
@@ -3194,36 +3195,34 @@ function renderDashboard() {
 
       // Celda nombre con dotEstado
       html += `<tr style="cursor:pointer" onclick="navigateTo('tabla',{id:${p.id}})">`;
-      html += `<td style="${cellPad};padding-left:4px;font-size:11.5px;color:var(--text);max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:${rowH}px;vertical-align:middle">`
+      html += `<td style="${cellPad};padding-left:4px;font-size:11.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:${rowH}px;vertical-align:middle">`
         + `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${estadoColor};margin-right:8px;vertical-align:middle" title="${p.estado}"></span>`
         + `<span style="font-weight:500;vertical-align:middle">${p.nombre}</span>`
         + `</td>`;
 
-      // Celdas de fase: rellenas o vacías
+      // Celdas de fase: solo color, sin símbolo
       FASES_FLOW.forEach(f=>{
         const done = fs.includes(f);
         if(done){
-          html += `<td style="background:${accentColor};border-radius:5px;text-align:center;vertical-align:middle;height:${rowH}px;color:white;font-size:12px;font-weight:700;line-height:1">✓</td>`;
+          html += `<td style="background:${accentColor};border-radius:4px;height:${rowH}px"></td>`;
         } else {
-          html += `<td style="background:transparent;border:1px solid #e5e8e3;border-radius:5px;text-align:center;vertical-align:middle;height:${rowH}px"></td>`;
+          html += `<td style="background:#f6f7f4;border-radius:4px;height:${rowH}px"></td>`;
         }
       });
 
-      // Comité
+      // Comité — mismo estilo, color más oscuro cuando está
       const comDone = fs.includes('Comité');
       if(comDone){
-        html += `<td style="background:#1a3a2a;border-radius:5px;text-align:center;vertical-align:middle;height:${rowH}px;color:white;font-size:12px;font-weight:700;line-height:1;margin-left:12px">★</td>`;
+        html += `<td style="background:#1a3a2a;border-radius:4px;height:${rowH}px"></td>`;
       } else {
-        html += `<td style="background:transparent;border:1px dashed #cfd2cb;border-radius:5px;text-align:center;vertical-align:middle;height:${rowH}px"></td>`;
+        html += `<td style="background:#f6f7f4;border-radius:4px;height:${rowH}px"></td>`;
       }
 
       // Mini-barra de avance + %
-      const barColor = pctP>=80?accentColor:pctP>=40?accentColor:pctP>0?accentColor:'#ddd';
-      const barOpacity = pctP>=80?1:pctP>=40?0.85:0.6;
-      html += `<td style="${cellPad};padding-left:14px;vertical-align:middle;height:${rowH}px">`
+      html += `<td style="${cellPad};padding-left:12px;vertical-align:middle;height:${rowH}px">`
         + `<div style="display:flex;align-items:center;gap:8px">`
-          + `<div style="flex:1;height:6px;background:#eef0eb;border-radius:3px;overflow:hidden;min-width:50px">`
-            + `<div style="height:100%;width:${pctP}%;background:${barColor};opacity:${barOpacity};border-radius:3px;transition:width .3s"></div>`
+          + `<div style="flex:1;height:5px;background:#eef0eb;border-radius:3px;overflow:hidden;min-width:50px">`
+            + `<div style="height:100%;width:${pctP}%;background:${accentColor};border-radius:3px;transition:width .3s"></div>`
           + `</div>`
           + `<span style="font-size:11px;font-weight:700;color:${pctP===0?'var(--text3)':'var(--text2)'};font-variant-numeric:tabular-nums;min-width:32px;text-align:right">${pctP}%</span>`
         + `</div>`
@@ -3234,15 +3233,15 @@ function renderDashboard() {
 
     // Footer con totales
     html += '<tfoot><tr>';
-    html += `<td style="${cellPad};padding-left:4px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding-top:14px">Totales</td>`;
+    html += `<td style="${cellPad};padding-left:4px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding-top:12px">Totales</td>`;
     FASES_FLOW.forEach(f=>{
       const n = totals[f];
-      html += `<td style="${cellPad};text-align:center;font-size:12px;font-weight:700;color:${n>0?accentColor:'var(--text3)'};font-variant-numeric:tabular-nums;padding-top:14px">${n}</td>`;
+      html += `<td style="${cellPad};text-align:center;font-size:12px;font-weight:700;color:${n>0?accentColor:'var(--text3)'};font-variant-numeric:tabular-nums;padding-top:12px">${n}</td>`;
     });
-    html += `<td style="${cellPad};padding-left:12px;text-align:center;font-size:12px;font-weight:700;color:${totalCom>0?'#1a3a2a':'var(--text3)'};font-variant-numeric:tabular-nums;padding-top:14px">${totalCom}</td>`;
-    html += `<td style="${cellPad};padding-left:14px;padding-top:14px;vertical-align:middle">`
+    html += `<td style="${cellPad};text-align:center;font-size:12px;font-weight:700;color:${totalCom>0?'#1a3a2a':'var(--text3)'};font-variant-numeric:tabular-nums;padding-top:12px">${totalCom}</td>`;
+    html += `<td style="${cellPad};padding-left:12px;padding-top:12px;vertical-align:middle">`
       + `<div style="display:flex;align-items:center;gap:8px">`
-        + `<div style="flex:1;height:6px;background:#eef0eb;border-radius:3px;overflow:hidden;min-width:50px">`
+        + `<div style="flex:1;height:5px;background:#eef0eb;border-radius:3px;overflow:hidden;min-width:50px">`
           + `<div style="height:100%;width:${pctGlobal}%;background:${accentColor};border-radius:3px"></div>`
         + `</div>`
         + `<span style="font-size:11px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;min-width:32px;text-align:right">${pctGlobal}%</span>`
