@@ -2524,18 +2524,26 @@ function renderPipelineSummary() {
       svg+=`<rect x="${xv}" y="${baseY-bVenta}" width="${barW}" height="${bVenta}" fill="#1a3a2a" rx="${ventaSB>0?0:2}" opacity="${isZero?0.1:0.9}"/>`;
       // Stand-By part (top)
       if(ventaSB>0){
-        svg+=`<rect x="${xv}" y="${baseY-bVenta-bVentaSB}" width="${barW}" height="${bVentaSB}" fill="#a8b5ae" rx="2" opacity="0.85">
+        svg+=`<rect x="${xv}" y="${baseY-bVenta-bVentaSB}" width="${barW}" height="${bVentaSB}" fill="#7a8780" rx="2" opacity="1">
           <title>Stand By: ${fmV(ventaSB)}</title></rect>`;
       }
       if(ventaTot>0) svg+=`<text x="${xv+barW/2}" y="${baseY-bVenta-bVentaSB-3}" text-anchor="middle" font-size="7" font-weight="700" fill="#1a3a2a">${fmV(ventaTot)}</text>`;
 
-      // Margen bar (no apilado, solo con tinte ligero si tiene SB)
+      // Margen bar — apilada también: activos abajo, Stand By arriba
       const xm=cx+gap/2;
-      svg+=`<rect x="${xm}" y="${baseY-bMargen}" width="${barW}" height="${bMargen}" fill="#52b788" rx="2" opacity="${isZero?0.1:0.85}"/>`;
+      const bMargenAct=Math.max(isZero?1:2,Math.round((margen/maxV)*CHART_H));
+      const bMargenSB=Math.round((margenSB/maxV)*CHART_H);
+      // Active part (bottom)
+      svg+=`<rect x="${xm}" y="${baseY-bMargenAct}" width="${barW}" height="${bMargenAct}" fill="#52b788" rx="${margenSB>0?0:2}" opacity="${isZero?0.1:0.85}"/>`;
+      // Stand-By part (top)
+      if(margenSB>0){
+        svg+=`<rect x="${xm}" y="${baseY-bMargenAct-bMargenSB}" width="${barW}" height="${bMargenSB}" fill="#a8c2b1" rx="2" opacity="1">
+          <title>Margen Stand By: ${fmV(margenSB)}</title></rect>`;
+      }
       if(margenTot>0){
         const pctStr=mgPct>0?mgPct+'%':'';
-        if(pctStr) svg+=`<text x="${xm+barW/2}" y="${baseY-bMargen-13}" text-anchor="middle" font-size="7" fill="#2d6a4f" font-weight="700">${pctStr}</text>`;
-        svg+=`<text x="${xm+barW/2}" y="${baseY-bMargen-3}" text-anchor="middle" font-size="7" fill="#2d6a4f">${fmV(margenTot)}</text>`;
+        if(pctStr) svg+=`<text x="${xm+barW/2}" y="${baseY-bMargenAct-bMargenSB-13}" text-anchor="middle" font-size="7" fill="#2d6a4f" font-weight="700">${pctStr}</text>`;
+        svg+=`<text x="${xm+barW/2}" y="${baseY-bMargenAct-bMargenSB-3}" text-anchor="middle" font-size="7" fill="#2d6a4f">${fmV(margenTot)}</text>`;
       }
 
       // Year label
@@ -2552,7 +2560,7 @@ function renderPipelineSummary() {
     const bgBase = isStandBy ? (i%2?'#f5f3ee':'#fafaf8') : (i%2?'#fafaf8':'white');
     const t=parseFloat(e.tirPct||0),m=parseFloat(e.margenPct||0);
     const mg=parseInt((e.margenEur||'').replace(/\D/g,'')||0);
-    const col=isStandBy?'#a8b5ae':tirc(t);
+    const col=isStandBy?'#7a8780':tirc(t);
     const wt=Math.round((t/maxT)*100),wm=Math.round((m/maxM)*100);
     const muted = isStandBy ? 'opacity:0.72;' : '';
     const nameColor = isStandBy ? '#666' : '#1a1a18';
@@ -2597,7 +2605,7 @@ function renderPipelineSummary() {
     + (sbWithEco.length
       ? `<tr><td colspan="8" style="padding:6px 0 4px;border-top:1px dashed #d0d0c8">
            <div style="font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#888;display:flex;align-items:center;gap:6px">
-             <span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#a8b5ae"></span>
+             <span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#7a8780"></span>
              Stand By — Potencial · ${sbWithEco.length} proyecto${sbWithEco.length!==1?'s':''}
            </div>
          </td></tr>`
@@ -2606,7 +2614,7 @@ function renderPipelineSummary() {
 
   const fecha=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
   const CT='font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:3px;margin-bottom:8px';
-  // KPI boxes — same top border as CT border
+  // KPI boxes — 6 tarjetones grandes ocupando todo el ancho
   const kpiBoxes=[
     ['Proyectos', psActive.length, psActive.length!==ps.length?`+${ps.length-psActive.length} stand by`:''],
     ['Uds / Edif.', totViv>0?fmtMiles(totViv)+' uds':'—', totEdif>0?fmtMiles(Math.round(totEdif/1000))+'K m²':''],
@@ -2614,12 +2622,11 @@ function renderPipelineSummary() {
     ['Construcción', fm(tc2), ''],
     ['TIR media', at!=='—'?at+'%':'—', ''],
     ['Margen medio', am!=='—'?am+'%':'—', ''],
-    ...(sbWithUW.length?[[`Stand By (${sbWithUW.length} con UW)`, sbMargen!=='—'?sbMargen+'% mg':'—', sbTIR!=='—'?sbTIR+'% TIR':'']]:[]),
   ].map(([l,v,sub])=>
-    `<div style="background:#f8f7f3;border-radius:5px;padding:5px 8px;border-top:2px solid ${l.includes('Stand By')?'#a8b5ae':'#1a3a2a'}">
-      <div style="font-size:7px;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin-bottom:2px">${l}</div>
-      <div style="font-size:13px;font-weight:800;color:${l.includes('Stand By')?'#888':'#1a3a2a'};line-height:1">${v}</div>
-      ${sub?`<div style="font-size:8px;color:#888;margin-top:2px">${sub}</div>`:''}
+    `<div style="background:#f8f7f3;border-radius:6px;padding:9px 12px;border-top:2.5px solid #1a3a2a">
+      <div style="font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:4px;font-weight:700">${l}</div>
+      <div style="font-size:17px;font-weight:800;color:#1a3a2a;line-height:1.05">${v}</div>
+      ${sub?`<div style="font-size:9px;color:#888;margin-top:3px">${sub}</div>`:''}
     </div>`
   ).join('');
 
@@ -2692,7 +2699,7 @@ function renderPipelineSummary() {
       <div style="padding:10px 14px;display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
 
         <!-- KPIs -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;margin-bottom:10px;flex-shrink:0">${kpiBoxes}</div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px;flex-shrink:0">${kpiBoxes}</div>
 
         <!-- Tabla principal -->
         <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
@@ -2721,7 +2728,7 @@ function renderPipelineSummary() {
             <div style="${CT.replace('margin-bottom:8px','margin-bottom:0')}">Venta y margen por año de entrega</div>
             <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
               <span style="display:flex;align-items:center;gap:3px;font-size:7.5px;color:#555"><span style="width:8px;height:8px;background:#1a3a2a;border-radius:1px;display:inline-block"></span>Venta</span>
-              <span style="display:flex;align-items:center;gap:3px;font-size:7.5px;color:#555"><span style="width:8px;height:8px;background:#a8b5ae;border-radius:1px;display:inline-block"></span>Stand By</span>
+              <span style="display:flex;align-items:center;gap:3px;font-size:7.5px;color:#555"><span style="width:8px;height:8px;background:#7a8780;border-radius:1px;display:inline-block"></span>Stand By</span>
               <span style="display:flex;align-items:center;gap:3px;font-size:7.5px;color:#555"><span style="width:8px;height:8px;background:#52b788;border-radius:1px;display:inline-block"></span>Margen %</span>
             </div>
           </div>
@@ -2791,9 +2798,17 @@ function printDealSheet() {
 }
 
 function renderDealSheet() {
+  function dsHasModel(p){ const e=p.eco||{}; return !!(e.tirPct||e.margenPct||e.ventaEur||e.sueloEur); }
   const ops = projects.filter(p => p.bloque === 'Pipeline');
+  const opsConModelo = ops.filter(dsHasModel);
+  const opsSinModelo = ops.filter(p=>!dsHasModel(p));
   const opts = '<option value="">— Selecciona un proyecto —</option>'
-    + ops.map(p => '<option value="'+p.id+'"'+(S_dealId===p.id?' selected':'')+'>'+p.nombre+'</option>').join('');
+    + (opsConModelo.length?'<optgroup label="Con modelo UW">'
+        + opsConModelo.map(p => '<option value="'+p.id+'"'+(S_dealId===p.id?' selected':'')+'>'+p.nombre+'</option>').join('')
+      + '</optgroup>':'')
+    + (opsSinModelo.length?'<optgroup label="Sin modelo (no disponibles)">'
+        + opsSinModelo.map(p => '<option value="'+p.id+'" disabled>'+p.nombre+' — sin datos</option>').join('')
+      + '</optgroup>':'');
 
   const nSel = (S_dealPdf||[]).length;
   // Botón único en el toolbar para abrir el modal
@@ -2804,11 +2819,25 @@ function renderDealSheet() {
   // Modal de selección múltiple — grid limpio con checkboxes
   const multiModal = (S_dealView==='ficha' && S_multiPdfModal)
     ? (function(){
-        const allSelected = ops.length>0 && ops.every(p=>S_dealPdf.includes(p.id));
-        const cards = ops.map(function(p){
+        const opsSelectables = opsConModelo;
+        const allSelected = opsSelectables.length>0 && opsSelectables.every(p=>S_dealPdf.includes(p.id));
+        function buildCard(p, hasModel){
           const sel = S_dealPdf.includes(p.id);
-          const estadoColor = ({'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae','Descartado':'#c8cfc9','Cerrado':'#e0e0e0'})[p.estado]||'#aaa';
-          return '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);border:1.5px solid '+(sel?'#1a3a2a':'var(--border)')+';background:'+(sel?'#f0f5f1':'var(--surface)')+';cursor:pointer;transition:all .12s;min-width:0">'
+          const estadoColor = ({'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#7a8780','Descartado':'#c8cfc9','Cerrado':'#e0e0e0'})[p.estado]||'#aaa';
+          const baseStyle = 'display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);min-width:0;transition:all .12s';
+          if(!hasModel){
+            return '<div style="'+baseStyle+';border:1.5px dashed var(--border);background:var(--surface2);opacity:0.55;cursor:not-allowed" title="Sin modelo UW — añade datos económicos para poder generar la ficha">'
+              +'<input type="checkbox" disabled style="width:14px;height:14px;flex-shrink:0;cursor:not-allowed"/>'
+              +'<div style="flex:1;min-width:0">'
+                +'<div style="font-size:12px;font-weight:500;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.nombre+'</div>'
+                +'<div style="display:flex;align-items:center;gap:5px;margin-top:3px">'
+                  +'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+estadoColor+'"></span>'
+                  +'<span style="font-size:10px;color:var(--text3)">Sin modelo UW</span>'
+                +'</div>'
+              +'</div>'
+            +'</div>';
+          }
+          return '<label style="'+baseStyle+';border:1.5px solid '+(sel?'#1a3a2a':'var(--border)')+';background:'+(sel?'#f0f5f1':'var(--surface)')+';cursor:pointer">'
             +'<input type="checkbox" '+(sel?'checked':'')+' onchange="toggleDealPdf('+p.id+',this.checked);render()" style="accent-color:#1a3a2a;width:14px;height:14px;flex-shrink:0;cursor:pointer"/>'
             +'<div style="flex:1;min-width:0">'
               +'<div style="font-size:12px;font-weight:'+(sel?'600':'500')+';color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.nombre+'</div>'
@@ -2818,29 +2847,37 @@ function renderDealSheet() {
               +'</div>'
             +'</div>'
           +'</label>';
-        }).join('');
+        }
+        const cardsConModelo = opsConModelo.map(p=>buildCard(p,true)).join('');
+        const cardsSinModelo = opsSinModelo.map(p=>buildCard(p,false)).join('');
         return '<div onclick="if(event.target===this){S_multiPdfModal=false;render()}" style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px">'
           +'<div style="background:var(--surface);border-radius:var(--rl);box-shadow:0 12px 48px rgba(0,0,0,0.25);width:100%;max-width:780px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden">'
             // Header
             +'<div style="padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">'
               +'<div>'
                 +'<div style="font-size:15px;font-weight:700;color:var(--text)">📚 Exportar varios proyectos a PDF</div>'
-                +'<div style="font-size:11px;color:var(--text3);margin-top:2px">Selecciona los proyectos que quieres incluir en el PDF combinado</div>'
+                +'<div style="font-size:11px;color:var(--text3);margin-top:2px">Solo se pueden exportar proyectos con modelo UW</div>'
               +'</div>'
               +'<button onclick="S_multiPdfModal=false;render()" style="background:transparent;border:none;font-size:18px;color:var(--text3);cursor:pointer;padding:4px 8px;border-radius:var(--r)" title="Cerrar">✕</button>'
             +'</div>'
             // Toolbar
             +'<div style="padding:12px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2)">'
-              +'<div style="font-size:11px;color:var(--text2)"><span style="font-weight:700;color:#1a3a2a">'+nSel+'</span> de '+ops.length+' seleccionados</div>'
+              +'<div style="font-size:11px;color:var(--text2)"><span style="font-weight:700;color:#1a3a2a">'+nSel+'</span> de '+opsSelectables.length+' seleccionados'+(opsSinModelo.length?' · '+opsSinModelo.length+' sin modelo':'')+'</div>'
               +'<div style="display:flex;gap:6px">'
-                +'<button onclick="'+(allSelected?'S_dealPdf=[]':'S_dealPdf='+JSON.stringify(ops.map(p=>p.id)))+';render()" style="font-size:11px;padding:5px 12px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font)">'+(allSelected?'Deseleccionar todos':'Seleccionar todos')+'</button>'
+                +(opsSelectables.length?'<button onclick="'+(allSelected?'S_dealPdf=[]':'S_dealPdf='+JSON.stringify(opsSelectables.map(p=>p.id)))+';render()" style="font-size:11px;padding:5px 12px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font)">'+(allSelected?'Deseleccionar todos':'Seleccionar todos')+'</button>':'')
               +'</div>'
             +'</div>'
             // Body — grid de checkboxes
             +'<div style="padding:16px 22px;overflow-y:auto;flex:1">'
-              +(ops.length
-                ? '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">'+cards+'</div>'
-                : '<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:12px">Sin proyectos en Pipeline</div>')
+              +(opsConModelo.length
+                ? '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">'+cardsConModelo+'</div>'
+                : '<div style="text-align:center;color:var(--text3);padding:24px 0;font-size:12px">Ningún proyecto tiene modelo UW. Añade datos económicos en la pestaña UW · Modelo.</div>')
+              +(opsSinModelo.length
+                ? '<div style="margin-top:18px;padding-top:12px;border-top:1px dashed var(--border)">'
+                  +'<div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px">Sin modelo — no disponibles</div>'
+                  +'<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">'+cardsSinModelo+'</div>'
+                +'</div>'
+                : '')
             +'</div>'
             // Footer
             +'<div style="padding:14px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;background:var(--surface2)">'
