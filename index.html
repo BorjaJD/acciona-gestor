@@ -2290,6 +2290,7 @@ function renderTablaOnly() {
 let S_dealId = null;
 let S_dealView = 'ficha'; // 'ficha' | 'pipeline'
 let S_dealPdf  = []; // IDs selected for multi-PDF
+let S_multiPdfModal = false; // open/close modal multi-pdf
 let S_pdfDropOpen = false;
 let S_noUWDash = false;  // expand no-UW in dashboard pipeline table
 let S_descDash = false;  // expand descartados in dashboard pipeline table
@@ -2467,9 +2468,16 @@ function renderPipelineSummary() {
   ps.forEach(p=>{
     const yr=getYear(p.eco?.fechaEntrega);
     if(!yr)return;
-    byYear[yr]=byYear[yr]||{venta:0,margen:0,ps:[]};
-    byYear[yr].venta+=parseInt((p.eco?.ventaEur||'').replace(/\D/g,'')||0);
-    byYear[yr].margen+=parseInt((p.eco?.margenEur||'').replace(/\D/g,'')||0);
+    byYear[yr]=byYear[yr]||{venta:0,ventaSB:0,margen:0,margenSB:0,ps:[]};
+    const v=parseInt((p.eco?.ventaEur||'').replace(/\D/g,'')||0);
+    const mg=parseInt((p.eco?.margenEur||'').replace(/\D/g,'')||0);
+    if(p.estado==='Stand By'){
+      byYear[yr].ventaSB+=v;
+      byYear[yr].margenSB+=mg;
+    } else {
+      byYear[yr].venta+=v;
+      byYear[yr].margen+=mg;
+    }
     byYear[yr].ps.push(p.nombre.replace(/\|.*/,'').trim().split(' ')[0]);
   });
   const years=Object.keys(byYear).sort();
@@ -2485,9 +2493,9 @@ function renderPipelineSummary() {
     const groupW=chartW/nYrs;
     const barW=Math.max(8,Math.min(28,groupW*0.38));
     const gap=2;
-    const maxV=Math.max(...allYears.map(y=>byYear[y]?.venta||0),1);
+    const maxV=Math.max(...allYears.map(y=>(byYear[y]?.venta||0)+(byYear[y]?.ventaSB||0)),1);
 
-    // Grid lines — no legend block at top, integrate into axis
+    // Grid lines
     let svg=`<rect x="${PAD_L}" y="${PAD_T}" width="${chartW}" height="${CHART_H}" fill="#fafaf8" rx="2"/>`;
     [0,0.25,0.5,0.75,1].forEach(pct=>{
       const y=PAD_T+CHART_H-pct*CHART_H;
@@ -2495,31 +2503,39 @@ function renderPipelineSummary() {
       svg+=`<line x1="${PAD_L}" y1="${y}" x2="${W-PAD_R}" y2="${y}" stroke="${pct===0?'#ccc':'#e8e8e4'}" stroke-width="${pct===0?1.2:0.6}"/>`;
       svg+=`<text x="${PAD_L-3}" y="${y+3}" text-anchor="end" font-size="6.5" fill="#bbb">${val}</text>`;
     });
-    // Axis labels — V and M below axis left side
 
-    // Bars
+    // Bars (stacked: active bottom, stand-by top)
     allYears.forEach((yr,i)=>{
-      const {venta=0,margen=0}=byYear[yr]||{};
+      const {venta=0,ventaSB=0,margen=0,margenSB=0}=byYear[yr]||{};
+      const ventaTot=venta+ventaSB;
+      const margenTot=margen+margenSB;
       const cx=PAD_L+i*groupW+groupW/2;
-      const isZero=venta===0&&margen===0;
+      const isZero=ventaTot===0&&margenTot===0;
       const bVenta=Math.max(isZero?1:2,Math.round((venta/maxV)*CHART_H));
-      const bMargen=Math.max(isZero?1:2,Math.round((margen/maxV)*CHART_H));
+      const bVentaSB=Math.round((ventaSB/maxV)*CHART_H);
+      const bMargen=Math.max(isZero?1:2,Math.round((margenTot/maxV)*CHART_H));
       const baseY=PAD_T+CHART_H;
-      const mgPct=venta>0?Math.round(margen/venta*100):0;
+      const mgPct=ventaTot>0?Math.round(margenTot/ventaTot*100):0;
       const fmV=v=>v>=1e9?Math.round(v/1e9)+'B€':v>=1e6?Math.round(v/1e6)+'M€':v>=1e3?Math.round(v/1e3)+'K€':'—';
 
-      // Venta bar
+      // Venta bar — stacked
       const xv=cx-barW-gap/2;
-      svg+=`<rect x="${xv}" y="${baseY-bVenta}" width="${barW}" height="${bVenta}" fill="#1a3a2a" rx="2" opacity="${isZero?0.1:0.9}"/>`;
-      if(venta>0) svg+=`<text x="${xv+barW/2}" y="${baseY-bVenta-3}" text-anchor="middle" font-size="7" font-weight="700" fill="#1a3a2a">${fmV(venta)}</text>`;
+      // Active part (bottom)
+      svg+=`<rect x="${xv}" y="${baseY-bVenta}" width="${barW}" height="${bVenta}" fill="#1a3a2a" rx="${ventaSB>0?0:2}" opacity="${isZero?0.1:0.9}"/>`;
+      // Stand-By part (top)
+      if(ventaSB>0){
+        svg+=`<rect x="${xv}" y="${baseY-bVenta-bVentaSB}" width="${barW}" height="${bVentaSB}" fill="#a8b5ae" rx="2" opacity="0.85">
+          <title>Stand By: ${fmV(ventaSB)}</title></rect>`;
+      }
+      if(ventaTot>0) svg+=`<text x="${xv+barW/2}" y="${baseY-bVenta-bVentaSB-3}" text-anchor="middle" font-size="7" font-weight="700" fill="#1a3a2a">${fmV(ventaTot)}</text>`;
 
-      // Margen bar
+      // Margen bar (no apilado, solo con tinte ligero si tiene SB)
       const xm=cx+gap/2;
       svg+=`<rect x="${xm}" y="${baseY-bMargen}" width="${barW}" height="${bMargen}" fill="#52b788" rx="2" opacity="${isZero?0.1:0.85}"/>`;
-      if(margen>0){
+      if(margenTot>0){
         const pctStr=mgPct>0?mgPct+'%':'';
         if(pctStr) svg+=`<text x="${xm+barW/2}" y="${baseY-bMargen-13}" text-anchor="middle" font-size="7" fill="#2d6a4f" font-weight="700">${pctStr}</text>`;
-        svg+=`<text x="${xm+barW/2}" y="${baseY-bMargen-3}" text-anchor="middle" font-size="7" fill="#2d6a4f">${fmV(margen)}</text>`;
+        svg+=`<text x="${xm+barW/2}" y="${baseY-bMargen-3}" text-anchor="middle" font-size="7" fill="#2d6a4f">${fmV(margenTot)}</text>`;
       }
 
       // Year label
@@ -2530,27 +2546,35 @@ function renderPipelineSummary() {
   }
 
   // ── TABLE ROWS ────────────────────────────────────────────────
-  const tableRows=sortedMain.map((p,i)=>{
-    const e=p.eco||{};const bg=i%2?'#fafaf8':'white';
+  // Cells helper to keep DRY between active rows and stand-by rows (different muted style)
+  function buildRow(p, i, isStandBy){
+    const e=p.eco||{};
+    const bgBase = isStandBy ? (i%2?'#f5f3ee':'#fafaf8') : (i%2?'#fafaf8':'white');
     const t=parseFloat(e.tirPct||0),m=parseFloat(e.margenPct||0);
     const mg=parseInt((e.margenEur||'').replace(/\D/g,'')||0);
-    const col=tirc(t),wt=Math.round((t/maxT)*100),wm=Math.round((m/maxM)*100);
-    return `<tr style="background:${bg}">
+    const col=isStandBy?'#a8b5ae':tirc(t);
+    const wt=Math.round((t/maxT)*100),wm=Math.round((m/maxM)*100);
+    const muted = isStandBy ? 'opacity:0.72;' : '';
+    const nameColor = isStandBy ? '#666' : '#1a1a18';
+    const valueColor = isStandBy ? '#888' : '#555';
+    const ventaWeight = isStandBy ? '500' : '600';
+    const ventaColor = isStandBy ? '#666' : '#1a1a18';
+    return `<tr style="background:${bgBase};${muted}">
       <td style="padding:4px 6px 4px 0;overflow:hidden;max-width:0">
-        <div style="font-weight:600;font-size:10px;color:#1a1a18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nombre}</div>
+        <div style="font-weight:${isStandBy?'500':'600'};font-size:10px;color:${nameColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nombre}</div>
         <span style="font-size:7px;font-weight:700;padding:1px 4px;border-radius:5px;background:${EC[p.estado]||'#eee'};color:white">${p.estado}</span>
       </td>
       <td style="padding:4px 4px;font-size:9px;color:#888;white-space:nowrap">${p.ubicacion||'—'}</td>
       <td style="padding:4px 4px;text-align:right">
-        <div style="font-size:9.5px;color:#555">${fm(e.sueloEur)}</div>
+        <div style="font-size:9.5px;color:${valueColor}">${fm(e.sueloEur)}</div>
         ${fm2(e.sueloEurM2)?`<div style="font-size:7px;color:#ccc">${fm2(e.sueloEurM2)}</div>`:''}
       </td>
       <td style="padding:4px 4px;text-align:right">
-        <div style="font-size:9.5px;color:#555">${fm(e.construccionEur)}</div>
+        <div style="font-size:9.5px;color:${valueColor}">${fm(e.construccionEur)}</div>
         ${fm2(e.construccionEurM2)?`<div style="font-size:7px;color:#ccc">${fm2(e.construccionEurM2)}</div>`:''}
       </td>
       <td style="padding:4px 4px;text-align:right">
-        <div style="font-size:9.5px;font-weight:600;color:#1a1a18">${fm(e.ventaEur)}</div>
+        <div style="font-size:9.5px;font-weight:${ventaWeight};color:${ventaColor}">${fm(e.ventaEur)}</div>
         ${fm2(e.ventaEurM2)?`<div style="font-size:7px;color:#ccc">${fm2(e.ventaEurM2)}${e.ventaVivEur?' · '+fm(e.ventaVivEur)+'/ud':''}</div>`:''}
       </td>
       <td style="padding:4px 4px;text-align:right;font-size:9px;color:#888;white-space:nowrap">${fmFecha(e.inicioProy)}</td>
@@ -2561,12 +2585,24 @@ function renderPipelineSummary() {
           <span style="font-size:8px;font-weight:700;color:${col};white-space:nowrap">${t>0?t.toFixed(1)+'%':'—'}</span>
         </div>
         <div style="display:flex;align-items:center;gap:3px">
-          <div style="height:8px;width:${wm}px;background:#c8dfc8;border-radius:1px;flex-shrink:0"></div>
+          <div style="height:8px;width:${wm}px;background:${isStandBy?'#d8dcd5':'#c8dfc8'};border-radius:1px;flex-shrink:0"></div>
           <span style="font-size:7.5px;color:#888;white-space:nowrap">${m>0?m.toFixed(0)+'%':'—'}${mg>0?' · '+fm(mg):''}</span>
         </div>
       </td>
     </tr>`;
-  }).join('');
+  }
+  // Active rows (excluding Stand By)
+  const sbWithEco = sortedSB.filter(p=>hasEcoData(p));
+  const tableRows = sortedMain.map((p,i)=>buildRow(p,i,false)).join('')
+    + (sbWithEco.length
+      ? `<tr><td colspan="8" style="padding:6px 0 4px;border-top:1px dashed #d0d0c8">
+           <div style="font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#888;display:flex;align-items:center;gap:6px">
+             <span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#a8b5ae"></span>
+             Stand By — Potencial · ${sbWithEco.length} proyecto${sbWithEco.length!==1?'s':''}
+           </div>
+         </td></tr>`
+        + sbWithEco.map((p,i)=>buildRow(p,i,true)).join('')
+      : '');
 
   const fecha=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
   const CT='font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:3px;margin-bottom:8px';
@@ -2685,6 +2721,7 @@ function renderPipelineSummary() {
             <div style="${CT.replace('margin-bottom:8px','margin-bottom:0')}">Venta y margen por año de entrega</div>
             <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
               <span style="display:flex;align-items:center;gap:3px;font-size:7.5px;color:#555"><span style="width:8px;height:8px;background:#1a3a2a;border-radius:1px;display:inline-block"></span>Venta</span>
+              <span style="display:flex;align-items:center;gap:3px;font-size:7.5px;color:#555"><span style="width:8px;height:8px;background:#a8b5ae;border-radius:1px;display:inline-block"></span>Stand By</span>
               <span style="display:flex;align-items:center;gap:3px;font-size:7.5px;color:#555"><span style="width:8px;height:8px;background:#52b788;border-radius:1px;display:inline-block"></span>Margen %</span>
             </div>
           </div>
@@ -2759,32 +2796,79 @@ function renderDealSheet() {
     + ops.map(p => '<option value="'+p.id+'"'+(S_dealId===p.id?' selected':'')+'>'+p.nombre+'</option>').join('');
 
   const nSel = (S_dealPdf||[]).length;
-  const multiDropdown = S_dealView==='ficha'
-    ? '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'
-      + ops.map(function(p){
-          var sel=(S_dealPdf||[]).includes(p.id);
-          var nombre=p.nombre.replace(/\s*[|·].*$/,'').trim().split(' ').slice(0,2).join(' ');
-          return '<button onclick="toggleDealPdf('+p.id+','+!sel+')" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1.5px solid '+(sel?'#1a3a2a':'var(--border2)')+';background:'+(sel?'#1a3a2a':'transparent')+';color:'+(sel?'white':'var(--text2)')+';cursor:pointer;font-family:var(--font);font-weight:'+(sel?'600':'400')+';transition:all .15s">'+nombre+'</button>';
-        }).join('')
-      + (nSel>0?'<button onclick="printMultiDealSheet()" style="font-size:11px;padding:4px 12px;border-radius:20px;border:none;background:#52b788;color:white;cursor:pointer;font-family:var(--font);font-weight:600;margin-left:4px">Exportar '+nSel+' PDF'+(nSel!==1?'s':'')+'</button>':'')
-      + '</div>'
+  // Botón único en el toolbar para abrir el modal
+  const multiBtn = S_dealView==='ficha'
+    ? '<button onclick="S_multiPdfModal=true;render()" style="font-size:12px;padding:6px 14px;border-radius:var(--r);border:1px solid '+(nSel>0?'#1a3a2a':'var(--border2)')+';background:'+(nSel>0?'#1a3a2a':'transparent')+';color:'+(nSel>0?'white':'var(--text2)')+';cursor:pointer;font-family:var(--font);font-weight:500;display:inline-flex;align-items:center;gap:6px">📚 Multi-PDF'+(nSel>0?' <span style="background:rgba(255,255,255,0.25);padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700">'+nSel+'</span>':'')+'</button>'
+    : '';
+
+  // Modal de selección múltiple — grid limpio con checkboxes
+  const multiModal = (S_dealView==='ficha' && S_multiPdfModal)
+    ? (function(){
+        const allSelected = ops.length>0 && ops.every(p=>S_dealPdf.includes(p.id));
+        const cards = ops.map(function(p){
+          const sel = S_dealPdf.includes(p.id);
+          const estadoColor = ({'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae','Descartado':'#c8cfc9','Cerrado':'#e0e0e0'})[p.estado]||'#aaa';
+          return '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);border:1.5px solid '+(sel?'#1a3a2a':'var(--border)')+';background:'+(sel?'#f0f5f1':'var(--surface)')+';cursor:pointer;transition:all .12s;min-width:0">'
+            +'<input type="checkbox" '+(sel?'checked':'')+' onchange="toggleDealPdf('+p.id+',this.checked);render()" style="accent-color:#1a3a2a;width:14px;height:14px;flex-shrink:0;cursor:pointer"/>'
+            +'<div style="flex:1;min-width:0">'
+              +'<div style="font-size:12px;font-weight:'+(sel?'600':'500')+';color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.nombre+'</div>'
+              +'<div style="display:flex;align-items:center;gap:5px;margin-top:3px">'
+                +'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+estadoColor+'"></span>'
+                +'<span style="font-size:10px;color:var(--text3)">'+p.estado+(p.tipo?' · '+p.tipo:'')+'</span>'
+              +'</div>'
+            +'</div>'
+          +'</label>';
+        }).join('');
+        return '<div onclick="if(event.target===this){S_multiPdfModal=false;render()}" style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px">'
+          +'<div style="background:var(--surface);border-radius:var(--rl);box-shadow:0 12px 48px rgba(0,0,0,0.25);width:100%;max-width:780px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden">'
+            // Header
+            +'<div style="padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">'
+              +'<div>'
+                +'<div style="font-size:15px;font-weight:700;color:var(--text)">📚 Exportar varios proyectos a PDF</div>'
+                +'<div style="font-size:11px;color:var(--text3);margin-top:2px">Selecciona los proyectos que quieres incluir en el PDF combinado</div>'
+              +'</div>'
+              +'<button onclick="S_multiPdfModal=false;render()" style="background:transparent;border:none;font-size:18px;color:var(--text3);cursor:pointer;padding:4px 8px;border-radius:var(--r)" title="Cerrar">✕</button>'
+            +'</div>'
+            // Toolbar
+            +'<div style="padding:12px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2)">'
+              +'<div style="font-size:11px;color:var(--text2)"><span style="font-weight:700;color:#1a3a2a">'+nSel+'</span> de '+ops.length+' seleccionados</div>'
+              +'<div style="display:flex;gap:6px">'
+                +'<button onclick="'+(allSelected?'S_dealPdf=[]':'S_dealPdf='+JSON.stringify(ops.map(p=>p.id)))+';render()" style="font-size:11px;padding:5px 12px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font)">'+(allSelected?'Deseleccionar todos':'Seleccionar todos')+'</button>'
+              +'</div>'
+            +'</div>'
+            // Body — grid de checkboxes
+            +'<div style="padding:16px 22px;overflow-y:auto;flex:1">'
+              +(ops.length
+                ? '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">'+cards+'</div>'
+                : '<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:12px">Sin proyectos en Pipeline</div>')
+            +'</div>'
+            // Footer
+            +'<div style="padding:14px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;background:var(--surface2)">'
+              +'<button onclick="S_multiPdfModal=false;render()" style="font-size:12px;padding:7px 16px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font)">Cancelar</button>'
+              +(nSel>0
+                ? '<button onclick="S_multiPdfModal=false;printMultiDealSheet()" style="font-size:12px;padding:7px 18px;border-radius:var(--r);border:none;background:#1a3a2a;color:white;cursor:pointer;font-family:var(--font);font-weight:600">Exportar '+nSel+' PDF'+(nSel!==1?'s':'')+' →</button>'
+                : '<button disabled style="font-size:12px;padding:7px 18px;border-radius:var(--r);border:none;background:var(--border);color:var(--text3);cursor:not-allowed;font-family:var(--font);font-weight:600">Exportar PDFs</button>')
+            +'</div>'
+          +'</div>'
+        +'</div>';
+      })()
     : '';
 
   const selector = '<div class="ds-toolbar">'
-    +'<div style="display:flex;gap:6px;align-items:center;flex:1">'
+    +'<div style="display:flex;gap:6px;align-items:center;flex:1;flex-wrap:wrap">'
     +'<button onclick="S_dealView=\'pipeline\';render()" style="font-size:12px;padding:6px 14px;border-radius:var(--r);border:1px solid '+(S_dealView==='pipeline'?'#1a3a2a':'var(--border2)')+';background:'+(S_dealView==='pipeline'?'#1a3a2a':'transparent')+';color:'+(S_dealView==='pipeline'?'white':'var(--text2)')+';cursor:pointer;font-family:var(--font);font-weight:500">📊 Resumen Pipeline</button>'
     +'<button onclick="S_dealView=\'ficha\';render()" style="font-size:12px;padding:6px 14px;border-radius:var(--r);border:1px solid '+(S_dealView==='ficha'?'#1a3a2a':'var(--border2)')+';background:'+(S_dealView==='ficha'?'#1a3a2a':'transparent')+';color:'+(S_dealView==='ficha'?'white':'var(--text2)')+';cursor:pointer;font-family:var(--font);font-weight:500">📄 Deal Sheet</button>'
     +(S_dealView==='ficha'?'<select class="ds-selector" onchange="S_dealId=parseInt(this.value)||null;render()">'+opts+'</select>':'')
     +(S_dealView==='ficha'&&S_dealId?'<button class="ds-export-btn" onclick="printDealSheet()">Convertir PDF</button>':'')
     +(S_dealView==='pipeline'?'<button class="ds-export-btn" onclick="printPipelineSummary()">Exportar PDF</button>':'')
+    +multiBtn
     +'</div>'
-    +(S_dealView==='ficha'?multiDropdown:'')
     +'</div>';
 
-  if(S_dealView==='pipeline') return '<div class="ds-wrap">'+selector+renderPipelineSummary()+'</div>';
-  if(!S_dealId) return '<div class="ds-wrap">'+selector+'<div class="ds-empty"><div style="font-size:36px">📄</div><div>Selecciona un proyecto de <strong>Pipeline</strong></div></div></div>';
+  if(S_dealView==='pipeline') return '<div class="ds-wrap">'+selector+renderPipelineSummary()+'</div>'+multiModal;
+  if(!S_dealId) return '<div class="ds-wrap">'+selector+'<div class="ds-empty"><div style="font-size:36px">📄</div><div>Selecciona un proyecto de <strong>Pipeline</strong></div></div></div>'+multiModal;
   const p = projects.find(x=>x.id===S_dealId);
-  if(!p) return '<div class="ds-wrap">'+selector+'</div>';
+  if(!p) return '<div class="ds-wrap">'+selector+'</div>'+multiModal;
   const eco = p.eco||{};
 
   // ── Helpers ───────────────────────────────────────────────
@@ -2996,7 +3080,7 @@ function renderDealSheet() {
     +'</div>'
     +'<div class="ds-footer" style="background:linear-gradient(135deg,#f0efe9,#f5f4f0);border-top:1px solid #e0dfd8">'
     +'<span class="ds-footer-txt">Acciona Inmobiliaria · Deal Sheet · '+new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'})+'</span><span class="ds-footer-txt">Documento interno — uso confidencial</span></div>'
-    +'</div></div>';
+    +'</div></div>'+multiModal;
 }
 
 
