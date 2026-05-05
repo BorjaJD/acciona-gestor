@@ -906,6 +906,17 @@ function saveField(id, campo, valor) {
   if(campo==='prioridad') document.querySelectorAll('tr[data-id="'+id+'"] .cell-prio').forEach(el=>el.innerHTML=pillP(parseInt(valor)));
 }
 
+function toggleMapUrlField(id, enabled) {
+  const p = projects.find(x=>x.id===id); if(!p) return;
+  p.mapUrlEnabled = enabled;
+  if(!enabled) { p.mapUrl = ''; const inp = document.getElementById('mapurl-input-'+id); if(inp) inp.value = ''; }
+  persist();
+  const wrap = document.getElementById('mapurl-wrap-'+id);
+  if(wrap) wrap.style.display = enabled ? 'flex' : 'none';
+  const openBtn = document.getElementById('mapurl-open-'+id);
+  if(openBtn) openBtn.style.display = (enabled && p.mapUrl) ? 'inline-flex' : 'none';
+}
+
 function savePrio(id, val) {
   const p = projects.find(x=>x.id===id); if(!p) return;
   p.prioridad = val; persist();
@@ -1119,7 +1130,19 @@ function renderDetail() {
     +'<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4px 14px;margin-bottom:10px">'
     +'<div class="d-item"><label>Provincia</label><select class="d-select" onchange="saveField('+p.id+',\'ubicacion\',this.value)" onclick="event.stopPropagation()">'+UBICACIONES_OPTS.map(u=>'<option value="'+u+'"'+(u===(p.ubicacion||'')?'  selected':'')+'>'+u+'</option>').join('')+'</select></div>'
     +'<div class="d-item"><label>Ciudad</label><input class="d-input" value="'+(p.ciudad||'')+'" placeholder="ej. Madrid" oninput="saveField('+p.id+',\'ciudad\',this.value)" onclick="event.stopPropagation()"/></div>'
-    +'<div class="d-item"></div>'
+    +(p.bloque!=='Pipeline'
+      ? '<div class="d-item" onclick="event.stopPropagation()">'
+        +'<label>Google Maps</label>'
+        +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:3px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:4px 7px">'
+        +'<input type="checkbox" '+((p.mapUrlEnabled||p.mapUrl)?'checked':'')+' style="accent-color:#1a3a2a;cursor:pointer;width:12px;height:12px" onchange="toggleMapUrlField('+p.id+',this.checked)"/>'
+        +'<span style="font-size:11px;font-weight:600;color:var(--text2)">📍 Añadir enlace</span>'
+        +'</label>'
+        +'<div id="mapurl-wrap-'+p.id+'" style="display:'+((p.mapUrlEnabled||p.mapUrl)?'flex':'none')+';gap:4px;align-items:center">'
+        +'<input class="d-input" id="mapurl-input-'+p.id+'" value="'+(p.mapUrl||'').replace(/"/g,'&quot;')+'" placeholder="Pega URL de Google Maps…" oninput="saveField('+p.id+',\'mapUrl\',this.value);document.getElementById(\'mapurl-open-'+p.id+'\').style.display=this.value?\'inline-flex\':\'none\'" onclick="event.stopPropagation()" style="flex:1"/>'
+        +'<a id="mapurl-open-'+p.id+'" href="'+(p.mapUrl||'#').replace(/"/g,'&quot;')+'" target="_blank" rel="noopener" onclick="event.stopPropagation();this.href=document.getElementById(\'mapurl-input-'+p.id+'\').value||\'#\'" title="Abrir en Google Maps" style="display:'+(p.mapUrl?'inline-flex':'none')+';align-items:center;justify-content:center;width:26px;height:26px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);text-decoration:none;font-size:12px;color:var(--text2);flex-shrink:0">↗</a>'
+        +'</div>'
+        +'</div>'
+      : '<div class="d-item"></div>')
     +'</div>'
 
     // ── Sección: Contraparte ──────────────────────────────────
@@ -1894,27 +1917,32 @@ function renderEconomico() {
     +'<table style="width:max-content;min-width:100%;border-collapse:collapse;font-size:12px">'+thead
     +'<tbody>'+rows
     +(npWithoutUW.length
-      ? '<tr><td colspan="99" style="padding:0;border:none">'
-        +'<div style="padding:7px 12px;background:#fafaf8;border-top:2px dashed var(--border2);display:flex;align-items:center;gap:8px;cursor:pointer" onclick="S_noUWEco=!S_noUWEco;renderEcoOnly()">'
-        +'<span style="font-size:11px;color:var(--text3);font-weight:600">'+(S_noUWEco?'▾':'▸')+' Sin modelo — '+npWithoutUW.length+' proyecto'+(npWithoutUW.length!==1?'s':'')+'</span>'
-        +'<span style="font-size:10px;color:#bbb;margin-left:4px">'+(S_noUWEco?'Colapsar':'Expandir')+'</span>'
-        +'</div>'
-        +(S_noUWEco
-          ? npWithoutUW.map((p,i)=>{
-              const bg=i%2===0?'':'background:var(--surface2)';
+      ? (function(){
+          // Total visible columns = 2 fixed (Proyecto, Estado) + sum of visible cols per group
+          const totalVisCols = 2 + GROUPS.reduce((s,g)=>s+visibleCols(g).length, 0);
+          // Header row for the "Sin modelo" section — spans all visible columns
+          let html = '<tr class="sin-modelo-header" onclick="S_noUWEco=!S_noUWEco;renderEcoOnly()" style="cursor:pointer">'
+            +'<td colspan="'+totalVisCols+'" style="padding:7px 12px;background:#fafaf8;border-top:2px dashed var(--border2);border-bottom:1px solid var(--border)">'
+              +'<span style="font-size:11px;color:var(--text3);font-weight:600">'+(S_noUWEco?'▾':'▸')+' Sin modelo — '+npWithoutUW.length+' proyecto'+(npWithoutUW.length!==1?'s':'')+'</span>'
+              +'<span style="font-size:10px;color:#bbb;margin-left:4px">'+(S_noUWEco?'Colapsar':'Expandir')+'</span>'
+            +'</td></tr>';
+          // Project rows — only render when expanded; use visibleCols so cell count matches header & data rows
+          if(S_noUWEco){
+            html += npWithoutUW.map((p,i)=>{
+              const bg=i%2===0?'background:#fafaf8':'background:var(--surface2)';
               const dot=`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${EDOT[p.estado]||'#aaa'};margin-right:4px"></span>`;
-              const ncols = GROUPS.reduce((s,g)=>s+g.cols.length,0)+2;
               let r='<tr style="'+bg+';cursor:pointer;opacity:0.6" onclick="goToProject('+p.id+')" title="Sin datos UW">'
                 +'<td style="'+tdStyleL+';position:sticky;left:0;z-index:1;'+bg+';font-weight:500;min-width:220px">'
-                  +'<div style="display:flex;align-items:center;gap:6px">'+pillP(p.prioridad)+'<div><div>'+p.nombre+'</div><div style="font-size:10px;color:var(--text3)">'+p.tipo+(p.ubicacion?' · '+p.ubicacion:'')+'</div></div></div>'
+                  +'<div style="display:flex;align-items:center;gap:6px">'+pillP(p.prioridad)+'<div style="flex:1;min-width:0"><div>'+p.nombre+'</div><div style="font-size:10px;color:var(--text3);margin-top:1px;font-weight:400">'+p.tipo+(p.ubicacion?' · '+p.ubicacion:'')+'</div></div></div>'
                 +'</td>'
-                +'<td style="'+tdStyleL+'">'+dot+p.estado+'</td>';
-              GROUPS.forEach(g=>{ g.cols.forEach(()=>{ r+='<td style="'+tdStyle+';color:#ddd">—</td>'; }); });
+                +'<td style="'+tdStyleL+';min-width:100px">'+dot+'<span style="font-size:11px;color:var(--text2)">'+p.estado+'</span></td>';
+              GROUPS.forEach(g=>{ visibleCols(g).forEach(()=>{ r+='<td style="'+tdStyle+';color:#ddd">—</td>'; }); });
               r+='</tr>';
               return r;
-            }).join('')
-          : '')
-        +'</td></tr>'
+            }).join('');
+          }
+          return html;
+        })()
       : '')
     +'</tbody>'
     +'</table>'
@@ -2116,9 +2144,13 @@ function renderMobile() {
 
 function render() {
   const m = document.getElementById('main');
-  // Mobile gets simplified view (except when viewing a project detail)
   if(isMobile() && S.view!=='dealsheet') {
-    m.innerHTML = renderMobile();
+    try {
+      m.innerHTML = renderMobile();
+    } catch(e) {
+      console.error('renderMobile error:', e);
+      m.innerHTML = '<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error móvil:</strong><br><pre style="white-space:pre-wrap;font-size:11px">'+e.message+'</pre></div>';
+    }
     return;
   }
   const focused = document.activeElement;
