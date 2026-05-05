@@ -1837,7 +1837,9 @@ function renderEconomico() {
   const tdStyle  = 'padding:8px 8px;text-align:center;border-bottom:1px solid var(--border);font-size:11px;white-space:nowrap;vertical-align:middle';
   const tdStyleL = tdStyle.replace('text-align:right','text-align:left');
 
-  const rows = np.map((p,i) => {
+  const npWithUW    = np.filter(p=>hasUW(p));
+  const npWithoutUW = np.filter(p=>!hasUW(p));
+  const rows = npWithUW.map((p,i) => {
     const eco = p.eco || {};
     const c = calcEco(p);
     const bg = i%2===0 ? '' : 'background:var(--surface2)';
@@ -1890,11 +1892,40 @@ function renderEconomico() {
     +summaryBar
     +'<div class="eco-table-wrap">'
     +'<table style="width:max-content;min-width:100%;border-collapse:collapse;font-size:12px">'+thead
-    +'<tbody>'+rows+'</tbody>'
+    +'<tbody>'+rows
+    +(npWithoutUW.length
+      ? '<tr><td colspan="99" style="padding:0;border:none">'
+        +'<div style="padding:7px 12px;background:#fafaf8;border-top:2px dashed var(--border2);display:flex;align-items:center;gap:8px;cursor:pointer" onclick="S_noUWEco=!S_noUWEco;renderEcoOnly()">'
+        +'<span style="font-size:11px;color:var(--text3);font-weight:600">'+(S_noUWEco?'▾':'▸')+' Sin modelo — '+npWithoutUW.length+' proyecto'+(npWithoutUW.length!==1?'s':'')+'</span>'
+        +'<span style="font-size:10px;color:#bbb;margin-left:4px">'+(S_noUWEco?'Colapsar':'Expandir')+'</span>'
+        +'</div>'
+        +(S_noUWEco
+          ? npWithoutUW.map((p,i)=>{
+              const bg=i%2===0?'':'background:var(--surface2)';
+              const dot=`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${EDOT[p.estado]||'#aaa'};margin-right:4px"></span>`;
+              const ncols = GROUPS.reduce((s,g)=>s+g.cols.length,0)+2;
+              let r='<tr style="'+bg+';cursor:pointer;opacity:0.6" onclick="goToProject('+p.id+')" title="Sin datos UW">'
+                +'<td style="'+tdStyleL+';position:sticky;left:0;z-index:1;'+bg+';font-weight:500;min-width:220px">'
+                  +'<div style="display:flex;align-items:center;gap:6px">'+pillP(p.prioridad)+'<div><div>'+p.nombre+'</div><div style="font-size:10px;color:var(--text3)">'+p.tipo+(p.ubicacion?' · '+p.ubicacion:'')+'</div></div></div>'
+                +'</td>'
+                +'<td style="'+tdStyleL+'">'+dot+p.estado+'</td>';
+              GROUPS.forEach(g=>{ g.cols.forEach(()=>{ r+='<td style="'+tdStyle+';color:#ddd">—</td>'; }); });
+              r+='</tr>';
+              return r;
+            }).join('')
+          : '')
+        +'</td></tr>'
+      : '')
+    +'</tbody>'
     +'</table>'
     +'</div>'
     +legend
     +'</div>';
+}
+
+function renderEcoOnly(){
+  const m=document.getElementById('main');
+  if(m) try{m.innerHTML=renderEconomico();}catch(e){console.error(e);}
 }
 
 function thGroupStyle(bg, extra) {
@@ -1911,7 +1942,9 @@ function goToProject(id) {
 }
 
 function isMobile() {
-  return (window.innerWidth || document.documentElement.clientWidth || screen.width) <= 768;
+  const w = window.innerWidth || document.documentElement.clientWidth || screen.width;
+  const ua = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  return w <= 768 || ua;
 }
 
 function renderMobile() {
@@ -2180,6 +2213,8 @@ let S_dealId = null;
 let S_dealView = 'ficha'; // 'ficha' | 'pipeline'
 let S_dealPdf  = []; // IDs selected for multi-PDF
 let S_pdfDropOpen = false;
+let S_noUWDash = false;  // expand no-UW in dashboard pipeline table
+let S_noUWEco  = false;  // expand no-UW in UW|Modelo table
 
 function togglePdfDrop(e) {
   e.stopPropagation();
@@ -3167,19 +3202,14 @@ function renderEstudioSection() {
     return v;
   }
 
-  const tableRows=epSorted.map((p,i)=>{
-    const e=p.eco||{},bg=i%2===0?'':'background:var(--surface2)';
-    const isFirst=i===0, prevHasUW=i>0?hasUW(epSorted[i-1]):true;
-    const sepRow=!hasUW(p)&&prevHasUW
-      ?'<tr><td colspan="13" style="padding:0;border-top:2px dashed var(--border2);border-bottom:none;background:transparent"></td></tr>'
-      :'';
-    const dot='<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+(EDOT[p.estado]||'#aaa')+';margin-right:5px"></span>';
-    const uwBadge=hasUW(p)
-      ?'<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:#dceee2;color:#2e5c3e;border:1px solid #b6d9c2">✓ UW</span>'
-      :'<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:var(--surface2);color:var(--text3);border:1px solid var(--border)">—</span>';
-    const ciudad=p.ubicacion&&p.ubicacion!==''?p.ubicacion:'<span style="color:var(--text3)">—</span>';
+  const epWithUW    = epSorted.filter(p=>hasUW(p));
+  const epWithoutUW = epSorted.filter(p=>!hasUW(p));
 
-    // Delta from last import snapshot
+  const tableRows=epWithUW.map((p,i)=>{
+    const e=p.eco||{},bg=i%2===0?'':'background:var(--surface2)';
+    const dot='<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+(EDOT[p.estado]||'#aaa')+';margin-right:5px"></span>';
+    const uwBadge='<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:#dceee2;color:#2e5c3e;border:1px solid #b6d9c2">✓ UW</span>';
+    const ciudad=p.ubicacion&&p.ubicacion!==''?p.ubicacion:'<span style="color:var(--text3)">—</span>';
     let ecoSnap={};
     try{const s=localStorage.getItem('acciona_eco_snapshot');if(s){const snap=JSON.parse(s);if(snap[p.nombre])ecoSnap=snap[p.nombre];}}catch(e){}
     function dd(newV,oldV,isPct){
@@ -3192,8 +3222,7 @@ function renderEstudioSection() {
       let txt=isPct?(up?'↑ +':'↓ −')+diff.toFixed(2).replace('.',',')+'pp':(up?'↑ +':'↓ −')+(diff>=1000000?Math.round(diff/1000000)+'M€':diff>=1000?Math.round(diff/1000)+'K€':Math.round(diff)+'€');
       return '<div style="margin-top:2px"><span style="font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;background:'+(up?'#e8f5e9':'#fde8e8')+';color:'+(up?'#2d6a4f':'#c0392b')+'">'+txt+'</span></div>';
     }
-
-    return sepRow+'<tr style="'+bg+';cursor:pointer" onclick="navigateTo(\'tabla\',{id:'+p.id+'})">'
+    return '<tr style="'+bg+';cursor:pointer" onclick="navigateTo(\'tabla\',{id:'+p.id+'})">'
       +'<td style="'+tdS+';font-weight:500;overflow:hidden;text-overflow:ellipsis">'+p.nombre+'</td>'
       +'<td style="'+tdS+';text-align:center">'+pillP(p.prioridad)+'</td>'
       +'<td style="'+tdS+';text-align:center">'+uwBadge+'</td>'
@@ -3243,7 +3272,37 @@ function renderEstudioSection() {
     +'<th style="'+thS+';text-align:right">Margen €</th>'
     +'<th style="'+thS+';text-align:right">Margen %</th>'
     +'<th style="'+thS+';text-align:right;padding-right:16px">Entrega</th>'
-    +'</tr></thead><tbody>'+tableRows+'</tbody></table></div></div>';
+    +'</tr></thead><tbody>'+tableRows
+    +(epWithoutUW.length
+      ? '<tr><td colspan="13" style="padding:0;border:none">'
+        +'<div style="padding:6px 8px;background:#fafaf8;border-top:2px dashed var(--border2);display:flex;align-items:center;gap:8px;cursor:pointer" onclick="S_noUWDash=!S_noUWDash;render()">'
+        +'<span style="font-size:10px;color:var(--text3);font-weight:600">'+(S_noUWDash?'▾':'▸')+' Sin modelo ('+epWithoutUW.length+')</span>'
+        +'</div>'
+        +(S_noUWDash
+          ? epWithoutUW.map((p,i)=>{
+              const e=p.eco||{},bg=i%2===0?'':'background:var(--surface2)';
+              const dot='<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+(EDOT[p.estado]||'#aaa')+';margin-right:5px"></span>';
+              const ciudad=p.ubicacion&&p.ubicacion!==''?p.ubicacion:'<span style="color:var(--text3)">—</span>';
+              return '<tr style="'+bg+';cursor:pointer;opacity:0.65" onclick="navigateTo(\'tabla\',{id:'+p.id+'})">'
+                +'<td style="'+tdS+';font-weight:500;overflow:hidden;text-overflow:ellipsis">'+p.nombre+'</td>'
+                +'<td style="'+tdS+';text-align:center">'+pillP(p.prioridad)+'</td>'
+                +'<td style="'+tdS+';text-align:center"><span style="font-size:9px;padding:1px 5px;border-radius:3px;background:var(--surface2);color:var(--text3);border:1px solid var(--border)">—</span></td>'
+                +'<td style="'+tdS+'">'+dot+p.estado+'</td>'
+                +'<td style="'+tdS+';color:#1a1a18;overflow:hidden;text-overflow:ellipsis">'+p.tipo+'</td>'
+                +'<td style="'+tdS+';color:#1a1a18">'+ciudad+'</td>'
+                +'<td style="'+tdS+';text-align:right;color:var(--text3)">—</td>'
+                +'<td style="'+tdS+';text-align:right;color:var(--text3)">—</td>'
+                +'<td style="'+tdS+';text-align:right;color:var(--text3)">—</td>'
+                +'<td style="'+tdS+';text-align:right;color:var(--text3)">—</td>'
+                +'<td style="'+tdS+';text-align:right;color:var(--text3)">—</td>'
+                +'<td style="'+tdS+';text-align:right;color:var(--text3)">—</td>'
+                +'<td style="'+tdS+';text-align:right;color:var(--text3)">—</td>'
+                +'</tr>';
+            }).join('')
+          : '')
+        +'</td></tr>'
+      : '')
+    +'</tbody></table></div></div>';
 }
 
 function navigateTo(view, filters) {
@@ -3755,7 +3814,7 @@ if(window.location.protocol === 'file:') {
 } else {
   // En GitHub: mostrar spinner, esperar Supabase
   const main = document.getElementById('main');
-  if(main) main.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px;background:var(--bg)"><div style="width:32px;height:32px;border:3px solid #eee;border-top-color:#1a3a2a;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="font-size:13px;color:#aaa">Cargando datos…</div></div>';
+  if(main) main.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100vh;flex-direction:column;gap:16px;background:#f8f7f3;position:fixed;top:0;left:0;z-index:999"><div style="width:36px;height:36px;border:3px solid #e8e8e0;border-top-color:#1a3a2a;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="font-size:13px;color:#aaa;font-family:inherit">Cargando datos…</div></div>';
   if(!document.getElementById('spin-style')){const s=document.createElement('style');s.id='spin-style';s.textContent='@keyframes spin{to{transform:rotate(360deg)}}';document.head.appendChild(s);}
   addMsg('system','Sincronizando con la nube…');
   loadFromSupabase()
