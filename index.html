@@ -3166,25 +3166,24 @@ function renderDashboard() {
 
     const ESTADO_COLOR = {'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae','Descartado':'#c8cfc9','Cerrado':'#e0e0e0'};
 
-    const cellPad = 'padding:4px 6px';
-    const rowH = 24;
+    const cellW = 24;
+    const rowH = 20;
 
-    // Header con anchos compactos
-    let html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:separate;border-spacing:3px 3px;font-family:var(--font);table-layout:fixed">';
+    let html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:separate;border-spacing:2px 2px;font-family:var(--font);table-layout:fixed">';
     html += '<colgroup>';
     html += '<col/>'; // Proyecto: flexible
-    FASES_FLOW.forEach(()=>{ html += '<col style="width:54px"/>'; });
-    html += '<col style="width:54px"/>';   // Comité
-    html += '<col style="width:140px"/>'; // Avance + %
+    FASES_FLOW.forEach(()=>{ html += `<col style="width:${cellW}px"/>`; });
+    html += `<col style="width:${cellW+8}px"/>`;   // Comité (con margen)
+    html += '<col style="width:90px"/>'; // Avance + %
     html += '</colgroup>';
 
     html += '<thead><tr>';
-    html += `<th style="text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:4px 8px 6px 4px">Proyecto</th>`;
+    html += `<th style="text-align:left;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);padding:2px 6px 4px 4px">Proyecto</th>`;
     FASES_FLOW.forEach(f=>{
-      html += `<th style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:4px 4px 6px;text-align:center" title="${f}">${f.replace('Teaser/IM','TIM')}</th>`;
+      html += `<th style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--text3);padding:2px 0 4px;text-align:center" title="${f}">${f.replace('Teaser/IM','TIM')}</th>`;
     });
-    html += `<th style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#1a3a2a;padding:4px 4px 6px;text-align:center" title="Pasado por comité">Cmt</th>`;
-    html += `<th style="text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:4px 4px 6px 12px">Avance</th>`;
+    html += `<th style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:#1a3a2a;padding:2px 0 4px 8px;text-align:center" title="Pasado por comité">CMT</th>`;
+    html += `<th style="text-align:left;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--text3);padding:2px 0 4px 10px">Avance</th>`;
     html += '</tr></thead><tbody>';
 
     psSorted.forEach((p)=>{
@@ -3193,58 +3192,51 @@ function renderDashboard() {
       const pctP = Math.round(completas/FASES_FLOW.length*100);
       const estadoColor = ESTADO_COLOR[p.estado] || '#aaa';
 
-      // Celda nombre con dotEstado
       html += `<tr style="cursor:pointer" onclick="navigateTo('tabla',{id:${p.id}})">`;
-      html += `<td style="${cellPad};padding-left:4px;font-size:11.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:${rowH}px;vertical-align:middle">`
-        + `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${estadoColor};margin-right:8px;vertical-align:middle" title="${p.estado}"></span>`
+      html += `<td style="padding:2px 6px 2px 4px;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:${rowH}px;vertical-align:middle">`
+        + `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${estadoColor};margin-right:6px;vertical-align:middle" title="${p.estado}"></span>`
         + `<span style="font-weight:500;vertical-align:middle">${p.nombre}</span>`
         + `</td>`;
 
-      // Celdas de fase: solo color, sin símbolo
+      // Celdas de fase: pequeñas y cuadradas
       FASES_FLOW.forEach(f=>{
         const done = fs.includes(f);
-        if(done){
-          html += `<td style="background:${accentColor};border-radius:4px;height:${rowH}px"></td>`;
-        } else {
-          html += `<td style="background:#f6f7f4;border-radius:4px;height:${rowH}px"></td>`;
-        }
+        const bg = done ? accentColor : '#f1f3ee';
+        html += `<td style="background:${bg};border-radius:3px;height:${rowH-4}px;padding:0"></td>`;
       });
 
-      // Comité — mismo estilo, color más oscuro cuando está
+      // Comité — con margen separador, color distinto cuando está
       const comDone = fs.includes('Comité');
-      if(comDone){
-        html += `<td style="background:#1a3a2a;border-radius:4px;height:${rowH}px"></td>`;
-      } else {
-        html += `<td style="background:#f6f7f4;border-radius:4px;height:${rowH}px"></td>`;
-      }
+      const comBg = comDone ? '#1a3a2a' : '#f1f3ee';
+      html += `<td style="background:${comBg};border-radius:3px;height:${rowH-4}px;padding:0;margin-left:8px;background-clip:padding-box;border-left:8px solid var(--surface)"></td>`;
 
-      // Mini-barra de avance + %
-      html += `<td style="${cellPad};padding-left:12px;vertical-align:middle;height:${rowH}px">`
-        + `<div style="display:flex;align-items:center;gap:8px">`
-          + `<div style="flex:1;height:5px;background:#eef0eb;border-radius:3px;overflow:hidden;min-width:50px">`
-            + `<div style="height:100%;width:${pctP}%;background:${accentColor};border-radius:3px;transition:width .3s"></div>`
+      // Mini-barra + %
+      html += `<td style="padding:2px 0 2px 10px;vertical-align:middle;height:${rowH}px">`
+        + `<div style="display:flex;align-items:center;gap:6px">`
+          + `<div style="flex:1;height:4px;background:#eef0eb;border-radius:2px;overflow:hidden;min-width:30px">`
+            + `<div style="height:100%;width:${pctP}%;background:${accentColor};border-radius:2px;transition:width .3s"></div>`
           + `</div>`
-          + `<span style="font-size:11px;font-weight:700;color:${pctP===0?'var(--text3)':'var(--text2)'};font-variant-numeric:tabular-nums;min-width:32px;text-align:right">${pctP}%</span>`
+          + `<span style="font-size:10px;font-weight:700;color:${pctP===0?'var(--text3)':'var(--text2)'};font-variant-numeric:tabular-nums;min-width:28px;text-align:right">${pctP}%</span>`
         + `</div>`
         + `</td>`;
       html += '</tr>';
     });
     html += '</tbody>';
 
-    // Footer con totales
+    // Footer
     html += '<tfoot><tr>';
-    html += `<td style="${cellPad};padding-left:4px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding-top:12px">Totales</td>`;
+    html += `<td style="padding:8px 6px 2px 4px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)">Totales</td>`;
     FASES_FLOW.forEach(f=>{
       const n = totals[f];
-      html += `<td style="${cellPad};text-align:center;font-size:12px;font-weight:700;color:${n>0?accentColor:'var(--text3)'};font-variant-numeric:tabular-nums;padding-top:12px">${n}</td>`;
+      html += `<td style="padding:8px 0 2px;text-align:center;font-size:11px;font-weight:700;color:${n>0?accentColor:'var(--text3)'};font-variant-numeric:tabular-nums">${n}</td>`;
     });
-    html += `<td style="${cellPad};text-align:center;font-size:12px;font-weight:700;color:${totalCom>0?'#1a3a2a':'var(--text3)'};font-variant-numeric:tabular-nums;padding-top:12px">${totalCom}</td>`;
-    html += `<td style="${cellPad};padding-left:12px;padding-top:12px;vertical-align:middle">`
-      + `<div style="display:flex;align-items:center;gap:8px">`
-        + `<div style="flex:1;height:5px;background:#eef0eb;border-radius:3px;overflow:hidden;min-width:50px">`
-          + `<div style="height:100%;width:${pctGlobal}%;background:${accentColor};border-radius:3px"></div>`
+    html += `<td style="padding:8px 0 2px 8px;text-align:center;font-size:11px;font-weight:700;color:${totalCom>0?'#1a3a2a':'var(--text3)'};font-variant-numeric:tabular-nums">${totalCom}</td>`;
+    html += `<td style="padding:8px 0 2px 10px;vertical-align:middle">`
+      + `<div style="display:flex;align-items:center;gap:6px">`
+        + `<div style="flex:1;height:4px;background:#eef0eb;border-radius:2px;overflow:hidden;min-width:30px">`
+          + `<div style="height:100%;width:${pctGlobal}%;background:${accentColor};border-radius:2px"></div>`
         + `</div>`
-        + `<span style="font-size:11px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;min-width:32px;text-align:right">${pctGlobal}%</span>`
+        + `<span style="font-size:10px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;min-width:28px;text-align:right">${pctGlobal}%</span>`
       + `</div>`
       + `</td>`;
     html += '</tr></tfoot>';
@@ -3257,25 +3249,20 @@ function renderDashboard() {
   const totalPip = projects.filter(p=>p.bloque==='Pipeline' && !['Descartado','Cerrado'].includes(p.estado)).length;
   const totalDes = projects.filter(p=>p.bloque==='Desinversión' && !['Descartado','Cerrado'].includes(p.estado)).length;
   const avanceBlock = '<div class="dash-card" style="margin-bottom:12px">'
-    +'<div class="dash-card-title" style="display:flex;align-items:center;justify-content:space-between">'
-      +'<span>Avance de oportunidades</span>'
-      +'<span style="font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.04em">PROYECTO × FASE</span>'
-    +'</div>'
-    +'<div style="display:grid;grid-template-columns:1fr;gap:18px">'
-      +'<div>'
-        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
-          +'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#2d6a4f"></span>'
-          +'<span style="font-size:11px;font-weight:700;color:#2d6a4f;letter-spacing:.02em">Pipeline</span>'
-          +'<span style="font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.05em">ADQUISICIÓN</span>'
+    +'<div class="dash-card-title">Avance de oportunidades</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start">'
+      +'<div style="min-width:0">'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">'
+          +'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2d6a4f"></span>'
+          +'<span style="font-size:11px;font-weight:700;color:#2d6a4f">Pipeline</span>'
           +`<span style="font-size:10px;color:var(--text3);margin-left:auto">${totalPip} activo${totalPip!==1?'s':''}</span>`
         +'</div>'
         +matrixPipeline
       +'</div>'
-      +'<div>'
-        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-top:14px;border-top:1px dashed var(--border)">'
-          +'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#1a3a2a"></span>'
-          +'<span style="font-size:11px;font-weight:700;color:#1a3a2a;letter-spacing:.02em">Desinversión</span>'
-          +'<span style="font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.05em">VENTA</span>'
+      +'<div style="min-width:0">'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">'
+          +'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#1a3a2a"></span>'
+          +'<span style="font-size:11px;font-weight:700;color:#1a3a2a">Desinversión</span>'
           +`<span style="font-size:10px;color:var(--text3);margin-left:auto">${totalDes} activo${totalDes!==1?'s':''}</span>`
         +'</div>'
         +matrixDesinv
