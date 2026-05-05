@@ -1661,7 +1661,8 @@ function renderTabla() {
 function renderEconomico() {
   const EDOT={'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae','Descartado':'#c8cfc9','Cerrado':'#e0e0e0'};
   function hasUW(p){const e=p.eco||{};return !!(e.tirPct||e.margenPct||e.ventaEur||e.sueloEur);}
-  const np = projects.filter(p => p.bloque==='Pipeline').sort((a,b)=>{
+  const ESTADOS_VIVOS_ECO = ['WIP','Due diligence','En análisis','Stand By','Recibido'];
+  const npAll = projects.filter(p => p.bloque==='Pipeline').sort((a,b)=>{
     const aHas=hasUW(a)?0:1, bHas=hasUW(b)?0:1;
     if(aHas!==bHas) return aHas-bHas;
     const ai=ESTADO_ORDER.indexOf(a.estado), bi=ESTADO_ORDER.indexOf(b.estado);
@@ -1669,6 +1670,9 @@ function renderEconomico() {
     if(ed!==0) return ed;
     return a.prioridad-b.prioridad;
   });
+  // Separar vivos (KPIs y tabla principal) de descartados (sección colapsable)
+  const np = npAll.filter(p=>ESTADOS_VIVOS_ECO.includes(p.estado));
+  const npDescartados = npAll.filter(p=>p.estado==='Descartado' || p.estado==='Cerrado');
   const withData = np.filter(p => p.eco && (p.eco.sueloEur || p.eco.ventaEur || p.eco.construccionEur || p.edificabilidad));
 
   function fmt(v) { if(!v||v==='') return null; const n=parseInt(String(v).replace(/\./g,'').replace(/,/g,''),10); return isNaN(n)?null:n; }
@@ -1715,7 +1719,7 @@ function renderEconomico() {
   }
 
   // KPI summary bar
-  const summaryBar = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:14px">'
+  const summaryBar = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:6px">'
     +tarjetonEco('Proyectos / UW', np.length+' / '+withData.length, withData.length+' con modelo', '#1a3a2a')
     +tarjetonEco('Suelo total', bigFmt(totSuelo), sM2?fmtMiles(Math.round(sM2))+' €/m² medio':'—', '#92400E')
     +tarjetonEco('Construcción total', bigFmt(totConstr), cM2?fmtMiles(Math.round(cM2))+' €/m² medio':'—', '#5B21B6')
@@ -1723,6 +1727,10 @@ function renderEconomico() {
     +tarjetonEco('TIR media', tirMedia!==null?'<span style="color:'+tirColor2+';font-weight:700">'+tirMedia.toFixed(2).replace('.',',')+'%</span>':'—', tirN+' proyectos', tirColor2)
     +tarjetonEco('Margen medio', mgPctMedia!==null?'<span style="color:'+mgColor2+';font-weight:700">'+mgPctMedia.toFixed(2).replace('.',',')+'%</span>':'—', (mgEurSum?bigFmt(mgEurSum)+' total':'—')+(mgPctN>0?' · '+bigFmt(Math.round(mgEurSum/mgPctN))+' medio':''), mgColor2)
     +tarjetonEco('Viviendas / Edif.', (totViv?fmtMiles(totViv)+' uds':'—'), (totEdif?fmtMiles(totEdif)+' m²':'—'), '#0C4A6E')
+    +'</div>'
+    +'<div style="font-size:10px;color:var(--text3);margin-bottom:14px;font-style:italic;display:flex;align-items:center;gap:6px">'
+      +'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#2d6a4f"></span>'
+      +'Cifras calculadas sobre proyectos activos en cartera ('+np.length+'). Excluye Descartados y Cerrados.'
     +'</div>';
 
   // ── FORMAT HELPERS ──────────────────────────────────────────
@@ -1908,7 +1916,7 @@ function renderEconomico() {
   return renderKPIs()
     +'<div class="eco-dashboard">'
     +'<div class="eco-dash-header" style="margin-bottom:10px">'
-    +'<div><div class="eco-dash-title">UW | Modelo — Pipeline</div><div class="eco-dash-sub">'+np.length+' proyectos · '+withData.length+' con datos</div></div>'
+    +'<div><div class="eco-dash-title">UW | Modelo — Pipeline</div><div class="eco-dash-sub">'+npAll.length+' proyectos · '+np.length+' activos'+(npDescartados.length?' · '+npDescartados.length+' descartados':'')+' · '+withData.length+' con datos</div></div>'
     +'<div style="display:flex;gap:8px;align-items:center">'
     +'<label class="btn-import-xl">📥 Importar Excel<input type="file" accept=".xlsx,.xls" style="display:none" onchange="importExcelEstudio(this)"></label>'
     +'</div>'
@@ -1939,6 +1947,38 @@ function renderEconomico() {
                 +'</td>'
                 +'<td style="'+tdStyleL+';min-width:100px">'+dot+'<span style="font-size:11px;color:var(--text2)">'+p.estado+'</span></td>';
               GROUPS.forEach(g=>{ visibleCols(g).forEach(()=>{ r+='<td style="'+tdStyle+';color:#ddd">—</td>'; }); });
+              r+='</tr>';
+              return r;
+            }).join('');
+          }
+          return html;
+        })()
+      : '')
+    +(npDescartados.length
+      ? (function(){
+          // Total visible columns = 2 fixed (Proyecto, Estado) + sum of visible cols per group
+          const totalVisCols = 2 + GROUPS.reduce((s,g)=>s+visibleCols(g).length, 0);
+          let html = '<tr class="descartados-header" onclick="S_descEco=!S_descEco;renderEcoOnly()" style="cursor:pointer">'
+            +'<td colspan="'+totalVisCols+'" style="padding:7px 12px;background:#f5efef;border-top:2px dashed #d4b8b8;border-bottom:1px solid var(--border)">'
+              +'<span style="font-size:11px;color:#8b3030;font-weight:600">'+(S_descEco?'▾':'▸')+' Descartados / Cerrados — '+npDescartados.length+' proyecto'+(npDescartados.length!==1?'s':'')+'</span>'
+              +'<span style="font-size:10px;color:var(--text3);margin-left:6px;font-style:italic">No incluidos en cifras superiores</span>'
+            +'</td></tr>';
+          if(S_descEco){
+            html += npDescartados.map((p,i)=>{
+              const e=p.eco||{};
+              const c=calcEco(p);
+              const bg=i%2===0?'background:#fbf7f7':'background:#f7f1f1';
+              const dot=`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${EDOT[p.estado]||'#aaa'};margin-right:4px;flex-shrink:0"></span>`;
+              let r='<tr style="'+bg+';cursor:pointer;opacity:0.55" onclick="goToProject('+p.id+')" title="Proyecto descartado">'
+                +'<td style="'+tdStyleL+';position:sticky;left:0;z-index:1;'+bg+';font-weight:500;min-width:220px;padding-left:14px">'
+                  +'<div style="display:flex;align-items:center;gap:8px"><div style="flex:1;min-width:0"><div style="text-decoration:line-through;color:var(--text3)">'+p.nombre+'</div><div style="font-size:10px;color:var(--text3);margin-top:1px;font-weight:400">'+p.tipo+(p.ubicacion?' · '+p.ubicacion:'')+'</div></div>'+pillP(p.prioridad)+'</div>'
+                +'</td>'
+                +'<td style="'+tdStyleL+';min-width:100px">'+dot+'<span style="font-size:11px;color:var(--text2)">'+p.estado+'</span></td>';
+              GROUPS.forEach(g => {
+                visibleCols(g).forEach(col => {
+                  r += '<td style="'+tdStyle+';color:var(--text3)">'+col.fn(e,c)+'</td>';
+                });
+              });
               r+='</tr>';
               return r;
             }).join('');
@@ -2254,6 +2294,7 @@ let S_pdfDropOpen = false;
 let S_noUWDash = false;  // expand no-UW in dashboard pipeline table
 let S_descDash = false;  // expand descartados in dashboard pipeline table
 let S_noUWEco  = false;  // expand no-UW in UW|Modelo table
+let S_descEco  = false;  // expand descartados in UW|Modelo table
 
 function togglePdfDrop(e) {
   e.stopPropagation();
@@ -3297,7 +3338,7 @@ function renderEstudioSection() {
   const epAll=projects.filter(p=>p.bloque==='Pipeline');
   if(!epAll.length) return '<div class="dash-card" style="border:2px dashed var(--border2);background:var(--surface2);text-align:center;padding:28px;color:var(--text3)"><div style="font-size:24px;margin-bottom:8px">&#x1F4E5;</div><div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:4px">Sin proyectos en Pipeline</div><div style="font-size:12px;margin-bottom:14px">Importa tu Excel desde la pestaña Económico</div><button onclick="navigateTo(\'economico\',{})" style="padding:7px 18px;font-size:12px;border-radius:var(--r);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);font-weight:500">Ir a Económico →</button></div>';
   // Separar vivos (KPIs solo cuentan estos) de descartados (sección colapsable aparte)
-  const ESTADOS_VIVOS = ['WIP','Due diligence','En análisis'];
+  const ESTADOS_VIVOS = ['WIP','Due diligence','En análisis','Stand By','Recibido'];
   const ep = epAll.filter(p=>ESTADOS_VIVOS.includes(p.estado) || (p.estado!=='Descartado' && p.estado!=='Cerrado'));
   const epDescartados = epAll.filter(p=>p.estado==='Descartado' || p.estado==='Cerrado');
   function fmtM(v){if(!v||v==='') return '—';const n=parseInt(String(v).replace(/\./g,'').replace(/,/g,''),10);if(isNaN(n))return v;if(n>=1000000)return fmtMiles(Math.round(n/1000000))+' M€';if(n>=1000)return fmtMiles(Math.round(n/1000))+' K€';return fmtMiles(n)+' €';}
@@ -3344,7 +3385,7 @@ function renderEstudioSection() {
     +'</div>'
     +'<div style="font-size:10px;color:var(--text3);margin-bottom:14px;font-style:italic;display:flex;align-items:center;gap:6px">'
       +'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#2d6a4f"></span>'
-      +'Cifras calculadas únicamente sobre proyectos activos ('+epActivos.length+'): WIP, Due Diligence y En análisis. No incluyen Stand By, Descartados ni Cerrados.'
+      +'Cifras calculadas sobre proyectos activos en cartera ('+epActivos.length+'). Excluye Descartados y Cerrados.'
     +'</div>';
 
   const thS='padding:7px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface2)';
@@ -3422,7 +3463,7 @@ function renderEstudioSection() {
   }).join('');
 
   return '<div class="dash-card" style="padding:0;overflow:hidden">'
-    +'<div style="padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">'+epAll.length+' proyectos <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">· '+epActivos.length+' activos'+(epDescartados.length?' · '+epDescartados.length+' descartados':'')+'</span></span><button onclick="navigateTo(\'economico\',{})" style="font-size:11px;padding:4px 12px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:500">Ver tabla completa →</button></div>'
+    +'<div style="padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">'+epAll.length+' proyectos <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">· '+epActivos.length+' activos'+(epWithoutUW.length?' · '+epWithoutUW.length+' sin modelo':'')+(epDescartados.length?' · '+epDescartados.length+' descartados':'')+'</span></span><button onclick="navigateTo(\'economico\',{})" style="font-size:11px;padding:4px 12px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:500">Ver tabla completa →</button></div>'
     +'<div style="padding:14px 18px 4px">'+kpisHtml+'</div>'
     +'<div style="overflow-x:auto;padding:0 4px 0 0"><table style="width:100%;border-collapse:collapse;table-layout:fixed">'
     +'<colgroup>'
