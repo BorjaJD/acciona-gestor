@@ -3163,49 +3163,93 @@ function renderDashboard() {
     const pctGlobal = totalPosibles ? Math.round(totalCompletas/totalPosibles*100) : 0;
 
     const ESTADO_COLOR = {'WIP':'#1a3a2a','Due diligence':'#2d6a4f','En análisis':'#52b788','Recibido':'#95d5b2','Stand By':'#a8b5ae','Descartado':'#c8cfc9','Cerrado':'#e0e0e0'};
-    const cellSize = 28;
-    const dotOn = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${accentColor}"></span>`;
-    const dotOff = `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#e0e0e0"></span>`;
-    const dotComOn = `<span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#1a3a2a;border:1px solid #1a3a2a" title="Pasado por comité"></span>`;
-    const dotComOff = `<span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:transparent;border:1px solid #d8d8d0"></span>`;
+
+    // Estilos de celda (padding/altura)
+    const cellPad = 'padding:6px 6px';
+    const rowH = 30; // alto consistente
 
     // Header
-    let html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-family:var(--font)">';
+    let html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:separate;border-spacing:3px 4px;font-family:var(--font);table-layout:fixed">';
+    html += '<colgroup>';
+    html += '<col style="width:auto"/>';
+    FASES_FLOW.forEach(()=>{ html += '<col style="width:11%"/>'; });
+    html += '<col style="width:8%"/>';   // Comité
+    html += '<col style="width:120px"/>'; // % + barra
+    html += '</colgroup>';
+
     html += '<thead><tr>';
-    html += `<th style="text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:6px 8px 8px 0;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1">Proyecto</th>`;
+    html += `<th style="text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:4px 8px 6px 4px">Proyecto</th>`;
     FASES_FLOW.forEach(f=>{
-      html += `<th style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:6px 4px 8px;border-bottom:1px solid var(--border);width:${cellSize}px;text-align:center;background:var(--surface);position:sticky;top:0;z-index:1"><div title="${f}">${f.replace('Teaser/IM','TIM')}</div></th>`;
+      html += `<th style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:4px 4px 6px;text-align:center" title="${f}">${f.replace('Teaser/IM','TIM')}</th>`;
     });
-    html += `<th style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#1a3a2a;padding:6px 4px 8px 10px;border-bottom:1px solid var(--border);width:${cellSize}px;text-align:center;background:var(--surface);position:sticky;top:0;z-index:1;border-left:1px dashed var(--border)">Cmt</th>`;
-    html += `<th style="text-align:right;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:6px 0 8px 10px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:1">%</th>`;
+    html += `<th style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#1a3a2a;padding:4px 4px 6px 12px;text-align:center" title="Pasado por comité">Cmt</th>`;
+    html += `<th style="text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:4px 4px 6px 14px">Avance</th>`;
     html += '</tr></thead><tbody>';
 
-    psSorted.forEach((p,idx)=>{
+    psSorted.forEach((p)=>{
       const fs = p.fases||[];
       const completas = FASES_FLOW.filter(f=>fs.includes(f)).length;
       const pctP = Math.round(completas/FASES_FLOW.length*100);
-      const bg = idx%2===0 ? 'var(--surface)' : 'var(--surface2)';
       const estadoColor = ESTADO_COLOR[p.estado] || '#aaa';
-      html += `<tr style="background:${bg};cursor:pointer;transition:background .12s" onmouseover="this.style.background='#f0ede5'" onmouseout="this.style.background='${bg}'" onclick="navigateTo('tabla',{id:${p.id}})">`;
-      html += `<td style="padding:7px 8px 7px 0;font-size:11px;color:var(--text);border-bottom:1px solid var(--border);max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${estadoColor};margin-right:7px;vertical-align:middle"></span><span style="font-weight:500;vertical-align:middle">${p.nombre}</span></td>`;
+
+      // Celda nombre con dotEstado
+      html += `<tr style="cursor:pointer" onclick="navigateTo('tabla',{id:${p.id}})">`;
+      html += `<td style="${cellPad};padding-left:4px;font-size:11.5px;color:var(--text);max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:${rowH}px;vertical-align:middle">`
+        + `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${estadoColor};margin-right:8px;vertical-align:middle" title="${p.estado}"></span>`
+        + `<span style="font-weight:500;vertical-align:middle">${p.nombre}</span>`
+        + `</td>`;
+
+      // Celdas de fase: rellenas o vacías
       FASES_FLOW.forEach(f=>{
-        html += `<td style="padding:7px 4px;text-align:center;border-bottom:1px solid var(--border);vertical-align:middle">${fs.includes(f)?dotOn:dotOff}</td>`;
+        const done = fs.includes(f);
+        if(done){
+          html += `<td style="background:${accentColor};border-radius:5px;text-align:center;vertical-align:middle;height:${rowH}px;color:white;font-size:12px;font-weight:700;line-height:1">✓</td>`;
+        } else {
+          html += `<td style="background:transparent;border:1px solid #e5e8e3;border-radius:5px;text-align:center;vertical-align:middle;height:${rowH}px"></td>`;
+        }
       });
-      html += `<td style="padding:7px 4px 7px 10px;text-align:center;border-bottom:1px solid var(--border);border-left:1px dashed var(--border);vertical-align:middle">${fs.includes('Comité')?dotComOn:dotComOff}</td>`;
-      html += `<td style="padding:7px 0 7px 10px;text-align:right;font-size:10.5px;color:var(--text2);font-weight:600;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--border)">${pctP}%</td>`;
+
+      // Comité
+      const comDone = fs.includes('Comité');
+      if(comDone){
+        html += `<td style="background:#1a3a2a;border-radius:5px;text-align:center;vertical-align:middle;height:${rowH}px;color:white;font-size:12px;font-weight:700;line-height:1;margin-left:12px">★</td>`;
+      } else {
+        html += `<td style="background:transparent;border:1px dashed #cfd2cb;border-radius:5px;text-align:center;vertical-align:middle;height:${rowH}px"></td>`;
+      }
+
+      // Mini-barra de avance + %
+      const barColor = pctP>=80?accentColor:pctP>=40?accentColor:pctP>0?accentColor:'#ddd';
+      const barOpacity = pctP>=80?1:pctP>=40?0.85:0.6;
+      html += `<td style="${cellPad};padding-left:14px;vertical-align:middle;height:${rowH}px">`
+        + `<div style="display:flex;align-items:center;gap:8px">`
+          + `<div style="flex:1;height:6px;background:#eef0eb;border-radius:3px;overflow:hidden;min-width:50px">`
+            + `<div style="height:100%;width:${pctP}%;background:${barColor};opacity:${barOpacity};border-radius:3px;transition:width .3s"></div>`
+          + `</div>`
+          + `<span style="font-size:11px;font-weight:700;color:${pctP===0?'var(--text3)':'var(--text2)'};font-variant-numeric:tabular-nums;min-width:32px;text-align:right">${pctP}%</span>`
+        + `</div>`
+        + `</td>`;
       html += '</tr>';
     });
+    html += '</tbody>';
 
-    // Footer con totales por columna
-    html += '<tr style="background:#fafaf8">';
-    html += `<td style="padding:8px 8px 8px 0;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Totales</td>`;
+    // Footer con totales
+    html += '<tfoot><tr>';
+    html += `<td style="${cellPad};padding-left:4px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding-top:14px">Totales</td>`;
     FASES_FLOW.forEach(f=>{
-      html += `<td style="padding:8px 4px;text-align:center;font-size:11px;font-weight:700;color:${accentColor};font-variant-numeric:tabular-nums">${totals[f]}</td>`;
+      const n = totals[f];
+      html += `<td style="${cellPad};text-align:center;font-size:12px;font-weight:700;color:${n>0?accentColor:'var(--text3)'};font-variant-numeric:tabular-nums;padding-top:14px">${n}</td>`;
     });
-    html += `<td style="padding:8px 4px 8px 10px;text-align:center;font-size:11px;font-weight:700;color:#1a3a2a;border-left:1px dashed var(--border);font-variant-numeric:tabular-nums">${totalCom}</td>`;
-    html += `<td style="padding:8px 0 8px 10px;text-align:right;font-size:11px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums">${pctGlobal}%</td>`;
-    html += '</tr>';
-    html += '</tbody></table></div>';
+    html += `<td style="${cellPad};padding-left:12px;text-align:center;font-size:12px;font-weight:700;color:${totalCom>0?'#1a3a2a':'var(--text3)'};font-variant-numeric:tabular-nums;padding-top:14px">${totalCom}</td>`;
+    html += `<td style="${cellPad};padding-left:14px;padding-top:14px;vertical-align:middle">`
+      + `<div style="display:flex;align-items:center;gap:8px">`
+        + `<div style="flex:1;height:6px;background:#eef0eb;border-radius:3px;overflow:hidden;min-width:50px">`
+          + `<div style="height:100%;width:${pctGlobal}%;background:${accentColor};border-radius:3px"></div>`
+        + `</div>`
+        + `<span style="font-size:11px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;min-width:32px;text-align:right">${pctGlobal}%</span>`
+      + `</div>`
+      + `</td>`;
+    html += '</tr></tfoot>';
+    html += '</table></div>';
     return html;
   }
 
