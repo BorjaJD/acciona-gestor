@@ -227,12 +227,14 @@
   }
   #pdf-drop{display:none}
   #pdf-drop.open{display:block}
+  .ds-wrap{padding:18px 22px 32px;max-width:1180px;margin:0 auto}
+  .ds-toolbar{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:10px 14px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.04),0 1px 1px rgba(0,0,0,0.03)}
   .ds-selector{font-size:13px;padding:7px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;min-width:280px}
   .ds-selector:focus{border-color:var(--accent)}
   .ds-export-btn{padding:6px 14px;font-size:12px;border-radius:var(--r);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);font-weight:500;white-space:nowrap}
   .ds-export-btn:hover{opacity:.85}
-  .ds-empty{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--text3);font-size:13px}
-  .ds-sheet{margin:20px auto;width:calc(100% - 40px);max-width:1100px;background:white;border-radius:var(--rl);overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.12),0 1px 4px rgba(0,0,0,0.06)}
+  .ds-empty{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--text3);font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:60px 20px}
+  .ds-sheet{margin:0 auto;width:1100px;max-width:100%;aspect-ratio:1.414/1;background:white;border-radius:var(--rl);overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.12),0 1px 4px rgba(0,0,0,0.06);display:flex;flex-direction:column}
   .ds-header{background:var(--accent);padding:22px 28px;display:flex;align-items:flex-start;justify-content:space-between}
   .ds-title{color:white;font-size:22px;font-weight:700;letter-spacing:.03em;line-height:1.2}
   .ds-subtitle{color:rgba(255,255,255,0.55);font-size:12px;margin-top:5px;text-transform:uppercase;letter-spacing:.1em}
@@ -264,7 +266,7 @@
   .ds-check.done{color:var(--text3);text-decoration:line-through}
   .ds-check-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
   .ds-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
-  .ds-footer{padding:10px 22px;background:#f7f6f2;border-top:1px solid #eee;display:flex;align-items:center;justify-content:space-between}
+  .ds-footer{padding:10px 22px;background:#f7f6f2;border-top:1px solid #eee;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
   .ds-footer-txt{font-size:10px;color:var(--text3)}
   @media print{
     html,body{height:auto!important;overflow:visible!important;background:white!important;margin:0;padding:0}
@@ -3056,10 +3058,10 @@ function renderDealSheet() {
   const SEPS = 'display:flex;gap:8px;margin-bottom:12px';
 
   return '<div class="ds-wrap">'+selector
-    +'<div class="ds-sheet" style="background:white;border-radius:8px;overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,0.08);max-width:1120px;margin:0 auto;font-family:Aptos,Segoe UI,sans-serif">'
+    +'<div class="ds-sheet" style="font-family:Aptos,Segoe UI,sans-serif">'
 
     // ── HEADER ──────────────────────────────────────────────
-    +'<div style="padding:22px 28px 16px;border-bottom:3px solid #1a3a2a;display:flex;align-items:flex-start;justify-content:space-between;background:linear-gradient(135deg,#f8f7f3 0%,#ffffff 60%,#f0f7f0 100%)">'
+    +'<div style="padding:22px 28px 16px;border-bottom:3px solid #1a3a2a;display:flex;align-items:flex-start;justify-content:space-between;background:linear-gradient(135deg,#f8f7f3 0%,#ffffff 60%,#f0f7f0 100%);flex-shrink:0">'
     +'<div>'
     +'<div style="font-size:24px;font-weight:800;color:#1a1a18;letter-spacing:-.3px;line-height:1">'+p.nombre.toUpperCase()+'</div>'
     +'<div style="font-size:11px;color:#999;margin-top:3px;letter-spacing:.06em">'+(p.ubicacion||'').toUpperCase()+(p.tipo?' · '+p.tipo.toUpperCase():'')+'</div>'
@@ -3071,7 +3073,7 @@ function renderDealSheet() {
     +'</div></div></div>'
 
     // ── BODY 3 COLS ──────────────────────────────────────────
-    +'<div class="ds-body-grid" style="display:grid;grid-template-columns:200px 1fr 1fr;gap:0;min-height:520px">'
+    +'<div class="ds-body-grid" style="display:grid;grid-template-columns:200px 1fr 1fr;gap:0;flex:1;min-height:0;overflow:hidden">'
 
     // COL 1 — Mapa España + Google Maps + Yield/NOI + texto superior
     +'<div style="padding:16px 14px;border-right:1px solid #e8e8e0;background:linear-gradient(180deg,#f5f4f0 0%,#fafaf8 100%);display:flex;flex-direction:column;gap:12px;box-shadow:inset -3px 0 8px rgba(0,0,0,0.03)">'
@@ -3342,8 +3344,7 @@ function renderDashboard() {
     var ph = r.h - TM_PAD;
     if(pw<2 || ph<2) return;
     // Color de texto: blanco para estados oscuros/medios, negro suave solo para los muy claros (Descartado)
-    var lightStates = ["Descartado","Cerrado"];
-    var textColor = lightStates.indexOf(d.e)>=0 ? "#1a1a18" : "#ffffff";
+    var textColor = "#ffffff";
     // Tamaños balanceados según área
     var area = pw*ph;
     var labelFont = Math.min(14, Math.max(9, Math.sqrt(area)/14));
@@ -3377,14 +3378,14 @@ function renderDashboard() {
   var allBloques=BLOQUES_ORDER.slice();
   Object.keys(porBloque).forEach(function(b){if(allBloques.indexOf(b)<0&&porBloque[b]>0)allBloques.push(b);});
   var maxB=Math.max.apply(null,allBloques.map(function(b){return porBloque[b]||0;}).concat([1]));
-  var barsBloque="<div style=\"display:flex;flex-direction:column;justify-content:center;flex:1;gap:10px;padding:4px 0\">";
+  var barsBloque="<div style=\"display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:8px;padding:8px 0\">";
   allBloques.forEach(function(b){
     var n=porBloque[b]||0; if(n===0)return;
     var pct=Math.max(Math.round(n/maxB*100),18),color=BLOQUE_COLORS[b]||"#888";
-    barsBloque+="<div class=\"bar-row\" onclick=\"navigateTo('tabla',{bloque:'"+b+"'})\" style=\"cursor:pointer;padding:0;gap:12px;margin:0\">"+
+    barsBloque+="<div class=\"bar-row\" onclick=\"navigateTo('tabla',{bloque:'"+b+"'})\" style=\"cursor:pointer;padding:0;gap:12px;margin:0;align-items:center\">"+
       "<div style=\"font-size:12px;color:var(--text);font-weight:500;width:160px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\">"+b+"</div>"+
-      "<div class=\"bar-track\" style=\"flex:1;height:34px;border-radius:6px;background:#f4f3ee\">"+
-        "<div class=\"bar-fill\" style=\"width:"+pct+"%;background:linear-gradient(90deg,"+color+" 0%,"+color+"dd 100%);display:flex;align-items:center;justify-content:flex-end;padding:0 12px;height:34px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.08)\">"+
+      "<div class=\"bar-track\" style=\"flex:1;height:36px;border-radius:6px;background:#f4f3ee\">"+
+        "<div class=\"bar-fill\" style=\"width:"+pct+"%;background:linear-gradient(90deg,"+color+" 0%,"+color+"dd 100%);display:flex;align-items:center;justify-content:flex-end;padding:0 12px;height:36px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.08)\">"+
           "<span style=\"font-size:14px;font-weight:800;color:white;font-variant-numeric:tabular-nums\">"+n+"</span>"+
         "</div>"+
       "</div>"+
@@ -3411,16 +3412,16 @@ function renderDashboard() {
   // MATRIZ
   var CELL_BG={"1":"#fde8e8","2":"#fff8e1","3":"#e8f5e9"};
   var CELL_FG={"1":"#c0392b","2":"#b87b00","3":"#2e7d32"};
-  var matrixHtml="<div style=\"display:grid;grid-template-columns:70px repeat(3,1fr);gap:3px;\">";
-  matrixHtml+="<div></div><div style=\"text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:3px 0\">Alta</div><div style=\"text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:3px 0\">Media</div><div style=\"text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:3px 0\">Baja</div>";
+  var matrixHtml="<div style=\"display:grid;grid-template-columns:70px repeat(3,1fr);grid-template-rows:auto repeat(7,1fr);gap:4px;flex:1;min-height:0\">";
+  matrixHtml+="<div></div><div style=\"text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:4px 0\">Alta</div><div style=\"text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:4px 0\">Media</div><div style=\"text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:4px 0\">Baja</div>";
   var ABBR={"Recibido":"Recib.","En an\u00e1lisis":"An\u00e1lisis","Due diligence":"DD","WIP":"WIP","Stand By":"Stand By","Descartado":"Desc.","Cerrado":"Cerrado"};
   ESTADOS.forEach(function(s){
-    matrixHtml+="<div style=\"font-size:10px;color:var(--text2);text-align:right;padding-right:6px;display:flex;align-items:center;justify-content:flex-end\">"+( ABBR[s]||s)+"</div>";
+    matrixHtml+="<div style=\"font-size:11px;color:var(--text2);text-align:right;padding-right:8px;display:flex;align-items:center;justify-content:flex-end;font-weight:500\">"+( ABBR[s]||s)+"</div>";
     [1,2,3].forEach(function(pr){
       var n=projects.filter(function(p){return p.estado===s&&p.prioridad===pr;}).length;
       var bg=n>0?CELL_BG[String(pr)]:"var(--surface2)",fg=n>0?CELL_FG[String(pr)]:"var(--text3)";
-      matrixHtml+="<div class=\"mx-cell\" style=\"background:"+bg+";border-radius:4px;padding:6px 2px;text-align:center;cursor:"+(n>0?"pointer":"default")+"\" data-estado=\""+encodeURIComponent(s)+"\" data-prio=\""+pr+"\">"+
-        "<span style=\"font-size:15px;font-weight:700;color:"+fg+"\">"+n+"</span>"+
+      matrixHtml+="<div class=\"mx-cell\" style=\"background:"+bg+";border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:"+(n>0?"pointer":"default")+";min-height:32px\" data-estado=\""+encodeURIComponent(s)+"\" data-prio=\""+pr+"\">"+
+        "<span style=\"font-size:17px;font-weight:700;color:"+fg+"\">"+n+"</span>"+
         "</div>";
     });
   });
@@ -3633,8 +3634,8 @@ function renderDashboard() {
     // Fila 2: Donut + Barras bloque + Matriz
     "<div class=\"dash-row dash-row-3\">"+
       "<div class=\"dash-card\"><div class=\"dash-card-title\">Distribuci\u00f3n por estado</div><div class=\"donut-wrap\">"+dsvg+donutLegend+"</div></div>"+
-      "<div class=\"dash-card\"><div class=\"dash-card-title\">Proyectos por bloque</div>"+barsBloque+paisHtml+"</div>"+
-      "<div class=\"dash-card\"><div class=\"dash-card-title\">Matriz estado \u00d7 prioridad</div>"+matrixHtml+"</div>"+
+      "<div class=\"dash-card\" style=\"justify-content:space-between\"><div class=\"dash-card-title\">Proyectos por bloque</div>"+barsBloque+paisHtml+"</div>"+
+      "<div class=\"dash-card\" style=\"justify-content:space-between\"><div class=\"dash-card-title\">Matriz estado \u00d7 prioridad</div>"+matrixHtml+"</div>"+
     "</div>"+
     // Fila 3: Urgentes ancho completo
     "<div class=\"dash-card\" style=\"margin-bottom:12px\"><div class=\"dash-card-title\">Acciones urgentes \u2014 Prioridad Alta</div>"+urgHtml+"</div>"+
