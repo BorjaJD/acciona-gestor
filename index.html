@@ -3055,15 +3055,15 @@ function renderDealSheet() {
   const tirN=parseFloat(eco.tirPct),mgN=parseFloat(eco.margenPct);
   const tirColor=isNaN(tirN)?'#1a3a2a':tirN>=20?'#1a3a2a':tirN>=13?'#2d6a4f':'#8b1a1a';
   function cajita(rows, accent){
-    return '<div style="background:linear-gradient(180deg,white 0%,#fafaf8 100%);border:1px solid #e4e4e0;border-top:3px solid '+accent+';border-radius:7px;padding:10px 13px;flex:1;box-shadow:0 3px 12px rgba(0,0,0,0.05),0 1px 3px rgba(0,0,0,0.04);position:relative">'
-      +rows.map(([l,v,big])=>'<div style="margin-bottom:'+(big?3:4)+'px">'
-        +'<div style="font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#999">'+l+'</div>'
-        +'<div style="font-size:'+(big?'19px':'14px')+';font-weight:'+(big?'800':'700')+';color:'+accent+';line-height:1.15;letter-spacing:'+(big?'-.3px':'0')+'">'+v+'</div>'
+    return '<div style="background:linear-gradient(180deg,white 0%,#fafaf8 100%);border:1px solid #e4e4e0;border-top:3px solid '+accent+';border-radius:7px;padding:7px 10px;flex:1;box-shadow:0 3px 12px rgba(0,0,0,0.05),0 1px 3px rgba(0,0,0,0.04);position:relative">'
+      +rows.map(([l,v,big])=>'<div style="margin-bottom:'+(big?2:3)+'px">'
+        +'<div style="font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;line-height:1.15">'+l+'</div>'
+        +'<div style="font-size:'+(big?'16px':'12px')+';font-weight:'+(big?'800':'700')+';color:'+accent+';line-height:1.15;letter-spacing:'+(big?'-.2px':'0')+'">'+v+'</div>'
       +'</div>').join('')
     +'</div>';
   }
 
-  const SEPS = 'display:flex;gap:8px;margin-bottom:10px';
+  const SEPS = 'display:flex;gap:8px;margin-bottom:8px';
 
   return '<div class="ds-wrap">'+selector
     +'<div class="ds-sheet" style="font-family:Aptos,Segoe UI,sans-serif">'
@@ -3150,34 +3150,6 @@ function renderDealSheet() {
     +dsRow('Construcción', fe(eco.construccionEur)+(eco.construccionEurM2?' | '+fm2(eco.construccionEurM2):''))
     +dsRow('Plazo obras', eco.plazoMeses?eco.plazoMeses+' meses':'—')
     +dsRow('PVP Unidad | €/m²', fe(eco.ventaVivEur)+(eco.ventaEurM2?' | '+fm2(eco.ventaEurM2):''))
-
-    // BLOQUE TIMELINE — hitos del proyecto
-    +(function(){
-      const hitos = [
-        {label:'Inicio Proyecto', date:eco.inicioProy, color:'#52b788'},
-        {label:'Inicio Obras', date:eco.inicioObras, color:'#2d6a4f'},
-        {label:'1ª Ocupación', date:eco.fechaEntrega, color:'#1a3a2a'}
-      ].filter(h=>h.date);
-      if(hitos.length<2) return '';
-      // Renderizar línea con puntos
-      const dots = hitos.map((h,i)=>{
-        const isLast = i===hitos.length-1;
-        return '<div style="flex:1;display:flex;flex-direction:column;align-items:'+(i===0?'flex-start':isLast?'flex-end':'center')+';position:relative;min-width:0">'
-          +'<div style="font-size:8.5px;font-weight:700;color:#1a3a2a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;white-space:nowrap">'+h.label+'</div>'
-          +'<div style="display:flex;align-items:center;gap:0;width:100%;'+(i===0?'justify-content:flex-start':isLast?'justify-content:flex-end':'justify-content:center')+'">'
-            +'<div style="width:12px;height:12px;border-radius:50%;background:'+h.color+';box-shadow:0 0 0 2.5px white,0 0 0 3.5px '+h.color+';flex-shrink:0;z-index:2"></div>'
-          +'</div>'
-          +'<div style="font-size:9.5px;color:#555;margin-top:3px;font-weight:500;white-space:nowrap">'+fd(h.date)+'</div>'
-        +'</div>';
-      }).join('');
-      return '<div style="margin-top:12px;padding:8px 8px 8px;background:linear-gradient(135deg,#f8f7f3 0%,#fafaf8 100%);border-radius:8px;border:1px solid #e8e8e0">'
-        +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;margin-bottom:10px;text-align:center">Hoja de Ruta</div>'
-        +'<div style="position:relative">'
-          +'<div style="position:absolute;top:50%;left:8%;right:8%;height:2px;background:linear-gradient(90deg,#52b788 0%,#2d6a4f 50%,#1a3a2a 100%);transform:translateY(-2px);z-index:1"></div>'
-          +'<div style="display:flex;position:relative;z-index:2">'+dots+'</div>'
-        +'</div>'
-      +'</div>';
-    })()
 
     // Bloque PROCESO
     +(p.narrativaBottom&&p.narrativaBottom!=='—'
