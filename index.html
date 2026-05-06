@@ -3151,6 +3151,32 @@ function renderDealSheet() {
     +dsRow('Plazo obras', eco.plazoMeses?eco.plazoMeses+' meses':'—')
     +dsRow('PVP Unidad | €/m²', fe(eco.ventaVivEur)+(eco.ventaEurM2?' | '+fm2(eco.ventaEurM2):''))
 
+    // BLOQUE TIMELINE — hitos del proyecto (sin título)
+    +(function(){
+      const hitos = [
+        {label:'Inicio Proyecto', date:eco.inicioProy, color:'#52b788'},
+        {label:'Inicio Obras', date:eco.inicioObras, color:'#2d6a4f'},
+        {label:'1ª Ocupación', date:eco.fechaEntrega, color:'#1a3a2a'}
+      ].filter(h=>h.date);
+      if(hitos.length<2) return '';
+      const dots = hitos.map((h,i)=>{
+        const isLast = i===hitos.length-1;
+        return '<div style="flex:1;display:flex;flex-direction:column;align-items:'+(i===0?'flex-start':isLast?'flex-end':'center')+';position:relative;min-width:0">'
+          +'<div style="font-size:8.5px;font-weight:700;color:#1a3a2a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;white-space:nowrap">'+h.label+'</div>'
+          +'<div style="display:flex;align-items:center;gap:0;width:100%;'+(i===0?'justify-content:flex-start':isLast?'justify-content:flex-end':'justify-content:center')+'">'
+            +'<div style="width:12px;height:12px;border-radius:50%;background:'+h.color+';box-shadow:0 0 0 2.5px white,0 0 0 3.5px '+h.color+';flex-shrink:0;z-index:2"></div>'
+          +'</div>'
+          +'<div style="font-size:9.5px;color:#555;margin-top:3px;font-weight:500;white-space:nowrap">'+fd(h.date)+'</div>'
+        +'</div>';
+      }).join('');
+      return '<div style="margin-top:10px;padding:10px 8px 8px;background:linear-gradient(135deg,#f8f7f3 0%,#fafaf8 100%);border-radius:8px;border:1px solid #e8e8e0">'
+        +'<div style="position:relative">'
+          +'<div style="position:absolute;top:50%;left:8%;right:8%;height:2px;background:linear-gradient(90deg,#52b788 0%,#2d6a4f 50%,#1a3a2a 100%);transform:translateY(-2px);z-index:1"></div>'
+          +'<div style="display:flex;position:relative;z-index:2">'+dots+'</div>'
+        +'</div>'
+      +'</div>';
+    })()
+
     // Bloque PROCESO
     +(p.narrativaBottom&&p.narrativaBottom!=='—'
       ?'<div style="margin-top:14px;padding-top:8px;border-top:1px solid #e8e8e0">'
