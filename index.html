@@ -2926,6 +2926,10 @@ function renderDealSheet() {
   function fc(v){ const n=parseInt(String(v||'').replace(/\./g,'').replace(/,/g,''),10); return isNaN(n)?null:n; }
   function fd(v){ if(!v||v==='') return '—'; const M={'ene':'01','feb':'02','mar':'03','abr':'04','may':'05','jun':'06','jul':'07','ago':'08','sep':'09','oct':'10','nov':'11','dic':'12'}; const pt=v.trim().split(' '); if(pt.length===3&&M[pt[1].toLowerCase()])return pt[1].toLowerCase()+'-'+String(pt[2]).slice(-2); if(pt.length===2&&/^\d{4}$/.test(pt[1]))return pt[0]+'-'+String(pt[1]).slice(-2); const iso=v.match(/^(\d{4})-(\d{2})/);if(iso)return iso[2]+'-'+String(iso[1]).slice(-2); return v; }
   let _dsRowIdx=0;function dsRow(l,v,bold){const bg=_dsRowIdx++%2===0?'background:#fdfdfb':'background:white';return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 10px;border-bottom:1px solid #f0efe9;font-size:11px;'+bg+'"><span style="color:#888;font-weight:500">'+l+'</span><span style="font-weight:'+(bold?'700':'600')+';color:#1a1a18;font-variant-numeric:tabular-nums">'+v+'</span></div>';}
+  function dsRow2(l,v1,v2){const bg=_dsRowIdx++%2===0?'background:#fdfdfb':'background:white';return '<div style="padding:5px 10px;border-bottom:1px solid #f0efe9;font-size:11px;'+bg+'">'
+    +'<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="color:#888;font-weight:500">'+l+'</span><span style="font-weight:600;color:#1a1a18;font-variant-numeric:tabular-nums">'+v1+'</span></div>'
+    +(v2?'<div style="text-align:right;font-size:10px;color:#666;font-weight:500;font-variant-numeric:tabular-nums;margin-top:2px">'+v2+'</div>':'')
+    +'</div>';}
   function secTitle(t){return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:3px;height:14px;background:#1a3a2a;border-radius:2px"></div><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;color:#1a3a2a;flex:1;border-bottom:1.5px solid #1a3a2a;padding-bottom:5px">'+t+'</div></div>';}
 
   // ── Map of Spain ──────────────────────────────────────────
@@ -3080,12 +3084,17 @@ function renderDealSheet() {
           +'</a>'
       :'<div style="background:#f5f4f0;border-radius:6px;padding:10px 14px;font-size:10px;color:#bbb;text-align:center;border:1px dashed #ddd;flex-shrink:0">Sin URL de Google Maps<br><span style="font-size:9px">Añádela en Tabla → Ubicación e imagen</span></div>')
     // Bloque Rentas / Yield / NOI — siempre presente con — si no aplica
-    +'<div style="background:white;border:1px solid #e8e8e0;border-radius:6px;padding:10px 12px;flex-shrink:0">'
+    +(function(){
+      // Mostrar — si Rentas/NOI están vacíos o son 0; idem Yield
+      const isZero = function(v){const n=parseFloat(String(v||'0').replace(/[.,]/g,function(c){return c===','?'.':'';}));return !v||n===0||isNaN(n);};
+      const fmtOrDash = function(v,fmt){return isZero(v)?'—':fmt(v);};
+      return '<div style="background:white;border:1px solid #e8e8e0;border-radius:6px;padding:10px 12px;flex-shrink:0">'
       +'<div style="font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:1.5px solid #1a3a2a;padding-bottom:4px;margin-bottom:7px">KPI Alquiler</div>'
-      +'<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:#555"><span>Rentas</span><span style="font-weight:600;color:#1a1a18;font-variant-numeric:tabular-nums">'+(eco.rentasEur?fe(eco.rentasEur):'—')+'</span></div>'
-      +'<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:#555;border-top:1px solid #f0efe9"><span>NOI</span><span style="font-weight:600;color:#1a1a18;font-variant-numeric:tabular-nums">'+(eco.noi?fe(eco.noi):'—')+'</span></div>'
-      +'<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:#555;border-top:1px solid #f0efe9"><span>Yield</span><span style="font-weight:600;color:#1a3a2a;font-variant-numeric:tabular-nums">'+(eco.yieldPct?fp(eco.yieldPct):'—')+'</span></div>'
-    +'</div>'
+      +'<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:#555"><span>Rentas</span><span style="font-weight:600;color:#1a1a18;font-variant-numeric:tabular-nums">'+fmtOrDash(eco.rentasEur,fe)+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:#555;border-top:1px solid #f0efe9"><span>NOI</span><span style="font-weight:600;color:#1a1a18;font-variant-numeric:tabular-nums">'+fmtOrDash(eco.noi,fe)+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:#555;border-top:1px solid #f0efe9"><span>Yield</span><span style="font-weight:600;color:#1a3a2a;font-variant-numeric:tabular-nums">'+fmtOrDash(eco.yieldPct,fp)+'</span></div>'
+    +'</div>';
+    })()
     +(p.narrativa
       ?'<div style="font-size:10px;color:#555;line-height:1.7;flex:1">'+fv(p.narrativa)+'</div>'
       :'<div style="font-size:10px;color:#bbb;font-style:italic;flex:1">Añade descripción en la pestaña Tabla → Ubicación e imagen</div>')
@@ -3101,8 +3110,9 @@ function renderDealSheet() {
     +cajita([['Ventas',fe(eco.ventaEur),true],['Margen €',fe(eco.margenEur),false],['Margen %',fp(eco.margenPct),false]],'#1a3a2a')
     +(function(){
       const cifrasIguales = eco.ventasAlqEur===eco.ventaEur && eco.margenAlqEur===eco.margenEur;
-      const sinYield = !eco.yieldPct;
-      const tieneAlquilerReal = (eco.ventasAlqEur||eco.rentasEur||eco.margenAlqEur||eco.yieldPct) && !(cifrasIguales && sinYield);
+      const yieldNumeric = parseFloat(String(eco.yieldPct||'0').replace(',','.'));
+      const sinYieldReal = !eco.yieldPct || yieldNumeric===0 || isNaN(yieldNumeric);
+      const tieneAlquilerReal = (eco.ventasAlqEur||eco.rentasEur||eco.margenAlqEur||(!sinYieldReal)) && !(cifrasIguales && sinYieldReal);
       return tieneAlquilerReal
         ? cajita([['Ventas Alquiler',fe(eco.ventasAlqEur),true],['Mg Alq. €',fe(eco.margenAlqEur),false],['Mg Alq. %',fp(eco.margenAlqPct),false]],'#52b788')
         : cajita([['Ventas Alquiler','—',true],['Mg Alq. €','—',false],['Mg Alq. %','—',false]],'#a8b5ae');
@@ -3125,10 +3135,8 @@ function renderDealSheet() {
     // Bloque Propuesta
     +(_dsRowIdx=0,'')
     +'<div style="margin-top:14px">'+secTitle('Propuesta de inversión')+'</div>'
-    +dsRow('Inicio Proyecto', fd(eco.inicioProy))
-    +dsRow('Inicio Obras → 1ª Ocup.', fd(eco.inicioObras)+(eco.fechaEntrega?' → '+fd(eco.fechaEntrega):''))
     +dsRow('Compra', fe(eco.sueloEur)+(eco.sueloEurM2?' | '+fm2(eco.sueloEurM2):''))
-    +dsRow('Pago', (eco.formaPago?eco.formaPago+' — ':'')+pagos)
+    +dsRow2('Pago', eco.formaPago||'—', pagos!=='—'?pagos:'')
     +dsRow('Construcción', fe(eco.construccionEur)+(eco.construccionEurM2?' | '+fm2(eco.construccionEurM2):''))
     +dsRow('Plazo obras', eco.plazoMeses?eco.plazoMeses+' meses':'—')
     +dsRow('PVP Unidad | €/m²', fe(eco.ventaVivEur)+(eco.ventaEurM2?' | '+fm2(eco.ventaEurM2):''))
@@ -3237,64 +3245,132 @@ function renderDashboard() {
   projects.forEach(function(p){ donutMap[p.estado]=(donutMap[p.estado]||0)+1; });
   var donutData=Object.keys(donutMap).map(function(e){ return {e:e,n:donutMap[e],c:DONUT_COLORS[e]||"#aaa"}; }).sort(function(a,b){ return ESTADOS.indexOf(a.e)-ESTADOS.indexOf(b.e); });
   var donutTotal=donutData.reduce(function(s,d){return s+d.n;},0)||1;
-  // Donut + cartelas con líneas en codo
-  // Layout SVG: 480 ancho x 290 alto. Donut centrado en (140,145), radio externo 96, interno 60.
-  // Cartelas en columna derecha, eje vertical a x=300, texto desde x=310.
-  var DCX=140, DCY=145, DRO=96, DRI=60;
-  var dsvg="<svg width=\"100%\" height=\"290\" viewBox=\"0 0 480 290\" style=\"display:block;max-width:520px;margin:0 auto\" font-family=\"Aptos,Segoe UI,sans-serif\">";
-  // 1. Pintar segmentos
-  var sa=-Math.PI/2;
-  var segMids=[]; // guardar ángulo medio de cada segmento para luego dibujar las flechas
-  donutData.forEach(function(d,i){
-    var a=(d.n/donutTotal)*Math.PI*2;
-    var x1=DCX+DRO*Math.cos(sa), y1=DCY+DRO*Math.sin(sa);
-    var x2=DCX+DRO*Math.cos(sa+a), y2=DCY+DRO*Math.sin(sa+a);
-    var l=a>Math.PI?1:0;
-    dsvg+="<path d=\"M"+DCX+","+DCY+" L"+x1+","+y1+" A"+DRO+","+DRO+" 0 "+l+",1 "+x2+","+y2+" Z\" fill=\""+d.c+"\"/>";
-    segMids.push({mid: sa+a/2, data:d});
-    sa+=a;
-  });
-  // 2. Centro blanco con número
-  dsvg+="<circle cx=\""+DCX+"\" cy=\""+DCY+"\" r=\""+DRI+"\" fill=\"white\"/>";
-  dsvg+="<text x=\""+DCX+"\" y=\""+(DCY-2)+"\" text-anchor=\"middle\" font-size=\"34\" font-weight=\"700\" fill=\"#1a1a18\">"+projects.length+"</text>";
-  dsvg+="<text x=\""+DCX+"\" y=\""+(DCY+18)+"\" text-anchor=\"middle\" font-size=\"9.5\" fill=\"#a09f97\" letter-spacing=\"1\">PROYECTOS</text>";
+  // ─── TREEMAP de estados (squarified) ─────────────────────
+  // Ordenar de mayor a menor para mejor squarified
+  var tmData = donutData.slice().sort(function(a,b){return b.n-a.n;});
+  // Layout area
+  var TM_W = 480, TM_H = 290, TM_PAD = 4;
+  var dsvg = "<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 "+TM_W+" "+TM_H+"\" preserveAspectRatio=\"xMidYMid meet\" style=\"display:block;max-width:600px;margin:0 auto\" font-family=\"Aptos,Segoe UI,sans-serif\">";
 
-  // 3. Líneas en codo + cartelas
-  // Distribuir las cartelas verticalmente equiespaciadas en la mitad derecha
-  var n = segMids.length;
-  var topY = 28, bottomY = 262;
-  var stepY = n>1 ? (bottomY-topY)/(n-1) : 0;
-  var ELBOW_X = 300; // eje vertical donde está el codo
-  var TEXT_X = 312;  // dónde empieza el contenido textual
+  // Squarified treemap algorithm
+  function squarify(items, x, y, w, h){
+    if(!items.length) return [];
+    var totalArea = items.reduce(function(s,it){return s+it.value;},0);
+    var rects = [];
+    var i = 0;
+    var rx=x, ry=y, rw=w, rh=h;
+    while(i<items.length){
+      // Decidir orientación: lado más corto
+      var horizontal = rw < rh;
+      var shortSide = horizontal ? rw : rh;
+      var longSide = horizontal ? rh : rw;
+      // Acumular items hasta que el ratio de aspecto empeore
+      var row = [];
+      var rowSum = 0;
+      var bestWorst = Infinity;
+      while(i<items.length){
+        var test = row.concat([items[i]]);
+        var testSum = rowSum + items[i].value;
+        // worst aspect ratio dentro de la fila si esta tuviese rowSum/totalArea*longSide de ancho
+        var rowLen = (testSum/totalArea)*longSide;
+        var maxv = Math.max.apply(null, test.map(function(t){return t.value;}));
+        var minv = Math.min.apply(null, test.map(function(t){return t.value;}));
+        // dimensiones de cada caja: ancho=rowLen (en eje longSide), alto=value/testSum*shortSide
+        var maxRatio = Math.max(
+          (rowLen*rowLen*maxv)/(testSum*testSum*shortSide/longSide*shortSide/longSide+0.0001),
+          (testSum*testSum*shortSide/longSide*shortSide/longSide)/(rowLen*rowLen*minv+0.0001)
+        );
+        // simpler approach: aspect = max(w/h, h/w) per cell
+        var cellLong = rowLen;
+        var cellShortSum = shortSide;
+        var worst = 0;
+        test.forEach(function(t){
+          var cellShort = (t.value/testSum)*cellShortSum;
+          var ratio = Math.max(cellLong/cellShort, cellShort/cellLong);
+          if(ratio>worst) worst = ratio;
+        });
+        if(worst > bestWorst){
+          // empeoró: cierra fila sin este item
+          break;
+        }
+        row.push(items[i]);
+        rowSum = testSum;
+        bestWorst = worst;
+        i++;
+      }
+      // Pintar la fila
+      var rowLen = (rowSum/totalArea)*longSide;
+      if(horizontal){
+        // fila ocupa toda la rw, alto rowLen del rh
+        var cx = rx;
+        row.forEach(function(t){
+          var cw = (t.value/rowSum)*rw;
+          rects.push({x:cx, y:ry, w:cw, h:rowLen, item:t});
+          cx += cw;
+        });
+        ry += rowLen;
+        rh -= rowLen;
+      } else {
+        // fila ocupa toda la rh, ancho rowLen del rw
+        var cy = ry;
+        row.forEach(function(t){
+          var ch = (t.value/rowSum)*rh;
+          rects.push({x:rx, y:cy, w:rowLen, h:ch, item:t});
+          cy += ch;
+        });
+        rx += rowLen;
+        rw -= rowLen;
+      }
+      // Actualizar totalArea para los siguientes
+      totalArea -= rowSum;
+    }
+    return rects;
+  }
 
-  segMids.forEach(function(s,i){
-    var d = s.data;
-    // Punto medio del segmento en el borde exterior
-    var sx = DCX + DRO*Math.cos(s.mid);
-    var sy = DCY + DRO*Math.sin(s.mid);
-    // Y final de la cartela
-    var ey = topY + stepY*i;
-    // Codo: salir horizontalmente hasta el x del codo, luego subir/bajar a ey, luego horizontal corto
-    var path = "M"+sx+","+sy
-             +" L"+(sx+12*Math.cos(s.mid))+","+(sy+12*Math.sin(s.mid)) // pequeño tramo radial
-             +" L"+ELBOW_X+","+(sy+12*Math.sin(s.mid))                  // tramo horizontal hacia eje
-             +" L"+ELBOW_X+","+ey                                        // tramo vertical
-             +" L"+TEXT_X+","+ey;                                        // pequeño horizontal hacia texto
-    dsvg+="<path d=\""+path+"\" stroke=\""+d.c+"\" stroke-width=\"1.2\" fill=\"none\" opacity=\"0.55\"/>";
-    // Bullet pequeño en el extremo
-    dsvg+="<circle cx=\""+TEXT_X+"\" cy=\""+ey+"\" r=\"3.5\" fill=\""+d.c+"\"/>";
-    // Texto: nombre estado · n · %
+  var rects = squarify(
+    tmData.map(function(d){return {value:d.n, data:d};}),
+    0, 0, TM_W, TM_H
+  );
+
+  // Pintar cada rectángulo
+  rects.forEach(function(r){
+    var d = r.item.data;
     var pct = Math.round(d.n/donutTotal*100);
-    dsvg+="<g style=\"cursor:pointer\" onclick=\"navigateTo('tabla',{estado:'"+d.e+"'})\">";
-    // rectángulo invisible para click
-    dsvg+="<rect x=\""+TEXT_X+"\" y=\""+(ey-12)+"\" width=\"160\" height=\"24\" fill=\"transparent\"/>";
-    dsvg+="<text x=\""+(TEXT_X+10)+"\" y=\""+(ey-1)+"\" font-size=\"11\" font-weight=\"600\" fill=\"#1a1a18\">"+d.e+"</text>";
-    dsvg+="<text x=\""+(TEXT_X+10)+"\" y=\""+(ey+12)+"\" font-size=\"10\" font-weight=\"700\" fill=\""+d.c+"\">"+d.n+"</text>";
-    dsvg+="<text x=\""+(TEXT_X+38)+"\" y=\""+(ey+12)+"\" font-size=\"9.5\" fill=\"#a09f97\" font-weight=\"500\">"+pct+"%</text>";
-    dsvg+="</g>";
+    var px = r.x + TM_PAD/2;
+    var py = r.y + TM_PAD/2;
+    var pw = r.w - TM_PAD;
+    var ph = r.h - TM_PAD;
+    if(pw<2 || ph<2) return;
+    // Color de texto: blanco para estados oscuros/medios, negro suave solo para los muy claros (Descartado)
+    var lightStates = ["Descartado","Cerrado"];
+    var textColor = lightStates.indexOf(d.e)>=0 ? "#1a1a18" : "#ffffff";
+    // Tamaños balanceados según área
+    var area = pw*ph;
+    var labelFont = Math.min(14, Math.max(9, Math.sqrt(area)/14));
+    var bigFont = Math.min(42, Math.max(20, Math.sqrt(area)/4.5));
+    var pctFont = Math.min(20, Math.max(11, bigFont*0.55));
+    dsvg += "<g style=\"cursor:pointer\" onclick=\"navigateTo('tabla',{estado:'"+d.e+"'})\">";
+    dsvg += "<rect x=\""+px+"\" y=\""+py+"\" width=\""+pw+"\" height=\""+ph+"\" rx=\"5\" fill=\""+d.c+"\"/>";
+    if(ph>=70 && pw>=70){
+      // Cajas grandes: nombre arriba + n grande + % grande debajo
+      dsvg += "<text x=\""+(px+10)+"\" y=\""+(py+18)+"\" font-size=\""+labelFont+"\" font-weight=\"600\" fill=\""+textColor+"\">"+d.e+"</text>";
+      var cy = py+ph/2+bigFont/3;
+      dsvg += "<text x=\""+(px+pw/2)+"\" y=\""+cy+"\" text-anchor=\"middle\" font-size=\""+bigFont+"\" font-weight=\"800\" fill=\""+textColor+"\">"+d.n+"</text>";
+      dsvg += "<text x=\""+(px+pw/2)+"\" y=\""+(cy+pctFont+4)+"\" text-anchor=\"middle\" font-size=\""+pctFont+"\" font-weight=\"700\" fill=\""+textColor+"\" opacity=\"0.85\">"+pct+"%</text>";
+    } else if(ph>=40 && pw>=50){
+      // Cajas medias: nombre arriba + n y % esquina inferior
+      dsvg += "<text x=\""+(px+8)+"\" y=\""+(py+15)+"\" font-size=\""+Math.min(11,labelFont)+"\" font-weight=\"600\" fill=\""+textColor+"\">"+d.e+"</text>";
+      dsvg += "<text x=\""+(px+pw-8)+"\" y=\""+(py+ph-14)+"\" text-anchor=\"end\" font-size=\""+Math.min(22,bigFont*0.7)+"\" font-weight=\"800\" fill=\""+textColor+"\">"+d.n+"</text>";
+      dsvg += "<text x=\""+(px+pw-8)+"\" y=\""+(py+ph-3)+"\" text-anchor=\"end\" font-size=\""+Math.min(12,pctFont*0.7)+"\" font-weight=\"700\" fill=\""+textColor+"\" opacity=\"0.85\">"+pct+"%</text>";
+    } else {
+      // Cajas mínimas: solo número centrado
+      dsvg += "<text x=\""+(px+pw/2)+"\" y=\""+(py+ph/2+5)+"\" text-anchor=\"middle\" font-size=\"13\" font-weight=\"800\" fill=\""+textColor+"\">"+d.n+"</text>";
+    }
+    dsvg += "</g>";
   });
-  dsvg+="</svg>";
-  var donutLegend=""; // ya no se usa; las cartelas están en el SVG
+
+  dsvg += "</svg>";
+  var donutLegend = ""; // sin leyenda — el treemap ya muestra todo
 
   // BARRAS BLOQUE
   var BLOQUE_COLORS={"Desinversi\u00f3n":"#1a3a2a","Pipeline":"#2d6a4f","Desarrollo / Operaci\u00f3n":"#52b788","Clientes / Gesti\u00f3n":"#95d5b2","Postventa":"#a8b5ae"};
