@@ -2927,10 +2927,10 @@ function renderDealSheet() {
   function fp(v){ if(!v||v==='') return '—'; const n=parseFloat(v); return isNaN(n)?v:n.toFixed(2).replace('.',',')+' %'; }
   function fc(v){ const n=parseInt(String(v||'').replace(/\./g,'').replace(/,/g,''),10); return isNaN(n)?null:n; }
   function fd(v){ if(!v||v==='') return '—'; const M={'ene':'01','feb':'02','mar':'03','abr':'04','may':'05','jun':'06','jul':'07','ago':'08','sep':'09','oct':'10','nov':'11','dic':'12'}; const pt=v.trim().split(' '); if(pt.length===3&&M[pt[1].toLowerCase()])return pt[1].toLowerCase()+'-'+String(pt[2]).slice(-2); if(pt.length===2&&/^\d{4}$/.test(pt[1]))return pt[0]+'-'+String(pt[1]).slice(-2); const iso=v.match(/^(\d{4})-(\d{2})/);if(iso)return iso[2]+'-'+String(iso[1]).slice(-2); return v; }
-  let _dsRowIdx=0;function dsRow(l,v,bold){const bg=_dsRowIdx++%2===0?'background:#fdfdfb':'background:white';return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 10px;border-bottom:1px solid #f0efe9;font-size:11px;'+bg+'"><span style="color:#888;font-weight:500">'+l+'</span><span style="font-weight:'+(bold?'700':'600')+';color:#1a1a18;font-variant-numeric:tabular-nums">'+v+'</span></div>';}
-  function dsRow2(l,v1,v2){const bg=_dsRowIdx++%2===0?'background:#fdfdfb':'background:white';return '<div style="padding:5px 10px;border-bottom:1px solid #f0efe9;font-size:11px;'+bg+'">'
+  let _dsRowIdx=0;function dsRow(l,v,bold){const bg=_dsRowIdx++%2===0?'background:#fdfdfb':'background:white';return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:3px 10px;border-bottom:1px solid #f0efe9;font-size:11px;'+bg+'"><span style="color:#888;font-weight:500">'+l+'</span><span style="font-weight:'+(bold?'700':'600')+';color:#1a1a18;font-variant-numeric:tabular-nums">'+v+'</span></div>';}
+  function dsRow2(l,v1,v2){const bg=_dsRowIdx++%2===0?'background:#fdfdfb':'background:white';return '<div style="padding:3px 10px;border-bottom:1px solid #f0efe9;font-size:11px;'+bg+'">'
     +'<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="color:#888;font-weight:500">'+l+'</span><span style="font-weight:600;color:#1a1a18;font-variant-numeric:tabular-nums">'+v1+'</span></div>'
-    +(v2?'<div style="text-align:right;font-size:10px;color:#666;font-weight:500;font-variant-numeric:tabular-nums;margin-top:2px">'+v2+'</div>':'')
+    +(v2?'<div style="text-align:right;font-size:9.5px;color:#666;font-weight:500;font-variant-numeric:tabular-nums;margin-top:1px">'+v2+'</div>':'')
     +'</div>';}
   function secTitle(t){return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:3px;height:14px;background:#1a3a2a;border-radius:2px"></div><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;color:#1a3a2a;flex:1;border-bottom:1.5px solid #1a3a2a;padding-bottom:5px">'+t+'</div></div>';}
 
@@ -3129,14 +3129,14 @@ function renderDealSheet() {
 
     // Bloque PROGRAMA (independiente)
     +(_dsRowIdx=0,'')
-    +'<div style="margin-top:14px">'+secTitle('Programa')+'</div>'
+    +'<div style="margin-top:10px">'+secTitle('Programa')+'</div>'
     +dsRow('Edificabilidad', p.edificabilidad?fmtMiles(p.edificabilidad)+' m²':'—')
     +dsRow(p.tipo==='PBSA'?'Nº camas':'Nº viviendas', p.nViviendas?fmtMiles(p.nViviendas)+' uds':'—')
     +dsRow('Parking', eco.parkingN?fmtMiles(eco.parkingN)+' plz':'—')
 
     // Bloque Propuesta
     +(_dsRowIdx=0,'')
-    +'<div style="margin-top:14px">'+secTitle('Propuesta de inversión')+'</div>'
+    +'<div style="margin-top:10px">'+secTitle('Propuesta de inversión')+'</div>'
     +dsRow('Compra', fe(eco.sueloEur)+(eco.sueloEurM2?' | '+fm2(eco.sueloEurM2):''))
     +dsRow2('Pago', eco.formaPago||'—', pagos!=='—'?pagos:'')
     +dsRow('Construcción', fe(eco.construccionEur)+(eco.construccionEurM2?' | '+fm2(eco.construccionEurM2):''))
@@ -3155,15 +3155,15 @@ function renderDealSheet() {
       const dots = hitos.map((h,i)=>{
         const isLast = i===hitos.length-1;
         return '<div style="flex:1;display:flex;flex-direction:column;align-items:'+(i===0?'flex-start':isLast?'flex-end':'center')+';position:relative;min-width:0">'
-          +'<div style="font-size:8.5px;font-weight:700;color:#1a3a2a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;white-space:nowrap">'+h.label+'</div>'
+          +'<div style="font-size:8.5px;font-weight:700;color:#1a3a2a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;white-space:nowrap">'+h.label+'</div>'
           +'<div style="display:flex;align-items:center;gap:0;width:100%;'+(i===0?'justify-content:flex-start':isLast?'justify-content:flex-end':'justify-content:center')+'">'
-            +'<div style="width:14px;height:14px;border-radius:50%;background:'+h.color+';box-shadow:0 0 0 3px white,0 0 0 4px '+h.color+';flex-shrink:0;z-index:2"></div>'
+            +'<div style="width:12px;height:12px;border-radius:50%;background:'+h.color+';box-shadow:0 0 0 2.5px white,0 0 0 3.5px '+h.color+';flex-shrink:0;z-index:2"></div>'
           +'</div>'
-          +'<div style="font-size:10px;color:#555;margin-top:5px;font-weight:500;white-space:nowrap">'+fd(h.date)+'</div>'
+          +'<div style="font-size:9.5px;color:#555;margin-top:3px;font-weight:500;white-space:nowrap">'+fd(h.date)+'</div>'
         +'</div>';
       }).join('');
-      return '<div style="margin-top:18px;padding:14px 8px 12px;background:linear-gradient(135deg,#f8f7f3 0%,#fafaf8 100%);border-radius:8px;border:1px solid #e8e8e0">'
-        +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;margin-bottom:14px;text-align:center">Hoja de Ruta</div>'
+      return '<div style="margin-top:12px;padding:8px 8px 8px;background:linear-gradient(135deg,#f8f7f3 0%,#fafaf8 100%);border-radius:8px;border:1px solid #e8e8e0">'
+        +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;margin-bottom:10px;text-align:center">Hoja de Ruta</div>'
         +'<div style="position:relative">'
           +'<div style="position:absolute;top:50%;left:8%;right:8%;height:2px;background:linear-gradient(90deg,#52b788 0%,#2d6a4f 50%,#1a3a2a 100%);transform:translateY(-2px);z-index:1"></div>'
           +'<div style="display:flex;position:relative;z-index:2">'+dots+'</div>'
@@ -3181,7 +3181,7 @@ function renderDealSheet() {
     +'</div>'
 
     // COL 3 — Imagen(s) con pies de imagen
-    +'<div style="display:flex;flex-direction:column;height:100%;background:#fafaf8;overflow:hidden;padding:10px;gap:10px;box-sizing:border-box">'
+    +'<div style="display:flex;flex-direction:column;height:100%;background:#fafaf8;overflow:hidden;padding:14px;gap:18px;box-sizing:border-box">'
     +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">'
     +(p.imgData
       ?'<div style="aspect-ratio:3/2;width:100%;overflow:hidden;border-radius:3px"><img src="'+p.imgData+'" style="width:100%;height:100%;object-fit:cover;display:block"/></div>'
