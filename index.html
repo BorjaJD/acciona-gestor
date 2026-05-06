@@ -228,8 +228,8 @@
   #pdf-drop{display:none}
   #pdf-drop.open{display:block}
   .ds-wrap{padding:18px 22px 32px;max-width:1180px;margin:0 auto}
-  .ds-toolbar{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:10px 14px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.04),0 1px 1px rgba(0,0,0,0.03)}
-  .ds-selector{font-size:13px;padding:7px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;min-width:280px}
+  .ds-toolbar{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:10px 14px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.04),0 1px 1px rgba(0,0,0,0.03);min-height:54px;box-sizing:border-box}
+  .ds-selector{font-size:13px;padding:6px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;min-width:280px;height:32px;box-sizing:border-box}
   .ds-selector:focus{border-color:var(--accent)}
   .ds-export-btn{padding:6px 14px;font-size:12px;border-radius:var(--r);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);font-weight:500;white-space:nowrap}
   .ds-export-btn:hover{opacity:.85}
@@ -3038,24 +3038,24 @@ function renderDealSheet() {
     return 'T'+(Math.floor(mes/3)+1)+' '+yr;
   }
   const pagos=[
-    eco.pago1Pct?'P1 '+(getTrim(eco.pago1FF)?getTrim(eco.pago1FF)+' ':'')+fp(eco.pago1Pct):'',
-    eco.pago2Pct?'P2 '+(getTrim(eco.pago2FF)?getTrim(eco.pago2FF)+' ':'')+fp(eco.pago2Pct):'',
-    eco.pago3Pct?'P3 '+(getTrim(eco.pago3FF)?getTrim(eco.pago3FF)+' ':'')+fp(eco.pago3Pct):''
+    eco.pago1Pct?(getTrim(eco.pago1FF)?getTrim(eco.pago1FF)+' ':'')+fp(eco.pago1Pct):'',
+    eco.pago2Pct?(getTrim(eco.pago2FF)?getTrim(eco.pago2FF)+' ':'')+fp(eco.pago2Pct):'',
+    eco.pago3Pct?(getTrim(eco.pago3FF)?getTrim(eco.pago3FF)+' ':'')+fp(eco.pago3Pct):''
   ].filter(Boolean).join(' | ')||'—';
 
   // ── Retorno cajitas ───────────────────────────────────────
   const tirN=parseFloat(eco.tirPct),mgN=parseFloat(eco.margenPct);
   const tirColor=isNaN(tirN)?'#1a3a2a':tirN>=20?'#1a3a2a':tirN>=13?'#2d6a4f':'#8b1a1a';
   function cajita(rows, accent){
-    return '<div style="background:linear-gradient(180deg,white 0%,#fafaf8 100%);border:1px solid #e4e4e0;border-top:3px solid '+accent+';border-radius:7px;padding:11px 13px;flex:1;box-shadow:0 3px 12px rgba(0,0,0,0.05),0 1px 3px rgba(0,0,0,0.04);position:relative">'
-      +rows.map(([l,v,big])=>'<div style="margin-bottom:'+(big?4:6)+'px">'
-        +'<div style="font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#999">'+l+'</div>'
-        +'<div style="font-size:'+(big?'20px':'12px')+';font-weight:'+(big?'800':'600')+';color:'+accent+';line-height:1.15;letter-spacing:'+(big?'-.3px':'0')+'">'+v+'</div>'
+    return '<div style="background:linear-gradient(180deg,white 0%,#fafaf8 100%);border:1px solid #e4e4e0;border-top:3px solid '+accent+';border-radius:7px;padding:10px 13px;flex:1;box-shadow:0 3px 12px rgba(0,0,0,0.05),0 1px 3px rgba(0,0,0,0.04);position:relative">'
+      +rows.map(([l,v,big])=>'<div style="margin-bottom:'+(big?3:4)+'px">'
+        +'<div style="font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#999">'+l+'</div>'
+        +'<div style="font-size:'+(big?'19px':'14px')+';font-weight:'+(big?'800':'700')+';color:'+accent+';line-height:1.15;letter-spacing:'+(big?'-.3px':'0')+'">'+v+'</div>'
       +'</div>').join('')
     +'</div>';
   }
 
-  const SEPS = 'display:flex;gap:8px;margin-bottom:12px';
+  const SEPS = 'display:flex;gap:8px;margin-bottom:10px';
 
   return '<div class="ds-wrap">'+selector
     +'<div class="ds-sheet" style="font-family:Aptos,Segoe UI,sans-serif">'
@@ -3116,8 +3116,8 @@ function renderDealSheet() {
       const sinYieldReal = !eco.yieldPct || yieldNumeric===0 || isNaN(yieldNumeric);
       const tieneAlquilerReal = (eco.ventasAlqEur||eco.rentasEur||eco.margenAlqEur||(!sinYieldReal)) && !(cifrasIguales && sinYieldReal);
       return tieneAlquilerReal
-        ? cajita([['Ventas Alquiler',fe(eco.ventasAlqEur),true],['Mg Alq. €',fe(eco.margenAlqEur),false],['Mg Alq. %',fp(eco.margenAlqPct),false]],'#52b788')
-        : cajita([['Ventas Alquiler','—',true],['Mg Alq. €','—',false],['Mg Alq. %','—',false]],'#a8b5ae');
+        ? cajita([['Ventas Sin Alquiler',fe(eco.ventasAlqEur),true],['Margen Sin Alquiler €',fe(eco.margenAlqEur),false],['Margen Sin Alquiler %',fp(eco.margenAlqPct),false]],'#52b788')
+        : cajita([['Ventas Sin Alquiler','—',true],['Margen Sin Alquiler €','—',false],['Margen Sin Alquiler %','—',false]],'#a8b5ae');
     })()
     +'</div>'
 
@@ -3138,7 +3138,7 @@ function renderDealSheet() {
     +(_dsRowIdx=0,'')
     +'<div style="margin-top:10px">'+secTitle('Propuesta de inversión')+'</div>'
     +dsRow('Compra', fe(eco.sueloEur)+(eco.sueloEurM2?' | '+fm2(eco.sueloEurM2):''))
-    +dsRow2('Pago', eco.formaPago||'—', pagos!=='—'?pagos:'')
+    +dsRow('Pago', (eco.formaPago?eco.formaPago+' — ':'')+pagos)
     +dsRow('Construcción', fe(eco.construccionEur)+(eco.construccionEurM2?' | '+fm2(eco.construccionEurM2):''))
     +dsRow('Plazo obras', eco.plazoMeses?eco.plazoMeses+' meses':'—')
     +dsRow('PVP Unidad | €/m²', fe(eco.ventaVivEur)+(eco.ventaEurM2?' | '+fm2(eco.ventaEurM2):''))
