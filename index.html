@@ -392,14 +392,7 @@
   .bar-val{font-size:10px;font-weight:600;color:#fff;white-space:nowrap}
   .bar-count{font-size:10px;color:var(--text3);width:24px;text-align:right;flex-shrink:0}
   /* Donut */
-  .donut-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:6px}
-  .donut-legend{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 14px;width:100%;max-width:380px}
-  .legend-item{display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 6px;border-radius:5px;transition:background .1s;min-width:0}
-  .legend-item:hover{background:var(--surface2)}
-  .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-  .legend-label{font-size:10.5px;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-  .legend-val{font-size:11px;font-weight:700;color:var(--text);min-width:14px;text-align:right;font-variant-numeric:tabular-nums}
-  .legend-pct{font-size:9.5px;color:var(--text3);min-width:28px;text-align:right;font-variant-numeric:tabular-nums}
+  .donut-wrap{display:flex;justify-content:center;align-items:center;padding:8px 4px}
   /* Funnel */
   .funnel-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
   .funnel-bar{height:28px;border-radius:4px;display:flex;align-items:center;padding:0 10px;transition:width .5s}
@@ -2932,8 +2925,8 @@ function renderDealSheet() {
   function fp(v){ if(!v||v==='') return '—'; const n=parseFloat(v); return isNaN(n)?v:n.toFixed(2).replace('.',',')+' %'; }
   function fc(v){ const n=parseInt(String(v||'').replace(/\./g,'').replace(/,/g,''),10); return isNaN(n)?null:n; }
   function fd(v){ if(!v||v==='') return '—'; const M={'ene':'01','feb':'02','mar':'03','abr':'04','may':'05','jun':'06','jul':'07','ago':'08','sep':'09','oct':'10','nov':'11','dic':'12'}; const pt=v.trim().split(' '); if(pt.length===3&&M[pt[1].toLowerCase()])return pt[1].toLowerCase()+'-'+String(pt[2]).slice(-2); if(pt.length===2&&/^\d{4}$/.test(pt[1]))return pt[0]+'-'+String(pt[1]).slice(-2); const iso=v.match(/^(\d{4})-(\d{2})/);if(iso)return iso[2]+'-'+String(iso[1]).slice(-2); return v; }
-  let _dsRowIdx=0;function dsRow(l,v,bold){const bg=_dsRowIdx++%2===0?'':'background:#fafaf8';return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 6px;border-bottom:1px solid #f0efe9;font-size:11px;'+bg+'"><span style="color:#999">'+l+'</span><span style="font-weight:'+(bold?'700':'500')+';color:#1a1a18">'+v+'</span></div>';}
-  function secTitle(t){return '<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:5px;margin-bottom:10px">'+t+'</div>';}
+  let _dsRowIdx=0;function dsRow(l,v,bold){const bg=_dsRowIdx++%2===0?'background:#fdfdfb':'background:white';return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 10px;border-bottom:1px solid #f0efe9;font-size:11px;'+bg+'"><span style="color:#888;font-weight:500">'+l+'</span><span style="font-weight:'+(bold?'700':'600')+';color:#1a1a18;font-variant-numeric:tabular-nums">'+v+'</span></div>';}
+  function secTitle(t){return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:3px;height:14px;background:#1a3a2a;border-radius:2px"></div><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;color:#1a3a2a;flex:1;border-bottom:1.5px solid #1a3a2a;padding-bottom:5px">'+t+'</div></div>';}
 
   // ── Map of Spain ──────────────────────────────────────────
   // Province → approximate centroid region for coloring (simplified 6-zone map)
@@ -3048,10 +3041,10 @@ function renderDealSheet() {
   const tirN=parseFloat(eco.tirPct),mgN=parseFloat(eco.margenPct);
   const tirColor=isNaN(tirN)?'#1a3a2a':tirN>=20?'#1a3a2a':tirN>=13?'#2d6a4f':'#8b1a1a';
   function cajita(rows, accent){
-    return '<div style="background:white;border:1px solid #e4e4e0;border-top:3px solid '+accent+';border-radius:6px;padding:10px 12px;flex:1;box-shadow:0 2px 8px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04)">'
-      +rows.map(([l,v,big])=>'<div style="margin-bottom:'+(big?2:6)+'px">'
-        +'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#aaa">'+l+'</div>'
-        +'<div style="font-size:'+(big?'18px':'12px')+';font-weight:'+(big?'800':'600')+';color:'+accent+';line-height:1.2">'+v+'</div>'
+    return '<div style="background:linear-gradient(180deg,white 0%,#fafaf8 100%);border:1px solid #e4e4e0;border-top:3px solid '+accent+';border-radius:7px;padding:11px 13px;flex:1;box-shadow:0 3px 12px rgba(0,0,0,0.05),0 1px 3px rgba(0,0,0,0.04);position:relative">'
+      +rows.map(([l,v,big])=>'<div style="margin-bottom:'+(big?4:6)+'px">'
+        +'<div style="font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#999">'+l+'</div>'
+        +'<div style="font-size:'+(big?'20px':'12px')+';font-weight:'+(big?'800':'600')+';color:'+accent+';line-height:1.15;letter-spacing:'+(big?'-.3px':'0')+'">'+v+'</div>'
       +'</div>').join('')
     +'</div>';
   }
@@ -3088,7 +3081,7 @@ function renderDealSheet() {
       :'<div style="background:#f5f4f0;border-radius:6px;padding:10px 14px;font-size:10px;color:#bbb;text-align:center;border:1px dashed #ddd;flex-shrink:0">Sin URL de Google Maps<br><span style="font-size:9px">Añádela en Tabla → Ubicación e imagen</span></div>')
     // Bloque Rentas / Yield / NOI — siempre presente con — si no aplica
     +'<div style="background:white;border:1px solid #e8e8e0;border-radius:6px;padding:10px 12px;flex-shrink:0">'
-      +'<div style="font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:1.5px solid #1a3a2a;padding-bottom:4px;margin-bottom:7px">Rentabilidad alquiler</div>'
+      +'<div style="font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:1.5px solid #1a3a2a;padding-bottom:4px;margin-bottom:7px">KPI Alquiler</div>'
       +'<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:#555"><span>Rentas</span><span style="font-weight:600;color:#1a1a18;font-variant-numeric:tabular-nums">'+(eco.rentasEur?fe(eco.rentasEur):'—')+'</span></div>'
       +'<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:#555;border-top:1px solid #f0efe9"><span>NOI</span><span style="font-weight:600;color:#1a1a18;font-variant-numeric:tabular-nums">'+(eco.noi?fe(eco.noi):'—')+'</span></div>'
       +'<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:#555;border-top:1px solid #f0efe9"><span>Yield</span><span style="font-weight:600;color:#1a3a2a;font-variant-numeric:tabular-nums">'+(eco.yieldPct?fp(eco.yieldPct):'—')+'</span></div>'
@@ -3102,20 +3095,29 @@ function renderDealSheet() {
     +'<div style="padding:16px 18px;border-right:1px solid #e8e8e0;background:white">'
 
     // 3 cajitas retornos
-    // Ventas Alquiler: solo si hay rentas o ventas alq diferenciados
+    // Lógica C: si las cifras de alquiler son iguales que las de venta Y no hay yield → no aplica
     +'<div style="'+SEPS+'">'
     +cajita([['TIR Proyecto',fp(eco.tirPct),true],['Coste Total',fe(eco.costoTotal||eco.construccionEur),false]],tirColor)
     +cajita([['Ventas',fe(eco.ventaEur),true],['Margen €',fe(eco.margenEur),false],['Margen %',fp(eco.margenPct),false]],'#1a3a2a')
-    +(eco.ventasAlqEur||eco.rentasEur||eco.margenAlqEur
-      ?cajita([['Ventas Alquiler',fe(eco.ventasAlqEur),true],['Mg Alq. €',fe(eco.margenAlqEur),false],['Mg Alq. %',fp(eco.margenAlqPct),false]],'#52b788')
-      :cajita([['Ventas Alquiler','—',true],['Mg Alq. €','—',false],['Mg Alq. %','—',false]],'#a8b5ae'))
+    +(function(){
+      const cifrasIguales = eco.ventasAlqEur===eco.ventaEur && eco.margenAlqEur===eco.margenEur;
+      const sinYield = !eco.yieldPct;
+      const tieneAlquilerReal = (eco.ventasAlqEur||eco.rentasEur||eco.margenAlqEur||eco.yieldPct) && !(cifrasIguales && sinYield);
+      return tieneAlquilerReal
+        ? cajita([['Ventas Alquiler',fe(eco.ventasAlqEur),true],['Mg Alq. €',fe(eco.margenAlqEur),false],['Mg Alq. %',fp(eco.margenAlqPct),false]],'#52b788')
+        : cajita([['Ventas Alquiler','—',true],['Mg Alq. €','—',false],['Mg Alq. %','—',false]],'#a8b5ae');
+    })()
     +'</div>'
 
-    // Bloque Ubicación
+    // Bloque Ubicación (sin programa)
     +(_dsRowIdx=0,'')+secTitle('Ubicación y características')
     +dsRow('Ubicación', fv(p.ubicacion))
     +dsRow('Tipo de activo', fv(p.tipo))
     +dsRow(contraparteLabel(p.bloque), fv(p.vendor||p.contraparte))
+
+    // Bloque PROGRAMA (independiente)
+    +(_dsRowIdx=0,'')
+    +'<div style="margin-top:14px">'+secTitle('Programa')+'</div>'
     +dsRow('Edificabilidad', p.edificabilidad?fmtMiles(p.edificabilidad)+' m²':'—')
     +dsRow(p.tipo==='PBSA'?'Nº camas':'Nº viviendas', p.nViviendas?fmtMiles(p.nViviendas)+' uds':'—')
     +dsRow('Parking', eco.parkingN?fmtMiles(eco.parkingN)+' plz':'—')
@@ -3130,7 +3132,36 @@ function renderDealSheet() {
     +dsRow('Construcción', fe(eco.construccionEur)+(eco.construccionEurM2?' | '+fm2(eco.construccionEurM2):''))
     +dsRow('Plazo obras', eco.plazoMeses?eco.plazoMeses+' meses':'—')
     +dsRow('PVP Unidad | €/m²', fe(eco.ventaVivEur)+(eco.ventaEurM2?' | '+fm2(eco.ventaEurM2):''))
-    // Bloque PROCESO movido aquí (antes estaba en columna derecha)
+
+    // BLOQUE TIMELINE — hitos del proyecto
+    +(function(){
+      const hitos = [
+        {label:'Inicio Proyecto', date:eco.inicioProy, color:'#52b788'},
+        {label:'Inicio Obras', date:eco.inicioObras, color:'#2d6a4f'},
+        {label:'1ª Ocupación', date:eco.fechaEntrega, color:'#1a3a2a'}
+      ].filter(h=>h.date);
+      if(hitos.length<2) return '';
+      // Renderizar línea con puntos
+      const dots = hitos.map((h,i)=>{
+        const isLast = i===hitos.length-1;
+        return '<div style="flex:1;display:flex;flex-direction:column;align-items:'+(i===0?'flex-start':isLast?'flex-end':'center')+';position:relative;min-width:0">'
+          +'<div style="font-size:8.5px;font-weight:700;color:#1a3a2a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;white-space:nowrap">'+h.label+'</div>'
+          +'<div style="display:flex;align-items:center;gap:0;width:100%;'+(i===0?'justify-content:flex-start':isLast?'justify-content:flex-end':'justify-content:center')+'">'
+            +'<div style="width:14px;height:14px;border-radius:50%;background:'+h.color+';box-shadow:0 0 0 3px white,0 0 0 4px '+h.color+';flex-shrink:0;z-index:2"></div>'
+          +'</div>'
+          +'<div style="font-size:10px;color:#555;margin-top:5px;font-weight:500;white-space:nowrap">'+fd(h.date)+'</div>'
+        +'</div>';
+      }).join('');
+      return '<div style="margin-top:18px;padding:14px 8px 12px;background:linear-gradient(135deg,#f8f7f3 0%,#fafaf8 100%);border-radius:8px;border:1px solid #e8e8e0">'
+        +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;margin-bottom:14px;text-align:center">Hoja de Ruta</div>'
+        +'<div style="position:relative">'
+          +'<div style="position:absolute;top:50%;left:8%;right:8%;height:2px;background:linear-gradient(90deg,#52b788 0%,#2d6a4f 50%,#1a3a2a 100%);transform:translateY(-2px);z-index:1"></div>'
+          +'<div style="display:flex;position:relative;z-index:2">'+dots+'</div>'
+        +'</div>'
+      +'</div>';
+    })()
+
+    // Bloque PROCESO
     +(p.narrativaBottom&&p.narrativaBottom!=='—'
       ?'<div style="margin-top:14px;padding-top:8px;border-top:1px solid #e8e8e0">'
         +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:4px;margin-bottom:8px">Proceso</div>'
@@ -3153,12 +3184,6 @@ function renderDealSheet() {
       :'<div style="aspect-ratio:3/2;width:100%;background:#f0efe9;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:11px">Sin segunda imagen</div>')
     +(p.imgCaption2?'<div style="font-size:9px;color:#888;font-style:italic;text-align:center;padding:0 4px;line-height:1.3">'+fv(p.imgCaption2)+'</div>':'')
     +'</div>'
-    +(pending.length
-      ?'<div style="padding:10px 4px 4px;flex:1;min-height:0;overflow:hidden;border-top:1px solid #e8e8e0;margin-top:4px">'
-        +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:4px;margin-bottom:8px">Próximas acciones</div>'
-        +pending.map(a=>'<div style="font-size:10px;color:#555;padding:3px 0;border-bottom:1px solid #f0efe9">→ '+a.t+'</div>').join('')
-      +'</div>'
-      :'')
     +'</div>'
 
     +'</div>'
@@ -3212,34 +3237,79 @@ function renderDashboard() {
   projects.forEach(function(p){ donutMap[p.estado]=(donutMap[p.estado]||0)+1; });
   var donutData=Object.keys(donutMap).map(function(e){ return {e:e,n:donutMap[e],c:DONUT_COLORS[e]||"#aaa"}; }).sort(function(a,b){ return ESTADOS.indexOf(a.e)-ESTADOS.indexOf(b.e); });
   var donutTotal=donutData.reduce(function(s,d){return s+d.n;},0)||1;
-  var dsvg="<svg width=\"260\" height=\"260\" viewBox=\"0 0 220 220\" style=\"display:block;margin:0 auto\">";
+  // Donut + cartelas con líneas en codo
+  // Layout SVG: 480 ancho x 290 alto. Donut centrado en (140,145), radio externo 96, interno 60.
+  // Cartelas en columna derecha, eje vertical a x=300, texto desde x=310.
+  var DCX=140, DCY=145, DRO=96, DRI=60;
+  var dsvg="<svg width=\"100%\" height=\"290\" viewBox=\"0 0 480 290\" style=\"display:block;max-width:520px;margin:0 auto\" font-family=\"Aptos,Segoe UI,sans-serif\">";
+  // 1. Pintar segmentos
   var sa=-Math.PI/2;
-  donutData.forEach(function(d){
-    var a=(d.n/donutTotal)*Math.PI*2,x1=110+96*Math.cos(sa),y1=110+96*Math.sin(sa),x2=110+96*Math.cos(sa+a),y2=110+96*Math.sin(sa+a),l=a>Math.PI?1:0;
-    dsvg+="<path d=\"M110,110 L"+x1+","+y1+" A96,96 0 "+l+",1 "+x2+","+y2+" Z\" fill=\""+d.c+"\"/>";
+  var segMids=[]; // guardar ángulo medio de cada segmento para luego dibujar las flechas
+  donutData.forEach(function(d,i){
+    var a=(d.n/donutTotal)*Math.PI*2;
+    var x1=DCX+DRO*Math.cos(sa), y1=DCY+DRO*Math.sin(sa);
+    var x2=DCX+DRO*Math.cos(sa+a), y2=DCY+DRO*Math.sin(sa+a);
+    var l=a>Math.PI?1:0;
+    dsvg+="<path d=\"M"+DCX+","+DCY+" L"+x1+","+y1+" A"+DRO+","+DRO+" 0 "+l+",1 "+x2+","+y2+" Z\" fill=\""+d.c+"\"/>";
+    segMids.push({mid: sa+a/2, data:d});
     sa+=a;
   });
-  dsvg+="<circle cx=\"110\" cy=\"110\" r=\"60\" fill=\"white\"/><text x=\"110\" y=\"108\" text-anchor=\"middle\" font-size=\"34\" font-weight=\"700\" fill=\"#1a1a18\">"+projects.length+"</text><text x=\"110\" y=\"128\" text-anchor=\"middle\" font-size=\"9.5\" fill=\"#a09f97\" letter-spacing=\".1em\">PROYECTOS</text></svg>";
-  var donutLegend="<div class=\"donut-legend\">";
-  donutData.forEach(function(d){
-    donutLegend+="<div class=\"legend-item\" onclick=\"navigateTo('tabla',{estado:'"+d.e+"'})\"><div class=\"legend-dot\" style=\"background:"+d.c+"\"></div><span class=\"legend-label\">"+d.e+"</span><span class=\"legend-val\">"+d.n+"</span><span class=\"legend-pct\">"+Math.round(d.n/donutTotal*100)+"%</span></div>";
+  // 2. Centro blanco con número
+  dsvg+="<circle cx=\""+DCX+"\" cy=\""+DCY+"\" r=\""+DRI+"\" fill=\"white\"/>";
+  dsvg+="<text x=\""+DCX+"\" y=\""+(DCY-2)+"\" text-anchor=\"middle\" font-size=\"34\" font-weight=\"700\" fill=\"#1a1a18\">"+projects.length+"</text>";
+  dsvg+="<text x=\""+DCX+"\" y=\""+(DCY+18)+"\" text-anchor=\"middle\" font-size=\"9.5\" fill=\"#a09f97\" letter-spacing=\"1\">PROYECTOS</text>";
+
+  // 3. Líneas en codo + cartelas
+  // Distribuir las cartelas verticalmente equiespaciadas en la mitad derecha
+  var n = segMids.length;
+  var topY = 28, bottomY = 262;
+  var stepY = n>1 ? (bottomY-topY)/(n-1) : 0;
+  var ELBOW_X = 300; // eje vertical donde está el codo
+  var TEXT_X = 312;  // dónde empieza el contenido textual
+
+  segMids.forEach(function(s,i){
+    var d = s.data;
+    // Punto medio del segmento en el borde exterior
+    var sx = DCX + DRO*Math.cos(s.mid);
+    var sy = DCY + DRO*Math.sin(s.mid);
+    // Y final de la cartela
+    var ey = topY + stepY*i;
+    // Codo: salir horizontalmente hasta el x del codo, luego subir/bajar a ey, luego horizontal corto
+    var path = "M"+sx+","+sy
+             +" L"+(sx+12*Math.cos(s.mid))+","+(sy+12*Math.sin(s.mid)) // pequeño tramo radial
+             +" L"+ELBOW_X+","+(sy+12*Math.sin(s.mid))                  // tramo horizontal hacia eje
+             +" L"+ELBOW_X+","+ey                                        // tramo vertical
+             +" L"+TEXT_X+","+ey;                                        // pequeño horizontal hacia texto
+    dsvg+="<path d=\""+path+"\" stroke=\""+d.c+"\" stroke-width=\"1.2\" fill=\"none\" opacity=\"0.55\"/>";
+    // Bullet pequeño en el extremo
+    dsvg+="<circle cx=\""+TEXT_X+"\" cy=\""+ey+"\" r=\"3.5\" fill=\""+d.c+"\"/>";
+    // Texto: nombre estado · n · %
+    var pct = Math.round(d.n/donutTotal*100);
+    dsvg+="<g style=\"cursor:pointer\" onclick=\"navigateTo('tabla',{estado:'"+d.e+"'})\">";
+    // rectángulo invisible para click
+    dsvg+="<rect x=\""+TEXT_X+"\" y=\""+(ey-12)+"\" width=\"160\" height=\"24\" fill=\"transparent\"/>";
+    dsvg+="<text x=\""+(TEXT_X+10)+"\" y=\""+(ey-1)+"\" font-size=\"11\" font-weight=\"600\" fill=\"#1a1a18\">"+d.e+"</text>";
+    dsvg+="<text x=\""+(TEXT_X+10)+"\" y=\""+(ey+12)+"\" font-size=\"10\" font-weight=\"700\" fill=\""+d.c+"\">"+d.n+"</text>";
+    dsvg+="<text x=\""+(TEXT_X+38)+"\" y=\""+(ey+12)+"\" font-size=\"9.5\" fill=\"#a09f97\" font-weight=\"500\">"+pct+"%</text>";
+    dsvg+="</g>";
   });
-  donutLegend+="</div>";
+  dsvg+="</svg>";
+  var donutLegend=""; // ya no se usa; las cartelas están en el SVG
 
   // BARRAS BLOQUE
   var BLOQUE_COLORS={"Desinversi\u00f3n":"#1a3a2a","Pipeline":"#2d6a4f","Desarrollo / Operaci\u00f3n":"#52b788","Clientes / Gesti\u00f3n":"#95d5b2","Postventa":"#a8b5ae"};
   var allBloques=BLOQUES_ORDER.slice();
   Object.keys(porBloque).forEach(function(b){if(allBloques.indexOf(b)<0&&porBloque[b]>0)allBloques.push(b);});
   var maxB=Math.max.apply(null,allBloques.map(function(b){return porBloque[b]||0;}).concat([1]));
-  var barsBloque="<div style=\"display:flex;flex-direction:column;justify-content:space-between;flex:1;gap:0\">";
+  var barsBloque="<div style=\"display:flex;flex-direction:column;justify-content:center;flex:1;gap:10px;padding:4px 0\">";
   allBloques.forEach(function(b){
     var n=porBloque[b]||0; if(n===0)return;
-    var pct=Math.max(Math.round(n/maxB*100),12),color=BLOQUE_COLORS[b]||"#888";
-    barsBloque+="<div class=\"bar-row\" onclick=\"navigateTo('tabla',{bloque:'"+b+"'})\" style=\"cursor:pointer;padding:3px 0\">"+
-      "<div style=\"font-size:11px;color:var(--text2);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\">"+b+"</div>"+
-      "<div class=\"bar-track\" style=\"flex:1\">"+
-        "<div class=\"bar-fill\" style=\"width:"+pct+"%;background:"+color+";display:flex;align-items:center;padding:0 7px;min-height:20px\">"+
-          "<span style=\"font-size:10px;font-weight:700;color:white\">"+n+"</span>"+
+    var pct=Math.max(Math.round(n/maxB*100),18),color=BLOQUE_COLORS[b]||"#888";
+    barsBloque+="<div class=\"bar-row\" onclick=\"navigateTo('tabla',{bloque:'"+b+"'})\" style=\"cursor:pointer;padding:0;gap:12px;margin:0\">"+
+      "<div style=\"font-size:12px;color:var(--text);font-weight:500;width:160px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\">"+b+"</div>"+
+      "<div class=\"bar-track\" style=\"flex:1;height:34px;border-radius:6px;background:#f4f3ee\">"+
+        "<div class=\"bar-fill\" style=\"width:"+pct+"%;background:linear-gradient(90deg,"+color+" 0%,"+color+"dd 100%);display:flex;align-items:center;justify-content:flex-end;padding:0 12px;height:34px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.08)\">"+
+          "<span style=\"font-size:14px;font-weight:800;color:white;font-variant-numeric:tabular-nums\">"+n+"</span>"+
         "</div>"+
       "</div>"+
       "</div>";
@@ -3253,12 +3323,12 @@ function renderDashboard() {
   var totalPais=Object.values(porPais).reduce(function(a,b){return a+b;},0);
   var paisHtml="";
   if(totalPais>0){
-    paisHtml="<div style=\"margin-top:14px;padding-top:12px;border-top:1px solid var(--border)\">"+
-      "<div style=\"font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px\">Por pa\u00eds</div>"+
-      "<div style=\"display:flex;gap:3px;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px\">";
-    paisOrder.forEach(function(p){var n=porPais[p]||0;if(n===0)return;var pct=Math.round(n/totalPais*100);paisHtml+="<div style=\"width:"+pct+"%;background:"+(PAIS_COLORS[p]||"#aaa")+"\" title=\""+p+": "+n+"\"></div>";});
-    paisHtml+="</div><div style=\"display:flex;flex-wrap:wrap;gap:6px 12px\">";
-    paisOrder.forEach(function(p){var n=porPais[p]||0;if(n===0)return;paisHtml+="<div style=\"display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)\"><span style=\"width:8px;height:8px;border-radius:50%;background:"+(PAIS_COLORS[p]||"#aaa")+";display:inline-block\"></span>"+p+" <strong>"+n+"</strong></div>";});
+    paisHtml="<div style=\"margin-top:18px;padding-top:14px;border-top:1px solid var(--border)\">"+
+      "<div style=\"font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:10px\">Por pa\u00eds</div>"+
+      "<div style=\"display:flex;gap:3px;height:18px;border-radius:5px;overflow:hidden;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06)\">";
+    paisOrder.forEach(function(p){var n=porPais[p]||0;if(n===0)return;var pct=Math.round(n/totalPais*100);paisHtml+="<div style=\"width:"+pct+"%;background:"+(PAIS_COLORS[p]||"#aaa")+";display:flex;align-items:center;justify-content:center\" title=\""+p+": "+n+"\">"+(pct>=10?"<span style=\"font-size:9px;font-weight:700;color:white\">"+n+"</span>":"")+"</div>";});
+    paisHtml+="</div><div style=\"display:flex;flex-wrap:wrap;gap:6px 14px\">";
+    paisOrder.forEach(function(p){var n=porPais[p]||0;if(n===0)return;paisHtml+="<div style=\"display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)\"><span style=\"width:9px;height:9px;border-radius:50%;background:"+(PAIS_COLORS[p]||"#aaa")+";display:inline-block\"></span>"+p+" <strong style=\"color:var(--text);font-weight:700\">"+n+"</strong></div>";});
     paisHtml+="</div></div>";
   }
 
