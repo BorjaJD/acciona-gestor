@@ -229,7 +229,7 @@
   #pdf-drop.open{display:block}
   .ds-selector{font-size:13px;padding:7px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;min-width:280px}
   .ds-selector:focus{border-color:var(--accent)}
-  .ds-export-btn{padding:7px 16px;font-size:12px;border-radius:var(--r);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);font-weight:500;white-space:nowrap}
+  .ds-export-btn{padding:6px 14px;font-size:12px;border-radius:var(--r);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);font-weight:500;white-space:nowrap}
   .ds-export-btn:hover{opacity:.85}
   .ds-empty{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--text3);font-size:13px}
   .ds-sheet{margin:20px auto;width:calc(100% - 40px);max-width:1100px;background:white;border-radius:var(--rl);overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.12),0 1px 4px rgba(0,0,0,0.06)}
@@ -2511,34 +2511,49 @@ function renderPipelineSummary() {
       const margenTot=margen+margenSB;
       const cx=PAD_L+i*groupW+groupW/2;
       const isZero=ventaTot===0&&margenTot===0;
-      const bVenta=Math.max(isZero?1:2,Math.round((venta/maxV)*CHART_H));
-      const bVentaSB=Math.round((ventaSB/maxV)*CHART_H);
-      const bMargen=Math.max(isZero?1:2,Math.round((margenTot/maxV)*CHART_H));
+      // Heights — solo añadimos el mínimo de 2px si la categoría correspondiente tiene valor real
+      const bVenta=venta>0?Math.max(2,Math.round((venta/maxV)*CHART_H)):0;
+      const bVentaSB=ventaSB>0?Math.max(2,Math.round((ventaSB/maxV)*CHART_H)):0;
       const baseY=PAD_T+CHART_H;
       const mgPct=ventaTot>0?Math.round(margenTot/ventaTot*100):0;
       const fmV=v=>v>=1e9?Math.round(v/1e9)+'B€':v>=1e6?Math.round(v/1e6)+'M€':v>=1e3?Math.round(v/1e3)+'K€':'—';
 
-      // Venta bar — stacked
+      // Venta bar — stacked: activos abajo, Stand By arriba
       const xv=cx-barW-gap/2;
-      // Active part (bottom)
-      svg+=`<rect x="${xv}" y="${baseY-bVenta}" width="${barW}" height="${bVenta}" fill="#1a3a2a" rx="${ventaSB>0?0:2}" opacity="${isZero?0.1:0.9}"/>`;
-      // Stand-By part (top)
-      if(ventaSB>0){
-        svg+=`<rect x="${xv}" y="${baseY-bVenta-bVentaSB}" width="${barW}" height="${bVentaSB}" fill="#7a8780" rx="2" opacity="1">
-          <title>Stand By: ${fmV(ventaSB)}</title></rect>`;
+      // Placeholder gris muy claro si el año está totalmente vacío
+      if(isZero){
+        svg+=`<rect x="${xv}" y="${baseY-1}" width="${barW}" height="1" fill="#1a3a2a" opacity="0.1"/>`;
+      } else {
+        // Active part (bottom) — solo si hay venta activa
+        if(venta>0){
+          const isOnlyActive = ventaSB===0;
+          svg+=`<rect x="${xv}" y="${baseY-bVenta}" width="${barW}" height="${bVenta}" fill="#1a3a2a" rx="${isOnlyActive?2:0}" opacity="0.9"/>`;
+        }
+        // Stand-By part (top)
+        if(ventaSB>0){
+          const isOnlySB = venta===0;
+          // Si solo hay SB, esquinas redondeadas también abajo
+          svg+=`<rect x="${xv}" y="${baseY-bVenta-bVentaSB}" width="${barW}" height="${bVentaSB}" fill="#7a8780" rx="2" opacity="1">
+            <title>Stand By: ${fmV(ventaSB)}</title></rect>`;
+        }
       }
       if(ventaTot>0) svg+=`<text x="${xv+barW/2}" y="${baseY-bVenta-bVentaSB-3}" text-anchor="middle" font-size="7" font-weight="700" fill="#1a3a2a">${fmV(ventaTot)}</text>`;
 
       // Margen bar — apilada también: activos abajo, Stand By arriba
       const xm=cx+gap/2;
-      const bMargenAct=Math.max(isZero?1:2,Math.round((margen/maxV)*CHART_H));
-      const bMargenSB=Math.round((margenSB/maxV)*CHART_H);
-      // Active part (bottom)
-      svg+=`<rect x="${xm}" y="${baseY-bMargenAct}" width="${barW}" height="${bMargenAct}" fill="#52b788" rx="${margenSB>0?0:2}" opacity="${isZero?0.1:0.85}"/>`;
-      // Stand-By part (top)
-      if(margenSB>0){
-        svg+=`<rect x="${xm}" y="${baseY-bMargenAct-bMargenSB}" width="${barW}" height="${bMargenSB}" fill="#a8c2b1" rx="2" opacity="1">
-          <title>Margen Stand By: ${fmV(margenSB)}</title></rect>`;
+      const bMargenAct=margen>0?Math.max(2,Math.round((margen/maxV)*CHART_H)):0;
+      const bMargenSB=margenSB>0?Math.max(2,Math.round((margenSB/maxV)*CHART_H)):0;
+      if(isZero){
+        svg+=`<rect x="${xm}" y="${baseY-1}" width="${barW}" height="1" fill="#52b788" opacity="0.1"/>`;
+      } else {
+        if(margen>0){
+          const isOnlyMgAct = margenSB===0;
+          svg+=`<rect x="${xm}" y="${baseY-bMargenAct}" width="${barW}" height="${bMargenAct}" fill="#52b788" rx="${isOnlyMgAct?2:0}" opacity="0.85"/>`;
+        }
+        if(margenSB>0){
+          svg+=`<rect x="${xm}" y="${baseY-bMargenAct-bMargenSB}" width="${barW}" height="${bMargenSB}" fill="#a8c2b1" rx="2" opacity="1">
+            <title>Margen Stand By: ${fmV(margenSB)}</title></rect>`;
+        }
       }
       if(margenTot>0){
         const pctStr=mgPct>0?mgPct+'%':'';
@@ -2562,11 +2577,11 @@ function renderPipelineSummary() {
     const mg=parseInt((e.margenEur||'').replace(/\D/g,'')||0);
     const col=isStandBy?'#7a8780':tirc(t);
     const wt=Math.round((t/maxT)*100),wm=Math.round((m/maxM)*100);
-    const muted = isStandBy ? 'opacity:0.72;' : '';
-    const nameColor = isStandBy ? '#666' : '#1a1a18';
-    const valueColor = isStandBy ? '#888' : '#555';
-    const ventaWeight = isStandBy ? '500' : '600';
-    const ventaColor = isStandBy ? '#666' : '#1a1a18';
+    const muted = isStandBy ? 'opacity:0.92;' : '';
+    const nameColor = isStandBy ? '#3a3a38' : '#1a1a18';
+    const valueColor = isStandBy ? '#666' : '#555';
+    const ventaWeight = isStandBy ? '600' : '600';
+    const ventaColor = isStandBy ? '#3a3a38' : '#1a1a18';
     return `<tr style="background:${bgBase};${muted}">
       <td style="padding:4px 6px 4px 0;overflow:hidden;max-width:0">
         <div style="font-weight:${isStandBy?'500':'600'};font-size:10px;color:${nameColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nombre}</div>
@@ -2681,11 +2696,11 @@ function renderPipelineSummary() {
           ${estadoRows}
         </div>
 
-        ${(sortedPend.length||sortedSB.length) ? `
+        ${sortedPend.length ? `
         <div style="margin-top:10px">
-          <div style="${CT}">En estudio / Stand By</div>
+          <div style="${CT}">Pendientes — sin datos económicos</div>
           <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">
-            ${[...sortedPend,...sortedSB].map(p=>`
+            ${sortedPend.map(p=>`
               <div style="display:flex;align-items:center;gap:5px">
                 <span style="width:5px;height:5px;border-radius:50%;background:${EC[p.estado]||'#ccc'};flex-shrink:0"></span>
                 <span style="font-size:8px;color:#555;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${p.nombre}</span>
