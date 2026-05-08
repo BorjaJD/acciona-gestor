@@ -120,6 +120,13 @@
   .track-broker{font-weight:600;font-size:13px;flex:1;min-width:100px}
   .track-tipo{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.04em;background:#f0efe9;padding:2px 7px;border-radius:10px;font-weight:600}
   .track-status{font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:10px;text-transform:uppercase;letter-spacing:.04em;color:white}
+  .track-status-select{appearance:none;-webkit-appearance:none;font-size:9.5px;font-weight:700;padding:3px 22px 3px 9px;border-radius:10px;text-transform:uppercase;letter-spacing:.04em;color:white;border:none;cursor:pointer;font-family:var(--font);outline:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M0 0l4.5 6 4.5-6z' fill='%23ffffff'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;transition:box-shadow .15s}
+  .track-status-select:hover{box-shadow:0 0 0 2px rgba(0,0,0,0.12)}
+  .track-status-select.s-activo{background-color:#b8c8d4;color:#1a3045;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M0 0l4.5 6 4.5-6z' fill='%231a3045'/%3E%3C/svg%3E")}
+  .track-status-select.s-info{background-color:#1e40af}
+  .track-status-select.s-negociacion{background-color:#3d7058}
+  .track-status-select.s-cierre{background-color:#1a3a2a}
+  .track-status-select.s-descartado{background-color:#3a3a3a}
   .track-status.s-activo{background:#b8c8d4;color:#1a3045}
   .track-status.s-info{background:#1e40af}
   .track-status.s-negociacion{background:#3d7058}
@@ -1174,11 +1181,13 @@ function getBestOffer(p){
 
 // Re-render detalle Input sin perder otros estados
 function renderDetailOnly(){
-  const panel = document.querySelector('.detail-panel');
-  if(!panel) return;
-  const tmp = document.createElement('div');
-  tmp.innerHTML = renderDetail();
-  if(tmp.firstChild) panel.outerHTML = tmp.firstChild.outerHTML;
+  preserveScroll(() => {
+    const panel = document.querySelector('.detail-panel');
+    if(!panel) return;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = renderDetail();
+    if(tmp.firstChild) panel.outerHTML = tmp.firstChild.outerHTML;
+  });
 }
 
 function toggleMapUrlField(id, enabled) {
@@ -1570,7 +1579,7 @@ function renderTrackCard(p, t){
           +'</div>'
           +'<div class="detail-field">'
             +'<span class="detail-label">Tipo</span>'
-            +'<select class="detail-select" onclick="event.stopPropagation()" onchange="updateTrackField('+p.id+','+t.id+',\'tipo\',this.value);renderDetailOnly()">'
+            +'<select class="detail-select" onclick="event.stopPropagation()" onchange="updateTrackField('+p.id+','+t.id+',\'tipo\',this.value)">'
               + TRACK_TIPOS.map(tp=>'<option value="'+tp+'"'+(t.tipo===tp?' selected':'')+'>'+tp+'</option>').join('')
             +'</select>'
           +'</div>'
@@ -1600,11 +1609,11 @@ function renderTrackCard(p, t){
         +'<div class="detail-grid-2">'
           +'<div class="detail-field">'
             +'<span class="detail-label">Oferta importe (€)</span>'
-            +'<input type="number" class="detail-input" value="'+(t.ofertaImporte||'')+'" placeholder="ej. 15500000" onclick="event.stopPropagation()" oninput="updateTrackField('+p.id+','+t.id+',\'ofertaImporte\',Number(this.value));renderDetailOnly()">'
+            +'<input type="number" class="detail-input" value="'+(t.ofertaImporte||'')+'" placeholder="ej. 15500000" onclick="event.stopPropagation()" oninput="updateTrackField('+p.id+','+t.id+',\'ofertaImporte\',Number(this.value))">'
           +'</div>'
           +'<div class="detail-field">'
             +'<span class="detail-label">Fecha oferta</span>'
-            +'<input type="date" class="detail-input" value="'+(t.ofertaFecha||'')+'" onclick="event.stopPropagation()" onchange="updateTrackField('+p.id+','+t.id+',\'ofertaFecha\',this.value);renderDetailOnly()">'
+            +'<input type="date" class="detail-input" value="'+(t.ofertaFecha||'')+'" onclick="event.stopPropagation()" onchange="updateTrackField('+p.id+','+t.id+',\'ofertaFecha\',this.value)">'
           +'</div>'
         +'</div>'
         + (t.ofertaImporte>0 ? '<div style="margin-top:6px;font-size:11px;color:#3d7058;font-weight:600">→ '+fmtMiles(t.ofertaImporte)+' €</div>' : '')
@@ -1635,9 +1644,6 @@ function renderTrackCard(p, t){
       +'</div>'
       // Bottom bar
       +'<div class="track-actions-bar">'
-        +'<select class="btn-mini" onclick="event.stopPropagation()" onchange="changeTrackEstado('+p.id+','+t.id+',this.value)" style="cursor:pointer">'
-          + TRACK_ESTADOS.map(s=>'<option value="'+s+'"'+(t.estado===s?' selected':'')+'>'+s+'</option>').join('')
-        +'</select>'
         +'<button class="btn-mini danger" onclick="event.stopPropagation();deleteTrack('+p.id+','+t.id+')">Eliminar track</button>'
       +'</div>'
     +'</div>';
@@ -1648,7 +1654,9 @@ function renderTrackCard(p, t){
       +'<span class="track-toggle"></span>'
       +'<span class="track-broker">'+(t.broker||'<i style="color:#bbb;font-weight:400">sin nombre</i>')+'</span>'
       +'<span class="track-tipo">'+(t.tipo||'—')+'</span>'
-      +'<span class="track-status s-'+cls+'">'+t.estado+'</span>'
+      +'<select class="track-status-select s-'+cls+'" onclick="event.stopPropagation()" onchange="changeTrackEstado('+p.id+','+t.id+',this.value)">'
+        + TRACK_ESTADOS.map(s=>'<option value="'+s+'"'+(t.estado===s?' selected':'')+'>'+s+'</option>').join('')
+      +'</select>'
       +'<span class="track-quick-actions">'+summaryActions+'</span>'
     +'</div>'
     + detailHtml
@@ -2467,8 +2475,10 @@ function renderEconomico() {
 }
 
 function renderEcoOnly(){
-  const m=document.getElementById('main');
-  if(m) try{m.innerHTML=renderEconomico();}catch(e){console.error(e);}
+  preserveScroll(() => {
+    const m=document.getElementById('main');
+    if(m) try{m.innerHTML=renderEconomico();}catch(e){console.error(e);}
+  });
 }
 
 function thGroupStyle(bg, extra) {
@@ -2661,41 +2671,58 @@ function renderMobile() {
   return html;
 }
 
-function render() {
+// Helper: ejecuta una función de render preservando posición de scroll
+function preserveScroll(fn) {
   const m = document.getElementById('main');
-  if(isMobile() && S.view!=='dealsheet') {
-    try {
-      m.innerHTML = renderMobile();
-    } catch(e) {
-      console.error('renderMobile error:', e);
-      m.innerHTML = '<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error móvil:</strong><br><pre style="white-space:pre-wrap;font-size:11px">'+e.message+'</pre></div>';
+  const scrollY = window.scrollY || window.pageYOffset || 0;
+  const mScroll = m ? m.scrollTop : 0;
+  // También guardar scroll de cualquier scrollable ancestor
+  fn();
+  // Restaurar scroll en próximo frame para evitar layout shifts
+  requestAnimationFrame(() => {
+    if(m) m.scrollTop = mScroll;
+    window.scrollTo({top:scrollY, behavior:'instant'});
+  });
+}
+
+function render() {
+  preserveScroll(() => {
+    const m = document.getElementById('main');
+    if(isMobile() && S.view!=='dealsheet') {
+      try {
+        m.innerHTML = renderMobile();
+      } catch(e) {
+        console.error('renderMobile error:', e);
+        m.innerHTML = '<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error móvil:</strong><br><pre style="white-space:pre-wrap;font-size:11px">'+e.message+'</pre></div>';
+      }
+      return;
     }
-    return;
-  }
-  const focused = document.activeElement;
-  const detailHasFocus = focused && focused.closest && focused.closest('.detail-panel');
-  if(S.view==='dashboard') {
-    try { m.innerHTML=renderDashboard(); }
-    catch(e) { m.innerHTML='<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error en Dashboard:</strong><br><pre>'+e.message+'</pre></div>'; console.error(e); }
-  }
-  else if(S.view==='tabla') {
-    if(detailHasFocus) renderTablaOnly();
-    else m.innerHTML=renderTabla();
-  }
-  else if(S.view==='resumen') m.innerHTML=renderResumen();
-  else if(S.view==='economico') {
-    try { m.innerHTML=renderEconomico(); }
-    catch(e) { m.innerHTML='<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error en Económico:</strong><br><pre>'+e.message+'\\n'+e.stack+'</pre></div>'; console.error(e); }
-  }
-  else if(S.view==='dealsheet') m.innerHTML=renderDealSheet();
+    const focused = document.activeElement;
+    const detailHasFocus = focused && focused.closest && focused.closest('.detail-panel');
+    if(S.view==='dashboard') {
+      try { m.innerHTML=renderDashboard(); }
+      catch(e) { m.innerHTML='<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error en Dashboard:</strong><br><pre>'+e.message+'</pre></div>'; console.error(e); }
+    }
+    else if(S.view==='tabla') {
+      if(detailHasFocus) renderTablaOnly();
+      else m.innerHTML=renderTabla();
+    }
+    else if(S.view==='resumen') m.innerHTML=renderResumen();
+    else if(S.view==='economico') {
+      try { m.innerHTML=renderEconomico(); }
+      catch(e) { m.innerHTML='<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error en Económico:</strong><br><pre>'+e.message+'\\n'+e.stack+'</pre></div>'; console.error(e); }
+    }
+    else if(S.view==='dealsheet') m.innerHTML=renderDealSheet();
+  });
 }
 
 function renderTablaOnly() {
-  // Re-render only kpis + filters + table, leave detail panel untouched
-  const m = document.getElementById('main');
-  const f = getFiltered();
-  const cols = [{key:'nombre',label:'Proyecto'},{key:'bloque',label:'Bloque'},{key:'estado',label:'Estado'},{key:'prioridad',label:'Prioridad'},{key:'tipo',label:'Tipo'},{key:'contraparte',label:'Contraparte'},{key:'responsable',label:'Responsable'}];
-  const ths = cols.map(c=>{ const si=S.sortCols.findIndex(s=>s.col===c.key); let arr=''; if(si>=0){arr=S.sortCols[si].dir===1?'↑':'↓'; if(S.sortCols.length>1) arr+='<sup style="font-size:8px;opacity:.7">'+(si+1)+'<\/sup>';} return '<th onclick="setSortCol(\''+c.key+'\',event.shiftKey)">'+c.label+'<span class="th-arr">'+arr+'<\/span><\/th>'; }).join('') + '<th style="width:36px"></th>';
+  preserveScroll(() => {
+    // Re-render only kpis + filters + table, leave detail panel untouched
+    const m = document.getElementById('main');
+    const f = getFiltered();
+    const cols = [{key:'nombre',label:'Proyecto'},{key:'bloque',label:'Bloque'},{key:'estado',label:'Estado'},{key:'prioridad',label:'Prioridad'},{key:'tipo',label:'Tipo'},{key:'contraparte',label:'Contraparte'},{key:'responsable',label:'Responsable'}];
+    const ths = cols.map(c=>{ const si=S.sortCols.findIndex(s=>s.col===c.key); let arr=''; if(si>=0){arr=S.sortCols[si].dir===1?'↑':'↓'; if(S.sortCols.length>1) arr+='<sup style="font-size:8px;opacity:.7">'+(si+1)+'<\/sup>';} return '<th onclick="setSortCol(\''+c.key+'\',event.shiftKey)">'+c.label+'<span class="th-arr">'+arr+'<\/span><\/th>'; }).join('') + '<th style="width:36px"></th>';
   let rows='';
   BLOQUES_ORDER.forEach(b=>{
     const bp=f.filter(p=>p.bloque===b); if(!bp.length) return;
@@ -2754,8 +2781,9 @@ function renderTablaOnly() {
   if(badge) badge.textContent = f.length+' / '+projects.length+' proyectos';
 
   // Update table body only
-  const tbody = m.querySelector('tbody');
-  if(tbody) tbody.innerHTML = rows;
+    const tbody = m.querySelector('tbody');
+    if(tbody) tbody.innerHTML = rows;
+  });
 }
 
 
