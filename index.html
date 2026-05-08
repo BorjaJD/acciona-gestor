@@ -404,7 +404,7 @@
   .ai-title{font-size:13px;font-weight:600}
   .ai-sub{font-size:11px;color:var(--text3)}
   .ai-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
-  .msg{padding:8px 11px;border-radius:var(--rl);font-size:12px;line-height:1.5;max-width:92%}
+  .msg{padding:8px 11px;border-radius:var(--rl);font-size:12px;line-height:1.5;max-width:92%;white-space:pre-wrap;word-break:break-word}
   .msg-system{background:var(--surface2);color:var(--text2);border:1px solid var(--border);align-self:flex-start}
   .msg-user{background:var(--accent);color:#fff;align-self:flex-end}
   .msg-ai{background:var(--surface);border:1px solid var(--border);color:var(--text);align-self:flex-start}
@@ -4712,13 +4712,102 @@ async function sendAI(){
   input.value='';btn.disabled=true;
   addMsg('user',text);
   const thinking=addMsg('ai','Procesando…');if(thinking)thinking.classList.add('msg-thinking');
-  const pj=JSON.stringify(projects.map(p=>({id:p.id,nombre:p.nombre,bloque:p.bloque,estado:p.estado,prioridad:p.prioridad,tipo:p.tipo,contraparte:p.contraparte,avance:p.avance,proxima:p.proxima,responsable:p.responsable,notas:p.notas})));
-  const sys='Eres el asistente de gestión inmobiliaria de Acciona. PORTFOLIO: '+pj+'\nEstados: Recibido, En análisis, Negociación, Due diligence, En cierre, Activo, Descartado, Cerrado. Bloques: Desinversión, Pipeline, Pipeline, Desarrollo / Operación, Clientes / Gestión, Postventa. Responde SIEMPRE JSON: {"accion":"actualizar","cambios":[{"id":N,"campo":"x","valor_nuevo":"x"}],"resumen":"x"} o {"accion":"consulta","respuesta":"x"}';
+
+  // Contexto completo: TODOS los campos relevantes incluyendo eco, tracks, fases, hitos
+  const fechaHoy = new Date().toISOString().slice(0,10);
+  const pj=JSON.stringify(projects.map(p=>{
+    ensureTracks(p);
+    const out = {
+      id: p.id,
+      nombre: p.nombre,
+      bloque: p.bloque,
+      estado: p.estado,
+      prioridad: p.prioridad,
+      tipo: p.tipo,
+      ubicacion: p.ubicacion||'',
+      ciudad: p.ciudad||'',
+      delegacion: p.delegacion||'',
+      vendor: p.vendor||p.contraparte||'',
+      responsable: p.responsable||'',
+      avance: p.avance||'',
+      narrativa: p.narrativa||'',
+      narrativaBottom: p.narrativaBottom||'',
+      notas: p.notas||'',
+      fases: Array.isArray(p.fases)?p.fases:[],
+      acciones: Array.isArray(p.acciones)?p.acciones.filter(a=>!a.d).map(a=>a.t):[],
+      acciones_completadas: Array.isArray(p.acciones)?p.acciones.filter(a=>a.d).map(a=>a.t):[],
+    };
+    // Datos económicos solo si hay
+    if(p.eco){
+      const eco={};
+      ['sueloEur','ventaEur','construccionEur','margenEur','margenPct','tirPct','noi','yieldPct','rentasEur','ventasAlqEur','margenAlqEur','margenAlqPct','plazoMeses','fechaEntrega','inicioProy','inicioObras','edificabilidad','nViviendas','nParking'].forEach(k=>{
+        if(p.eco[k] !== undefined && p.eco[k] !== '' && p.eco[k] !== 0) eco[k]=p.eco[k];
+      });
+      if(Object.keys(eco).length) out.eco=eco;
+    }
+    // Tracks comerciales solo si activo
+    if(p.tracksEnabled && Array.isArray(p.tracks) && p.tracks.length){
+      out.tracks=p.tracks.map(t=>({
+        broker: t.broker||'',
+        tipo: t.tipo||'',
+        estado: t.estado||'',
+        contacto: [t.contactoNombre, t.contactoEmail, t.contactoTel].filter(Boolean).join(' · '),
+        oferta: t.ofertaImporte||0,
+        notas: t.notas||'',
+        hitos_completados: Object.keys(t.hitos||{}).filter(k=>t.hitos[k]?.done),
+        acciones_pendientes: (t.acciones||[]).filter(a=>!a.d).map(a=>a.t)
+      }));
+    }
+    return out;
+  }));
+
+  const sys = `Eres el asistente experto de gestión inmobiliaria de Acciona Inmobiliaria.
+
+CONTEXTO ACTUAL (fecha: ${fechaHoy}):
+PORTFOLIO COMPLETO: ${pj}
+
+ESTRUCTURA DEL MODELO:
+- Bloques: Pipeline, Desinversión, Desarrollo / Operación, Clientes / Gestión, Postventa
+- Estados: Recibido, En análisis, Due diligence, WIP, Stand By, Descartado, Cerrado
+- Prioridades: 1=Alta, 2=Media, 3=Baja
+- Delegaciones (solo Pipeline): Centro, Este, Norte, Sur, Internacional
+- Tipos de activo comunes: Residencial, PBSA, BTR, Oficinas, Logístico, Hotelero, Suelo, Mixed-Use
+- Tracks comerciales: vías paralelas con varios brokers para un mismo proyecto. Estados de track: Activo, Info, Negociación, Cierre, Descartado. Tipos: Exclusivo, Co-exclusivo, Off-market, Otro.
+
+CAMPOS PRINCIPALES por proyecto:
+- nombre, bloque, estado, prioridad, tipo
+- ubicacion (provincia), ciudad, delegacion
+- vendor (vendedor/contraparte), responsable
+- avance (texto último avance), narrativa (descripción), narrativaBottom (proceso/negociación), notas
+- acciones (lista de tareas pendientes/completadas)
+- fases (Pipeline: Teaser/IM, NDA, NBO, BO, Escritura)
+- eco: datos económicos (sueloEur, ventaEur, construccionEur, margenEur, margenPct, tirPct, noi, yieldPct, etc.)
+- tracks: vías comerciales con brokers (si tracksEnabled)
+
+INSTRUCCIONES DE RESPUESTA:
+Responde SIEMPRE en formato JSON válido con UNA de estas dos formas:
+
+1. CONSULTA (cuando el usuario pregunta información, pide análisis, comparativas, recomendaciones, etc):
+{"accion":"consulta","respuesta":"texto libre con tu respuesta. Puedes usar saltos de línea, listas, datos concretos. Sé directo y útil. Cita IDs y nombres concretos cuando aporte. Si la respuesta lo merece, estructura con guiones o párrafos."}
+
+2. ACTUALIZAR (cuando el usuario pide modificar uno o varios proyectos):
+{"accion":"actualizar","cambios":[{"id":N,"campo":"x","valor_nuevo":"x"}],"resumen":"qué hice exactamente"}
+
+Campos modificables vía 'actualizar': nombre, bloque, estado, prioridad, tipo, ubicacion, ciudad, delegacion, vendor, responsable, avance, proxima, narrativa, narrativaBottom, notas.
+
+REGLAS:
+- Si la pregunta es ambigua o requiere razonamiento, usa "consulta" y elabora.
+- Si pide cambios concretos sin ambigüedad, usa "actualizar".
+- Para preguntas tipo "muéstrame", "qué proyectos", "cuántos", "compara", "analiza", "qué pasa con", "estado de" → SIEMPRE "consulta".
+- Conoce el sector inmobiliario español (PBSA = Purpose Built Student Accommodation, BTR = Build To Rent, NBO = Non Binding Offer, BO = Binding Offer, etc.).
+- Si no tienes datos suficientes, dilo en la respuesta sin inventar.
+- Sé conciso pero completo. Habla en español.`;
+
   try{
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[...aiHist,{role:'user',content:text}]})
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sys,messages:[...aiHist,{role:'user',content:text}]})
     });
     if(resp.status===401){if(thinking){thinking.textContent='⚠️ API key incorrecta. Compruébala en console.anthropic.com';thinking.classList.remove('msg-thinking');}btn.disabled=false;return;}
     if(!resp.ok){if(thinking){thinking.textContent='Error '+resp.status+': '+resp.statusText;thinking.classList.remove('msg-thinking');}btn.disabled=false;return;}
@@ -4726,7 +4815,7 @@ async function sendAI(){
     const raw=(data.content||[]).map(c=>c.text||'').join('');
     let parsed;try{parsed=JSON.parse(raw.replace(/`{3}json|`{3}/g,'').trim());}catch(e){if(thinking){thinking.textContent=raw;thinking.classList.remove('msg-thinking');}btn.disabled=false;return;}
     aiHist.push({role:'user',content:text},{role:'assistant',content:raw});
-    if(aiHist.length>12)aiHist=aiHist.slice(-12);
+    if(aiHist.length>40)aiHist=aiHist.slice(-40);
     if(thinking)thinking.classList.remove('msg-thinking');
     if(parsed.accion==='actualizar'){parsed.cambios.forEach(c=>{const p=projects.find(x=>x.id===c.id);if(p&&c.campo in p)p[c.campo]=c.campo==='prioridad'?parseInt(c.valor_nuevo):c.valor_nuevo;});persist();if(thinking)thinking.textContent='✓ '+parsed.resumen;render();}
     else if(thinking)thinking.textContent=parsed.respuesta||raw;
