@@ -4715,6 +4715,20 @@ async function sendAI(){
 
   // Contexto completo: TODOS los campos relevantes incluyendo eco, tracks, fases, hitos
   const fechaHoy = new Date().toISOString().slice(0,10);
+  // Helper: limpia objetos quedándose solo con valores no vacíos
+  function cleanObj(obj){
+    if(!obj || typeof obj !== 'object') return null;
+    const out = {};
+    Object.keys(obj).forEach(k=>{
+      const v = obj[k];
+      if(v === null || v === undefined) return;
+      if(v === '' || v === '—') return;
+      if(typeof v === 'number' && v === 0) return;
+      if(Array.isArray(v) && v.length === 0) return;
+      out[k] = v;
+    });
+    return Object.keys(out).length ? out : null;
+  }
   const pj=JSON.stringify(projects.map(p=>{
     ensureTracks(p);
     const out = {
@@ -4724,44 +4738,46 @@ async function sendAI(){
       estado: p.estado,
       prioridad: p.prioridad,
       tipo: p.tipo,
-      ubicacion: p.ubicacion||'',
-      ciudad: p.ciudad||'',
-      delegacion: p.delegacion||'',
-      vendor: p.vendor||p.contraparte||'',
-      responsable: p.responsable||'',
-      avance: p.avance||'',
-      narrativa: p.narrativa||'',
-      narrativaBottom: p.narrativaBottom||'',
-      notas: p.notas||'',
-      fases: Array.isArray(p.fases)?p.fases:[],
-      acciones: Array.isArray(p.acciones)?p.acciones.filter(a=>!a.d).map(a=>a.t):[],
-      acciones_completadas: Array.isArray(p.acciones)?p.acciones.filter(a=>a.d).map(a=>a.t):[],
     };
-    // Datos económicos solo si hay
-    if(p.eco){
-      const eco={};
-      ['sueloEur','ventaEur','construccionEur','margenEur','margenPct','tirPct','noi','yieldPct','rentasEur','ventasAlqEur','margenAlqEur','margenAlqPct','plazoMeses','fechaEntrega','inicioProy','inicioObras','edificabilidad','nViviendas','nParking'].forEach(k=>{
-        if(p.eco[k] !== undefined && p.eco[k] !== '' && p.eco[k] !== 0) eco[k]=p.eco[k];
-      });
-      if(Object.keys(eco).length) out.eco=eco;
+    // Campos opcionales: solo si tienen valor real
+    ['ubicacion','ciudad','delegacion','vendor','contraparte','responsable','avance','narrativa','narrativaBottom','notas','proxima','edificabilidad','nViviendas'].forEach(k=>{
+      const v = p[k];
+      if(v && v !== '—' && v !== '') out[k] = v;
+    });
+    if(Array.isArray(p.fases) && p.fases.length) out.fases = p.fases;
+    if(Array.isArray(p.acciones)){
+      const pend = p.acciones.filter(a=>!a.d).map(a=>a.t);
+      const done = p.acciones.filter(a=>a.d).map(a=>a.t);
+      if(pend.length) out.acciones_pendientes = pend;
+      if(done.length) out.acciones_completadas = done;
     }
+    // Datos económicos COMPLETOS — todos los campos UW Modelo
+    const ecoClean = cleanObj(p.eco);
+    if(ecoClean) out.eco = ecoClean;
     // Tracks comerciales solo si activo
     if(p.tracksEnabled && Array.isArray(p.tracks) && p.tracks.length){
-      out.tracks=p.tracks.map(t=>({
-        broker: t.broker||'',
-        tipo: t.tipo||'',
-        estado: t.estado||'',
-        contacto: [t.contactoNombre, t.contactoEmail, t.contactoTel].filter(Boolean).join(' · '),
-        oferta: t.ofertaImporte||0,
-        notas: t.notas||'',
-        hitos_completados: Object.keys(t.hitos||{}).filter(k=>t.hitos[k]?.done),
-        acciones_pendientes: (t.acciones||[]).filter(a=>!a.d).map(a=>a.t)
-      }));
+      out.tracks=p.tracks.map(t=>{
+        const tc = {
+          broker: t.broker||'',
+          tipo: t.tipo||'',
+          estado: t.estado||''
+        };
+        const cont = [t.contactoNombre, t.contactoEmail, t.contactoTel].filter(Boolean).join(' · ');
+        if(cont) tc.contacto = cont;
+        if(t.ofertaImporte) tc.oferta_eur = t.ofertaImporte;
+        if(t.ofertaFecha) tc.oferta_fecha = t.ofertaFecha;
+        if(t.notas) tc.notas = t.notas;
+        const hitosDone = Object.keys(t.hitos||{}).filter(k=>t.hitos[k]?.done);
+        if(hitosDone.length) tc.hitos_completados = hitosDone;
+        const accPend = (t.acciones||[]).filter(a=>!a.d).map(a=>a.t);
+        if(accPend.length) tc.acciones_pendientes = accPend;
+        return tc;
+      });
     }
     return out;
   }));
 
-  const sys = `Eres el asistente experto de gestión inmobiliaria de Acciona Inmobiliaria.
+  const sys = `Eres el asistente experto de gestión inmobiliaria de Acciona Inmobiliaria. Conoces a fondo el sector inmobiliario residencial español y la promoción/inversión.
 
 CONTEXTO ACTUAL (fecha: ${fechaHoy}):
 PORTFOLIO COMPLETO: ${pj}
@@ -4771,36 +4787,94 @@ ESTRUCTURA DEL MODELO:
 - Estados: Recibido, En análisis, Due diligence, WIP, Stand By, Descartado, Cerrado
 - Prioridades: 1=Alta, 2=Media, 3=Baja
 - Delegaciones (solo Pipeline): Centro, Este, Norte, Sur, Internacional
-- Tipos de activo comunes: Residencial, PBSA, BTR, Oficinas, Logístico, Hotelero, Suelo, Mixed-Use
-- Tracks comerciales: vías paralelas con varios brokers para un mismo proyecto. Estados de track: Activo, Info, Negociación, Cierre, Descartado. Tipos: Exclusivo, Co-exclusivo, Off-market, Otro.
+- Tipos de activo: Residencial, PBSA, BTR, Oficinas, Logístico, Hotelero, Suelo, Mixed-Use
+- Tracks comerciales: vías paralelas con varios brokers para un mismo proyecto. Estados: Activo, Info, Negociación, Cierre, Descartado. Tipos: Exclusivo, Co-exclusivo, Off-market, Otro.
 
 CAMPOS PRINCIPALES por proyecto:
 - nombre, bloque, estado, prioridad, tipo
 - ubicacion (provincia), ciudad, delegacion
 - vendor (vendedor/contraparte), responsable
-- avance (texto último avance), narrativa (descripción), narrativaBottom (proceso/negociación), notas
-- acciones (lista de tareas pendientes/completadas)
+- avance, narrativa (descripción), narrativaBottom (proceso/negociación), notas
+- acciones_pendientes / acciones_completadas
 - fases (Pipeline: Teaser/IM, NDA, NBO, BO, Escritura)
-- eco: datos económicos (sueloEur, ventaEur, construccionEur, margenEur, margenPct, tirPct, noi, yieldPct, etc.)
+- edificabilidad (m² edificables), nViviendas (nº viviendas/camas)
+- eco: TODOS los datos económicos del modelo UW (ver glosario abajo)
 - tracks: vías comerciales con brokers (si tracksEnabled)
 
+📊 GLOSARIO COMPLETO DE CAMPOS ECONÓMICOS (objeto 'eco'):
+SUELO:
+- sueloN: nº m² de suelo
+- sueloEur: precio del suelo en euros
+- sueloEurM2: €/m² del suelo
+CONSTRUCCIÓN:
+- construccionEur: coste total de construcción
+- construccionEurM2: €/m² construcción equivalente
+- urbEur: coste de urbanización
+- urbEurM2: €/m² urbanización
+- costeCocinas: coste cocinas
+- otrosHonorarios: otros honorarios
+- costoTotal: coste total proyecto
+VENTA:
+- ventaEur: ventas totales €
+- ventaEurM2: €/m² venta
+- ventaVivEur: precio medio venta vivienda
+- ventaUnidad: €/unidad
+RENTABILIDAD (clave para decisiones):
+- margenEur: margen bruto en €
+- margenPct: margen bruto en % sobre ventas (KPI principal)
+- tirPct: TIR del proyecto en % (KPI principal)
+- tirAlqPct: TIR si fuera proyecto alquiler
+- tirDiPct: TIR Direct Investment
+- noi: Net Operating Income (proyectos alquiler)
+- yieldPct: yield del alquiler %
+- rentasEur: rentas anuales €
+- ventasAlqEur: ventas si fuera alquiler
+- margenAlqEur, margenAlqPct: márgenes si fuera alquiler
+PLAZOS:
+- inicioProy: fecha inicio del proyecto
+- inicioObras: fecha inicio obras
+- fechaEntrega: fecha 1ª ocupación / entrega
+- licenciaN: fecha licencia
+- plazoMeses: plazo total obras
+COMERCIAL:
+- comisionSueloPct, feeComercialPct, publicidadPct, postventaPct
+PAGOS:
+- formaPago, pago1FF/pago1Pct, pago2FF/pago2Pct, pago3FF/pago3Pct (fechas y % de cada pago)
+
+📚 GLOSARIO SECTORIAL:
+- PBSA: Purpose Built Student Accommodation (residencias de estudiantes)
+- BTR: Build To Rent (vivienda construida para alquiler)
+- BTS: Build To Sell (construido para venta)
+- Mixed-Use: uso mixto (oficinas + retail + residencial)
+- DD: Due Diligence
+- NDA: Non Disclosure Agreement
+- IM: Information Memorandum (dossier comercial)
+- NBO: Non Binding Offer (oferta no vinculante)
+- BO: Binding Offer (oferta vinculante)
+- WIP: Work In Progress (en marcha activa)
+- LTV: Loan to Value
+- TIR: Tasa Interna de Retorno
+- NOI: Net Operating Income (ingresos operativos netos)
+- Yield: rentabilidad del alquiler (NOI / valor)
+
 INSTRUCCIONES DE RESPUESTA:
-Responde SIEMPRE en formato JSON válido con UNA de estas dos formas:
+Responde SIEMPRE en formato JSON válido con UNA de estas formas:
 
-1. CONSULTA (cuando el usuario pregunta información, pide análisis, comparativas, recomendaciones, etc):
-{"accion":"consulta","respuesta":"texto libre con tu respuesta. Puedes usar saltos de línea, listas, datos concretos. Sé directo y útil. Cita IDs y nombres concretos cuando aporte. Si la respuesta lo merece, estructura con guiones o párrafos."}
+1. CONSULTA (cuando preguntan información, análisis, comparativas, recomendaciones):
+{"accion":"consulta","respuesta":"texto libre, puedes usar saltos de línea, listas con guiones, datos concretos, números formateados (15.500.000 €). Cita IDs y nombres concretos. Sé directo y útil."}
 
-2. ACTUALIZAR (cuando el usuario pide modificar uno o varios proyectos):
-{"accion":"actualizar","cambios":[{"id":N,"campo":"x","valor_nuevo":"x"}],"resumen":"qué hice exactamente"}
+2. ACTUALIZAR (cuando piden modificar uno o varios proyectos):
+{"accion":"actualizar","cambios":[{"id":N,"campo":"x","valor_nuevo":"x"}],"resumen":"qué hice"}
 
-Campos modificables vía 'actualizar': nombre, bloque, estado, prioridad, tipo, ubicacion, ciudad, delegacion, vendor, responsable, avance, proxima, narrativa, narrativaBottom, notas.
+Campos modificables: nombre, bloque, estado, prioridad, tipo, ubicacion, ciudad, delegacion, vendor, responsable, avance, proxima, narrativa, narrativaBottom, notas.
 
 REGLAS:
-- Si la pregunta es ambigua o requiere razonamiento, usa "consulta" y elabora.
-- Si pide cambios concretos sin ambigüedad, usa "actualizar".
-- Para preguntas tipo "muéstrame", "qué proyectos", "cuántos", "compara", "analiza", "qué pasa con", "estado de" → SIEMPRE "consulta".
-- Conoce el sector inmobiliario español (PBSA = Purpose Built Student Accommodation, BTR = Build To Rent, NBO = Non Binding Offer, BO = Binding Offer, etc.).
-- Si no tienes datos suficientes, dilo en la respuesta sin inventar.
+- Para análisis, comparativas, rankings, "muéstrame", "qué proyectos", "cuántos", "compara", "analiza", "cuál es el TIR de…", "qué proyectos tienen mejor margen…" → SIEMPRE "consulta".
+- Para órdenes claras de cambio ("cambia el estado de X a WIP", "marca Y como prioridad alta") → "actualizar".
+- Conoce el sector. Habla con naturalidad de TIR, márgenes, NDA, BO, comparables, etc.
+- Cuando muestres importes formatéalos: 15.500.000 € (con puntos de miles). Las fechas en formato DD/MM/AAAA.
+- Si comparas proyectos, ordena por relevancia (TIR, margen, importe, etc.) según lo que pregunten.
+- Si te falta información, dilo. NO inventes datos.
 - Sé conciso pero completo. Habla en español.`;
 
   try{
