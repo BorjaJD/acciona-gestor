@@ -1406,9 +1406,14 @@ function renderDetail() {
 
     // ── Sección: Ubicación ────────────────────────────────────
     +'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Ubicación</div>'
-    +'<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4px 14px;margin-bottom:10px">'
+    +'<div style="display:grid;grid-template-columns:'+(p.bloque==='Pipeline'?'1fr 1fr 1fr':'1.2fr 1fr 1fr')+';gap:4px 14px;margin-bottom:10px">'
     +'<div class="d-item"><label>Provincia</label><select class="d-select" onchange="saveField('+p.id+',\'ubicacion\',this.value)" onclick="event.stopPropagation()">'+UBICACIONES_OPTS.map(u=>'<option value="'+u+'"'+(u===(p.ubicacion||'')?'  selected':'')+'>'+u+'</option>').join('')+'</select></div>'
     +'<div class="d-item"><label>Ciudad</label><input class="d-input" value="'+(p.ciudad||'')+'" placeholder="ej. Madrid" oninput="saveField('+p.id+',\'ciudad\',this.value)" onclick="event.stopPropagation()"/></div>'
+    +(p.bloque==='Pipeline'
+      ? '<div class="d-item"><label>Delegación</label><select class="d-select" onchange="saveField('+p.id+',\'delegacion\',this.value)" onclick="event.stopPropagation()">'
+          +['','Centro','Este','Norte','Sur','Internacional'].map(d=>'<option value="'+d+'"'+(d===(p.delegacion||'')?' selected':'')+'>'+(d||'—')+'</option>').join('')
+        +'</select></div>'
+      : '')
     +(p.bloque!=='Pipeline'
       ? '<div class="d-item" onclick="event.stopPropagation()">'
         +'<label>Google Maps</label>'
