@@ -25,8 +25,17 @@
   html{background:#0d1f15;height:-webkit-fill-available}
   html.app-ready{background:var(--bg)}
   @media (max-width: 768px) {
-    /* En Safari móvil el html se ve en el overscroll: verde arriba (notch), beige abajo (barra Safari) */
-    html.app-ready { background: linear-gradient(to bottom, #1a3a2a 60px, #f5f4f0 60px) }
+    /* Franja verde fija en la parte superior para cubrir el notch en Safari móvil */
+    html.app-ready { background: #f5f4f0 }
+    html.app-ready::before {
+      content:'';
+      position:fixed;
+      top:0;left:0;right:0;
+      height:env(safe-area-inset-top, 44px);
+      background:#1a3a2a;
+      z-index:9998;
+      pointer-events:none;
+    }
   }
   @import url('https://fonts.googleapis.com/css2?family=Aptos:wght@400;500;600;700&display=swap');
   :root{
