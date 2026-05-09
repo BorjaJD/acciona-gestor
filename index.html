@@ -1262,14 +1262,30 @@ function richSave(ed){
 function ensureTracks(p){
   if(typeof p.tracksEnabled === 'undefined') p.tracksEnabled = false;
   if(!Array.isArray(p.tracks)) p.tracks = [];
-  // Limpieza one-shot de HTML residual del editor antiguo
+  // Limpieza one-shot de HTML residual del editor antiguo + desescape de entidades
   ['narrativa','narrativaBottom'].forEach(k=>{
-    if(p[k] && typeof p[k]==='string' && p[k].includes('<div>')){
-      p[k] = p[k]
-        .replace(/<div><br\s*\/?><\/div>/gi, '<br>')
-        .replace(/<\/div><div>/gi, '<br>')
-        .replace(/<div>/gi, '')
-        .replace(/<\/div>/gi, '');
+    if(p[k] && typeof p[k]==='string'){
+      let txt = p[k];
+      // 1) Desescapar entidades HTML que se hayan escapado por error (&lt; &gt; etc)
+      if(txt.includes('&lt;') || txt.includes('&gt;') || txt.includes('&amp;')){
+        txt = txt
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'");
+      }
+      // 2) Limpiar <div>...</div> residuales del editor antiguo
+      if(txt.includes('<div>') || txt.includes('</div>')){
+        txt = txt
+          .replace(/<div><br\s*\/?><\/div>/gi, '<br>')
+          .replace(/<\/div>\s*<div>/gi, '<br>')
+          .replace(/<div>/gi, '')
+          .replace(/<\/div>/gi, '');
+      }
+      // 3) Quitar <br> múltiples al final
+      txt = txt.replace(/(<br\s*\/?>\s*)+$/, '');
+      p[k] = txt;
     }
   });
 }
@@ -1983,7 +1999,7 @@ function renderUbicSection(p) {
     +'<input class="ubic-map-input" id="ubic-map-input-'+p.id+'" type="text" placeholder="URL Google Maps…" value="'+mapUrl.replace(/"/g,'&quot;')+'" onclick="event.stopPropagation()"/>'
     +'<button class="ubic-map-btn" onclick="loadMap('+p.id+');event.stopPropagation()">↻</button>'
     +'</div>'
-    +'<div class="ubic-map-frame" style="height:420px" id="ubic-map-frame-'+p.id+'">'+mapDisplay+'</div>'
+    +'<div class="ubic-map-frame" style="height:392px" id="ubic-map-frame-'+p.id+'">'+mapDisplay+'</div>'
     +'</div>'
 
     // Col 2 — Imagen principal + textarea arriba
