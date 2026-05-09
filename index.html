@@ -384,10 +384,10 @@
     .mob-proj:active{background:#fafaf8}
     .mob-proj-row1{margin-bottom:4px}
     .mob-proj-name{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3;word-break:break-word}
-    .mob-proj-prio{display:inline-block;font-size:8.5px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:7px;letter-spacing:.04em;white-space:nowrap;vertical-align:middle;margin-left:4px;position:relative;top:-1px}
+    .mob-proj-prio{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;padding:2.5px 8px;border-radius:9px;letter-spacing:.05em;white-space:nowrap;vertical-align:middle;margin-left:6px;position:relative;top:-1px;line-height:1}
     .mob-proj-prio.prio-1{background:#fde8e3;color:#a85c4a}
     .mob-proj-prio.prio-2{background:#fdf3dc;color:#946818}
-    .mob-proj-prio.prio-3{background:#eef2f5;color:#5a6a85}
+    .mob-proj-prio.prio-3{background:#e8f0eb;color:#3d7058}
     .mob-proj-row2{display:flex;align-items:center;gap:8px;font-size:11px;color:#888;flex-wrap:wrap}
     .mob-proj-estado{display:inline-flex;align-items:center;gap:5px;font-weight:500}
     .mob-proj-dot{width:7px;height:7px;border-radius:50%}
@@ -2988,7 +2988,7 @@ function renderMobileProjCard(p, trackBgM){
     : '';
   return `<div class="mob-proj" onclick="openMobDetail(${p.id})">
     <div class="mob-proj-row1">
-      <div class="mob-proj-name">${p.nombre||'(sin nombre)'}${(p.prioridad===1||p.prioridad===2)?` <span class="mob-proj-prio prio-${p.prioridad}">${prioLabel}</span>`:''}</div>
+      <div class="mob-proj-name">${p.nombre||'(sin nombre)'}${prioLabel?` <span class="mob-proj-prio prio-${p.prioridad}">${prioLabel}</span>`:''}</div>
     </div>
     <div class="mob-proj-row2">
       <span class="mob-proj-estado"><span class="mob-proj-dot" style="background:${stColor}"></span>${p.estado||'—'}</span>
@@ -3474,11 +3474,15 @@ function renderPipelineSummary() {
   const ventaM2Med = ventaM2Vals.length ? Math.round(ventaM2Vals.reduce((a,b)=>a+b,0)/ventaM2Vals.length) : null;
   const ventaUdMed = ventaUdVals.length ? Math.round(ventaUdVals.reduce((a,b)=>a+b,0)/ventaUdVals.length) : null;
   const constM2Med = constM2Vals.length ? Math.round(constM2Vals.reduce((a,b)=>a+b,0)/constM2Vals.length) : null;
-  // Margen total = suma(venta * margen%/100)
+  // Margen total: si tienen margenEur usar ese; si no, calcular venta * margenPct%
   const mgTotalEur = psActive.reduce((s,p)=>{
-    const v = parseInt((p.eco?.ventaEur||'').replace(/\D/g,'')||0);
-    const m = parseFloat(String(p.eco?.margen||'').replace(/[^\d.]/g,''));
-    return s + (isNaN(m)?0:v*m/100);
+    const eco = p.eco || {};
+    const me = parseInt(String(eco.margenEur||'').replace(/\D/g,''));
+    if(!isNaN(me) && me>0) return s + me;
+    const v = parseInt(String(eco.ventaEur||'').replace(/\D/g,''));
+    const m = parseFloat(String(eco.margenPct||'').replace(',','.').replace(/[^\d.-]/g,''));
+    if(!isNaN(v) && !isNaN(m)) return s + (v*m/100);
+    return s;
   },0);
   const maxT=Math.max(...tirVals,1),maxM=Math.max(...mgVals,1);
 
@@ -3744,7 +3748,7 @@ function renderPipelineSummary() {
 
         <!-- Por estado -->
         <div>
-          <div style="${CT}">Por estado</div>
+          <div style="${CT}">Selección por estado</div>
           ${estadoRows}
         </div>
 
