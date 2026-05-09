@@ -449,6 +449,24 @@
   .ubic-img-del{font-size:11px;color:#fff;cursor:pointer;background:rgba(0,0,0,0.55);border:none;font-family:var(--font);padding:4px 10px;border-radius:20px;position:absolute;bottom:8px;right:8px;z-index:2;transition:background .15s}
   .ubic-img-del:hover{background:rgba(153,27,27,0.85)}
   .ubic-textarea{width:100%;font-size:12px;padding:8px 10px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;line-height:1.5;resize:none;}
+  /* Editor enriquecido */
+  .rich-editor-wrap{display:flex;flex-direction:column;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;background:var(--surface2)}
+  .rich-toolbar{display:flex;gap:2px;padding:4px 6px;background:#ececea;border-bottom:1px solid var(--border)}
+  .rich-btn{font-size:11px;padding:3px 8px;border:1px solid transparent;background:transparent;color:#555;cursor:pointer;border-radius:3px;font-family:var(--font);min-width:24px}
+  .rich-btn:hover{background:white;border-color:var(--border2);color:#1a3a2a}
+  .rich-btn:active{background:#dadad5}
+  .rich-editor{border:none !important;border-radius:0 !important;background:var(--surface2) !important}
+  .rich-editor:empty:before{content:attr(placeholder);color:#aaa;font-style:italic;pointer-events:none}
+  .rich-editor:focus{outline:none;background:white !important}
+  .rich-editor p{margin:0 0 6px 0}
+  .rich-editor p:last-child{margin-bottom:0}
+  .rich-editor strong,.rich-editor b{font-weight:700;color:#1a1a18}
+  .rich-editor em,.rich-editor i{font-style:italic}
+  /* Renderizado en deal sheet */
+  .ds-narrativa p{margin:0 0 4px 0}
+  .ds-narrativa p:last-child{margin-bottom:0}
+  .ds-narrativa strong,.ds-narrativa b{font-weight:700;color:#1a1a18}
+  .ds-narrativa em,.ds-narrativa i{font-style:italic}
   /* AI SIDEBAR */
   .ai-header{padding:13px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;flex-shrink:0}
   .ai-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0}
@@ -644,9 +662,10 @@
     <div class="nav-tab" data-view="tareas" style="border-left:1px solid rgba(255,255,255,0.12)">✓ Mis tareas</div>
   </nav>
   <div class="topbar-right">
-    <span id="sb-indicator" style="font-size:11px;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:4px">☁ Conectando...</span>
+    <span id="sb-indicator" onclick="forceSave()" title="Click para forzar guardado (Ctrl+S)" style="font-size:11px;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 8px;border-radius:var(--r);transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">☁ Conectando...</span>
     <span class="topbar-date" id="fecha-hoy"></span>
     <span id="role-badge" style="font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.6)"></span>
+    <button onclick="forceSave()" title="Guardar (Ctrl+S)" style="font-size:11px;padding:4px 12px;border-radius:var(--r);border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.85);cursor:pointer;font-family:var(--font);font-weight:500;display:flex;align-items:center;gap:5px">💾 Guardar</button>
     <button id="privacy-btn" onclick="togglePrivacy()" title="Ocultar datos sensibles" style="font-size:11px;padding:4px 10px;border-radius:var(--r);border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);cursor:pointer;font-family:var(--font)">👁 Privado</button>
     <button class="btn-email" onclick="exportToExcel()" title="Exporta todos los datos actuales a Excel">⬇ Exportar Excel</button>
   </div>
@@ -895,17 +914,75 @@ let S = {view:'dashboard',fBloque:'',fEstado:'',fPrio:'',fSearch:'',selId:null,s
 // ─── PERSIST ──────────────────────────────────────────────────
 let _sbDataConfirmed = false; // true solo si los datos vinieron de Supabase
 
+// ── SYNC con Supabase: debounce + retry + estado ──
+let _saveTimer = null;
+let _saveStatus = 'synced'; // 'synced' | 'pending' | 'saving' | 'error'
+let _retryTimer = null;
+let _lastError = null;
+
+function setSyncStatus(status, message){
+  _saveStatus = status;
+  const ind = document.getElementById('sb-indicator');
+  if(!ind) return;
+  if(status==='synced'){ ind.textContent='☁ Sincronizado'; ind.style.color='#2e5c3e'; }
+  else if(status==='pending'){ ind.textContent='● Cambios sin guardar'; ind.style.color='#d97706'; }
+  else if(status==='saving'){ ind.textContent='☁ Guardando…'; ind.style.color='#3d7058'; }
+  else if(status==='error'){ ind.textContent='⚠ '+(message||'Sin conexión — reintentando'); ind.style.color='#c0392b'; }
+  else if(status==='local'){ ind.textContent='⚡ Local'; ind.style.color='var(--text3)'; }
+}
+
 function persist() {
+  // 1) localStorage SIEMPRE inmediato
   try { localStorage.setItem('acciona_v3', JSON.stringify(projects)); } catch(e) {}
-  // Solo guardar en Supabase si los datos originales vinieron de Supabase
-  // Esto evita que datos locales/fallback machaquen la nube
+  // 2) Supabase solo si confirmado
   if(!_sbDataConfirmed) return;
+  // Marcar como pendiente
+  setSyncStatus('pending');
+  // Debounce: cancelar timer anterior y reprogramar a 2s
+  if(_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(()=>{ doSyncToCloud(); }, 2000);
+}
+
+function doSyncToCloud(){
+  if(!_sbDataConfirmed) return;
+  setSyncStatus('saving');
   sbSave(projects).then(ok => {
-    if(ok) {
-      const ind = document.getElementById('sb-indicator');
-      if(ind) { ind.textContent = '☁ Guardado'; ind.style.color='#2e5c3e'; setTimeout(()=>{ if(ind) ind.textContent='☁ Online'; },2000); }
+    if(ok){
+      setSyncStatus('synced');
+      _lastError = null;
+      // Cancelar retry si estaba programado
+      if(_retryTimer){ clearTimeout(_retryTimer); _retryTimer=null; }
+    } else {
+      _lastError = 'Error al guardar';
+      setSyncStatus('error');
+      scheduleRetry();
     }
+  }).catch(e=>{
+    _lastError = e.message||'Error de red';
+    setSyncStatus('error');
+    scheduleRetry();
   });
+}
+
+function scheduleRetry(){
+  if(_retryTimer) return; // ya hay uno
+  _retryTimer = setTimeout(()=>{
+    _retryTimer = null;
+    doSyncToCloud();
+  }, 30000); // 30s
+}
+
+// Forzar guardado inmediato (botón / Ctrl+S)
+function forceSave(){
+  if(!_sbDataConfirmed){
+    // En modo local, solo localStorage
+    try { localStorage.setItem('acciona_v3', JSON.stringify(projects)); } catch(e) {}
+    setSyncStatus('local');
+    return;
+  }
+  // Cancelar debounce y guardar YA
+  if(_saveTimer){ clearTimeout(_saveTimer); _saveTimer=null; }
+  doSyncToCloud();
 }
 
 // Persistencia tareas personales (independiente de projects)
@@ -953,8 +1030,7 @@ async function loadFromSupabase() {
       migrateBloquesLegacy();
       projects.forEach(p => migrateAcciones(p));
       _sbDataConfirmed = true; // ✅ Solo ahora se permite guardar de vuelta a Supabase
-      const ind = document.getElementById('sb-indicator');
-      if(ind) { ind.textContent = '☁ Online'; ind.style.color='#2e5c3e'; }
+      setSyncStatus('synced');
       return true;
     }
     return false;
@@ -1099,6 +1175,33 @@ function saveField(id, campo, valor) {
   p[campo] = valor; persist();
   if(campo==='nombre') document.querySelectorAll('tr[data-id="'+id+'"] .cell-nombre').forEach(el=>el.textContent=valor);
   if(campo==='prioridad') document.querySelectorAll('tr[data-id="'+id+'"] .cell-prio').forEach(el=>el.innerHTML=pillP(parseInt(valor)));
+}
+
+// ── Editor enriquecido (contenteditable + barra) ──
+function richExec(btn, cmd){
+  // Encontrar el editor hermano
+  const wrap = btn.closest('.rich-editor-wrap');
+  const ed = wrap ? wrap.querySelector('.rich-editor') : null;
+  if(!ed) return;
+  ed.focus();
+  document.execCommand(cmd, false, null);
+  richSave(ed);
+}
+function richKeydown(e){
+  // Ctrl+B / Ctrl+I como atajos nativos (ya los maneja contenteditable)
+  // Pero garantizamos que se persista al soltar tecla
+  if((e.ctrlKey||e.metaKey) && (e.key==='b'||e.key==='B'||e.key==='i'||e.key==='I')){
+    setTimeout(()=>richSave(e.target), 10);
+  }
+}
+function richSave(ed){
+  const pid = parseInt(ed.dataset.pid);
+  const field = ed.dataset.field;
+  const html = ed.innerHTML;
+  const p = projects.find(x=>x.id===pid);
+  if(!p) return;
+  p[field] = html;
+  persist();
 }
 
 // ── TRACKS COMERCIALES — funciones ──
@@ -1835,7 +1938,14 @@ function renderUbicSection(p) {
         +'</div>')
     +'<input type="text" placeholder="Pie de imagen (opcional)" value="'+((p.imgCaption||'').replace(/"/g,'&quot;'))+'" oninput="saveField('+p.id+',\'imgCaption\',this.value)" onclick="event.stopPropagation()" style="width:100%;font-size:10px;padding:5px 8px;margin-top:4px;border:1px solid var(--border);border-radius:var(--r);font-family:var(--font);color:var(--text2);background:var(--surface2);box-sizing:border-box"/>'
     +'<div class="ubic-col-label" style="margin-top:10px">Texto col. izquierda <span style="color:var(--accent)">▲</span></div>'
-    +'<textarea class="ubic-textarea" style="height:162px" placeholder="Descripción del activo, contexto urbanístico…" onclick="event.stopPropagation()" oninput="saveField('+p.id+',\'narrativa\',this.value)">'+((p.narrativa||'').replace(/</g,'&lt;'))+'</textarea>'
+    +'<div class="rich-editor-wrap">'
+      +'<div class="rich-toolbar">'
+        +'<button type="button" class="rich-btn" onclick="event.stopPropagation();richExec(this,\'bold\')" title="Negrita (Ctrl+B)"><b>B</b></button>'
+        +'<button type="button" class="rich-btn" onclick="event.stopPropagation();richExec(this,\'italic\')" title="Cursiva (Ctrl+I)"><i>I</i></button>'
+        +'<button type="button" class="rich-btn" onclick="event.stopPropagation();richExec(this,\'insertParagraph\')" title="Salto de párrafo">¶</button>'
+      +'</div>'
+      +'<div class="rich-editor ubic-textarea" contenteditable="true" data-field="narrativa" data-pid="'+p.id+'" style="height:162px;overflow-y:auto" placeholder="Descripción del activo, contexto urbanístico…" onclick="event.stopPropagation()" onkeydown="richKeydown(event)" oninput="richSave(this)">'+((p.narrativa||'').replace(/</g,'&lt;'))+'</div>'
+    +'</div>'
     +'</div>'
 
     // Col 3 — Imagen secundaria + textarea abajo
@@ -1854,7 +1964,14 @@ function renderUbicSection(p) {
         +'</div>')
     +'<input type="text" placeholder="Pie de imagen (opcional)" value="'+((p.imgCaption2||'').replace(/"/g,'&quot;'))+'" oninput="saveField('+p.id+',\'imgCaption2\',this.value)" onclick="event.stopPropagation()" style="width:100%;font-size:10px;padding:5px 8px;margin-top:4px;border:1px solid var(--border);border-radius:var(--r);font-family:var(--font);color:var(--text2);background:var(--surface2);box-sizing:border-box"/>'
     +'<div class="ubic-col-label" style="margin-top:10px">Texto bajo foto <span style="color:var(--accent)">▼</span></div>'
-    +'<textarea class="ubic-textarea" style="height:162px" placeholder="Proceso, estado negociación…" onclick="event.stopPropagation()" oninput="saveField('+p.id+',\'narrativaBottom\',this.value)">'+((p.narrativaBottom||'').replace(/</g,'&lt;'))+'</textarea>'
+    +'<div class="rich-editor-wrap">'
+      +'<div class="rich-toolbar">'
+        +'<button type="button" class="rich-btn" onclick="event.stopPropagation();richExec(this,\'bold\')" title="Negrita (Ctrl+B)"><b>B</b></button>'
+        +'<button type="button" class="rich-btn" onclick="event.stopPropagation();richExec(this,\'italic\')" title="Cursiva (Ctrl+I)"><i>I</i></button>'
+        +'<button type="button" class="rich-btn" onclick="event.stopPropagation();richExec(this,\'insertParagraph\')" title="Salto de párrafo">¶</button>'
+      +'</div>'
+      +'<div class="rich-editor ubic-textarea" contenteditable="true" data-field="narrativaBottom" data-pid="'+p.id+'" style="height:162px;overflow-y:auto" placeholder="Proceso, estado negociación…" onclick="event.stopPropagation()" onkeydown="richKeydown(event)" oninput="richSave(this)">'+((p.narrativaBottom||'').replace(/</g,'&lt;'))+'</div>'
+    +'</div>'
     +'</div>'
 
     +'</div>'  // end grid
@@ -3544,6 +3661,14 @@ function renderDealSheet() {
 
   // ── Helpers ───────────────────────────────────────────────
   function fv(v){ return (!v||v===''||v==='—')?'—':v; }
+  // Render de campo rich (narrativa, narrativaBottom): si es HTML, dejarlo tal cual; si es texto plano antiguo, convertir saltos de línea en <br>
+  function fvHtml(v){
+    if(!v||v===''||v==='—') return '';
+    // Si contiene ya etiquetas HTML, devolver tal cual
+    if(/<\/?(p|div|br|b|strong|i|em|ul|ol|li|span)\b/i.test(v)) return v;
+    // Texto plano: escapar HTML peligroso y convertir \n a <br>
+    return v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
   function fe(v){ if(!v||v==='') return '—'; const n=parseInt(String(v).replace(/\./g,'').replace(/,/g,''),10); if(isNaN(n)) return v; if(n>=1000000) return fmtMiles(Math.round(n/1000000))+' M€'; if(n>=1000) return fmtMiles(Math.round(n/1000))+' K€'; return fmtMiles(n)+' €'; }
   function fm2(v){ if(!v||v==='') return '—'; const n=parseInt(String(v).replace(/\./g,'').replace(/,/g,''),10); return isNaN(n)?v:fmtMiles(Math.round(n))+' €/m²'; }
   function fp(v){ if(!v||v==='') return '—'; const n=parseFloat(v); return isNaN(n)?v:n.toFixed(2).replace('.',',')+' %'; }
@@ -3659,11 +3784,36 @@ function renderDealSheet() {
     const yr = m[3].length===2?'20'+m[3]:m[3];
     return 'T'+(Math.floor(mes/3)+1)+' '+yr;
   }
-  const pagos=[
-    eco.pago1Pct?(getTrim(eco.pago1FF)?getTrim(eco.pago1FF)+' ':'')+fp(eco.pago1Pct):'',
-    eco.pago2Pct?(getTrim(eco.pago2FF)?getTrim(eco.pago2FF)+' ':'')+fp(eco.pago2Pct):'',
-    eco.pago3Pct?(getTrim(eco.pago3FF)?getTrim(eco.pago3FF)+' ':'')+fp(eco.pago3Pct):''
-  ].filter(Boolean).join(' | ')||'—';
+  // ── Pago: contado → "Contado". Aplazado → "Aplazado — Tx YY (xx%) | …" sin decimales ni pagos en 0%
+  function fmtTrimAnio(s){
+    // Convierte "T2 2026" → "T2 26", "T4 2027" → "T4 27"; deja igual si no hay año largo
+    if(!s) return '';
+    return String(s).replace(/(T[1-4])\s+(\d{2})(\d{2})/g, '$1 $3').trim();
+  }
+  function fmtPctEntero(v){
+    // Convierte "50,00" → "50", "0" → "0"
+    if(v===''||v==null) return '';
+    const n = parseFloat(String(v).replace(',','.'));
+    if(isNaN(n)) return String(v);
+    return String(Math.round(n));
+  }
+  const formaPagoStr = (eco.formaPago||'').trim();
+  const isContado = /contado/i.test(formaPagoStr);
+  let pagoCell;
+  if(isContado){
+    pagoCell = 'Contado';
+  } else {
+    const pagosArr=[
+      eco.pago1Pct && parseFloat(String(eco.pago1Pct).replace(',','.'))>0 ? fmtTrimAnio(eco.pago1FF)+' ('+fmtPctEntero(eco.pago1Pct)+'%)' : '',
+      eco.pago2Pct && parseFloat(String(eco.pago2Pct).replace(',','.'))>0 ? fmtTrimAnio(eco.pago2FF)+' ('+fmtPctEntero(eco.pago2Pct)+'%)' : '',
+      eco.pago3Pct && parseFloat(String(eco.pago3Pct).replace(',','.'))>0 ? fmtTrimAnio(eco.pago3FF)+' ('+fmtPctEntero(eco.pago3Pct)+'%)' : ''
+    ].filter(Boolean).join(' | ');
+    if(formaPagoStr && pagosArr) pagoCell = formaPagoStr+' — '+pagosArr;
+    else if(formaPagoStr) pagoCell = formaPagoStr;
+    else if(pagosArr) pagoCell = pagosArr;
+    else pagoCell = '—';
+  }
+  const pagos = pagoCell;
 
   // ── Retorno cajitas ───────────────────────────────────────
   const tirN=parseFloat(eco.tirPct),mgN=parseFloat(eco.margenPct);
@@ -3700,27 +3850,26 @@ function renderDealSheet() {
     // COL 1 — Mapa España + Google Maps + Yield/NOI + texto superior
     +'<div style="padding:16px 14px;border-right:1px solid #e8e8e0;background:linear-gradient(180deg,#f5f4f0 0%,#fafaf8 100%);display:flex;flex-direction:column;gap:12px;box-shadow:inset -3px 0 8px rgba(0,0,0,0.03)">'
     +'<div>'+spainSVG(prov)+'</div>'
-    // Google Maps — link button instead of iframe
+    // Google Maps — link button (compacto)
     +(p.mapUrl
-      ?'<a href="'+p.mapUrl+'" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#1a3a2a;color:white;text-decoration:none;border-radius:6px;padding:11px 14px;font-size:12px;font-weight:600;font-family:Aptos,Segoe UI,sans-serif;flex-shrink:0">'
-          +'<svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'
-          +'Ver en Google Maps ↗'
+      ?'<a href="'+p.mapUrl+'" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:6px;background:#1a3a2a;color:white;text-decoration:none;border-radius:6px;padding:8px 12px;font-size:11.5px;font-weight:600;font-family:Aptos,Segoe UI,sans-serif;flex-shrink:0;white-space:nowrap">'
+          +'<svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'
+          +'Ver en Google Maps'
           +'</a>'
-      :'<div style="background:#f5f4f0;border-radius:6px;padding:10px 14px;font-size:10px;color:#bbb;text-align:center;border:1px dashed #ddd;flex-shrink:0">Sin URL de Google Maps<br><span style="font-size:9px">Añádela en Tabla → Ubicación e imagen</span></div>')
-    // Bloque Rentas / Yield / NOI — siempre presente con — si no aplica
+      :'<div style="background:#f5f4f0;border-radius:6px;padding:8px 12px;font-size:9.5px;color:#bbb;text-align:center;border:1px dashed #ddd;flex-shrink:0">Sin URL de Google Maps</div>')
+    // Bloque Rentas / Yield / NOI — discreto, presente siempre con —
     +(function(){
-      // Mostrar — si Rentas/NOI están vacíos o son 0; idem Yield
       const isZero = function(v){const n=parseFloat(String(v||'0').replace(/[.,]/g,function(c){return c===','?'.':'';}));return !v||n===0||isNaN(n);};
       const fmtOrDash = function(v,fmt){return isZero(v)?'—':fmt(v);};
-      return '<div style="background:white;border:1px solid #e8e8e0;border-radius:6px;padding:10px 12px;flex-shrink:0">'
-      +'<div style="font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:1.5px solid #1a3a2a;padding-bottom:4px;margin-bottom:7px">KPI Alquiler</div>'
-      +'<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:#555"><span>Rentas</span><span style="font-weight:600;color:#1a1a18;font-variant-numeric:tabular-nums">'+fmtOrDash(eco.rentasEur,fe)+'</span></div>'
-      +'<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:#555;border-top:1px solid #f0efe9"><span>NOI</span><span style="font-weight:600;color:#1a1a18;font-variant-numeric:tabular-nums">'+fmtOrDash(eco.noi,fe)+'</span></div>'
-      +'<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:#555;border-top:1px solid #f0efe9"><span>Yield</span><span style="font-weight:600;color:#1a3a2a;font-variant-numeric:tabular-nums">'+fmtOrDash(eco.yieldPct,fp)+'</span></div>'
+      return '<div style="background:white;border:1px solid #ececea;border-radius:5px;padding:6px 10px;flex-shrink:0">'
+      +'<div style="font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#999;padding-bottom:3px;margin-bottom:3px;border-bottom:1px solid #f0efe9">KPI Alquiler</div>'
+      +'<div style="display:flex;justify-content:space-between;font-size:9.5px;padding:1.5px 0;color:#777"><span>Rentas</span><span style="font-weight:500;color:#444;font-variant-numeric:tabular-nums">'+fmtOrDash(eco.rentasEur,fe)+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;font-size:9.5px;padding:1.5px 0;color:#777"><span>NOI</span><span style="font-weight:500;color:#444;font-variant-numeric:tabular-nums">'+fmtOrDash(eco.noi,fe)+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;font-size:9.5px;padding:1.5px 0;color:#777"><span>Yield</span><span style="font-weight:500;color:#444;font-variant-numeric:tabular-nums">'+fmtOrDash(eco.yieldPct,fp)+'</span></div>'
     +'</div>';
     })()
     +(p.narrativa
-      ?'<div style="font-size:10px;color:#555;line-height:1.7;flex:1">'+fv(p.narrativa)+'</div>'
+      ?'<div class="ds-narrativa" style="font-size:10px;color:#555;line-height:1.7;flex:1">'+fvHtml(p.narrativa)+'</div>'
       :'<div style="font-size:10px;color:#bbb;font-style:italic;flex:1">Añade descripción en la pestaña Tabla → Ubicación e imagen</div>')
     +'</div>'
 
@@ -3748,6 +3897,7 @@ function renderDealSheet() {
     +dsRow('Ubicación', fv(p.ubicacion))
     +dsRow('Tipo de activo', fv(p.tipo))
     +dsRow(contraparteLabel(p.bloque), fv(p.vendor||p.contraparte))
+    +dsRow('Broker / Agente', fv(p.comprador))
 
     // Bloque PROGRAMA (independiente)
     +(_dsRowIdx=0,'')
@@ -3760,10 +3910,20 @@ function renderDealSheet() {
     +(_dsRowIdx=0,'')
     +'<div style="margin-top:10px">'+secTitle('Propuesta de inversión')+'</div>'
     +dsRow('Compra', fe(eco.sueloEur)+(eco.sueloEurM2?' | '+fm2(eco.sueloEurM2):''))
-    +dsRow('Pago', (eco.formaPago?eco.formaPago+' — ':'')+pagos)
+    +dsRow('Pago', pagos)
     +dsRow('Construcción', fe(eco.construccionEur)+(eco.construccionEurM2?' | '+fm2(eco.construccionEurM2):''))
     +dsRow('Plazo obras', eco.plazoMeses?eco.plazoMeses+' meses':'—')
-    +dsRow('PVP Unidad | €/m²', fe(eco.ventaVivEur)+(eco.ventaEurM2?' | '+fm2(eco.ventaEurM2):''))
+    +dsRow('Ventas | €/m²', fe(eco.ventaVivEur)+(eco.ventaEurM2?' | '+fm2(eco.ventaEurM2):''))
+    +(function(){
+      // Ventas / Ud. = ventaEur / nViviendas
+      const ventaTotal = parseInt(String(eco.ventaEur||'').replace(/\./g,'').replace(/,/g,''),10);
+      const nUds = parseInt(String(p.nViviendas||'').replace(/\./g,'').replace(/,/g,''),10);
+      if(!isNaN(ventaTotal) && !isNaN(nUds) && ventaTotal>0 && nUds>0){
+        const porUd = Math.round(ventaTotal/nUds);
+        return dsRow('Ventas / Ud.', fmtMiles(porUd)+' €');
+      }
+      return dsRow('Ventas / Ud.', '—');
+    })()
 
     // BLOQUE TIMELINE — hitos del proyecto (sin título)
     +(function(){
@@ -3795,7 +3955,7 @@ function renderDealSheet() {
     +(p.narrativaBottom&&p.narrativaBottom!=='—'
       ?'<div style="margin-top:14px;padding-top:8px;border-top:1px solid #e8e8e0">'
         +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:4px;margin-bottom:8px">Proceso</div>'
-        +'<div style="font-size:10px;color:#555;line-height:1.7">'+fv(p.narrativaBottom)+'</div>'
+        +'<div class="ds-narrativa" style="font-size:10px;color:#555;line-height:1.7">'+fvHtml(p.narrativaBottom)+'</div>'
       +'</div>'
       :'')
     +'</div>'
@@ -4985,6 +5145,14 @@ function addProject(){
   setTimeout(()=>{const row=document.querySelector('tr[data-id="'+np.id+'"]');if(row)row.scrollIntoView({behavior:'smooth',block:'center'});},100);
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+// Atajo Ctrl+S / Cmd+S → guardado forzado
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey) && (e.key==='s'||e.key==='S')){
+    e.preventDefault();
+    forceSave();
+  }
+});
 
 // ─── EXPORT EXCEL ─────────────────────────────────────────────
 function exportToExcel(){
