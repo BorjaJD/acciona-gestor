@@ -25,7 +25,8 @@
   html{background:#0d1f15;height:-webkit-fill-available}
   html.app-ready{background:var(--bg)}
   @media (max-width: 768px) {
-    html.app-ready { background: #1a3a2a } /* verde para el notch en Safari */
+    /* En Safari móvil el html se ve en el overscroll: verde arriba (notch), beige abajo (barra Safari) */
+    html.app-ready { background: linear-gradient(to bottom, #1a3a2a 60px, #f5f4f0 60px) }
   }
   @import url('https://fonts.googleapis.com/css2?family=Aptos:wght@400;500;600;700&display=swap');
   :root{
@@ -37,7 +38,6 @@
   }
   body{font-family:var(--font);background:#0d1f15;color:var(--text);font-size:14px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
   body.app-ready{background:var(--bg)}
-  html.app-ready{background:var(--bg)}
   /* TOPBAR */
   .topbar{display:flex;align-items:center;background:var(--accent);color:#fff;height:52px;flex-shrink:0}
   .logo-area{padding:0 20px;display:flex;align-items:center;gap:10px;border-right:1px solid rgba(255,255,255,0.12);height:100%}
@@ -368,8 +368,8 @@
 
   /* ── RESPONSIVE MÓVIL ───────────────────────────────────── */
   @media (max-width: 768px) {
-    body{overflow:auto;height:auto;display:block;background:var(--bg)}
-    body.app-ready{background:var(--bg)}
+    body{overflow:auto;height:auto;min-height:100vh;display:block;background:#f5f4f0}
+    body.app-ready{background:#f5f4f0}
     .app-body{flex-direction:column;overflow:auto;height:auto}
     .topbar{display:none!important}
     .main-area{overflow:visible;min-height:0;height:auto}
@@ -4427,10 +4427,10 @@ function renderDealSheet() {
     +'<div class="ds-sheet" style="font-family:Aptos,Segoe UI,sans-serif">'
 
     // ── HEADER ──────────────────────────────────────────────
-    +'<div style="padding:22px 28px 16px;border-bottom:3px solid #1a3a2a;display:flex;align-items:flex-start;justify-content:space-between;background:linear-gradient(135deg,#f8f7f3 0%,#ffffff 60%,#f0f7f0 100%);flex-shrink:0">'
+    +'<div style="padding:12px 28px 10px;border-bottom:3px solid #1a3a2a;display:flex;align-items:flex-start;justify-content:space-between;background:linear-gradient(135deg,#f8f7f3 0%,#ffffff 60%,#f0f7f0 100%);flex-shrink:0">'
     +'<div>'
-    +'<div style="font-size:24px;font-weight:800;color:#1a1a18;letter-spacing:-.3px;line-height:1">'+p.nombre.toUpperCase()+'</div>'
-    +'<div style="font-size:11px;color:#999;margin-top:3px;letter-spacing:.06em">'+(p.ubicacion||'').toUpperCase()+(p.tipo?' · '+p.tipo.toUpperCase():'')+'</div>'
+    +'<div style="font-size:20px;font-weight:800;color:#1a1a18;letter-spacing:-.3px;line-height:1">'+p.nombre.toUpperCase()+'</div>'
+    +'<div style="font-size:10px;color:#999;margin-top:2px;letter-spacing:.06em">'+(p.ubicacion||'').toUpperCase()+(p.tipo?' · '+p.tipo.toUpperCase():'')+'</div>'
     +'</div>'
     +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'
     +'<svg width="80" height="20" viewBox="0 0 80 20"><polygon points="0,16 5,4 10,16" fill="#1a3a2a"/><text x="13" y="15" font-family="Aptos,Segoe UI,sans-serif" font-size="10" font-weight="700" fill="#1a3a2a" letter-spacing="1.5">ACCIONA</text></svg>'
