@@ -3034,7 +3034,7 @@ function renderMobileDetail(p, mfe, mfp, trackClsM){
     <div class="mob-det-row"><span class="mob-det-label">Vendedor</span><span class="mob-det-value">${p.vendor||p.contraparte||'—'}</span></div>
     <div class="mob-det-row"><span class="mob-det-label">Broker / Agente</span><span class="mob-det-value">${p.comprador||'—'}</span></div>
     <div class="mob-det-row"><span class="mob-det-label">Responsable</span><span class="mob-det-value">${p.responsable||'—'}</span></div>
-    <div class="mob-det-row"><span class="mob-det-label">Ubicación</span><span class="mob-det-value">${[p.ciudad,p.ubicacion].filter(Boolean).join(', ')||'—'}</span></div>
+    <div class="mob-det-row"><span class="mob-det-label">Ubicación</span><span class="mob-det-value">${[p.ciudad,p.ubicacion].filter(Boolean).join(', ')||'—'}${p.mapUrl?` <a href="${p.mapUrl.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:2px 8px;background:#e8f0eb;color:#1a3a2a;border-radius:11px;font-size:10px;font-weight:600;text-decoration:none;border:1px solid #cfe6d5;vertical-align:middle">📍 Ver mapa</a>`:''}</span></div>
     ${p.delegacion?`<div class="mob-det-row"><span class="mob-det-label">Delegación</span><span class="mob-det-value">${p.delegacion}</span></div>`:''}
   </div>`;
 
@@ -3378,7 +3378,7 @@ function renderPipelineSummary() {
     selectedIds = S_pipelineSelection;
   }
   const ps = activePipeline.filter(p => selectedIds.includes(p.id));
-  const noIncluidos = allPipeline.filter(p => !selectedIds.includes(p.id));
+  const noIncluidos = allPipeline.filter(p => !selectedIds.includes(p.id) && !['Descartado','Cerrado'].includes(p.estado));
 
   const UBI2GEO = {
     'Madrid':'Madrid','Barcelona':'Barcelona','Valencia':'València/Valencia',
@@ -3467,6 +3467,19 @@ function renderPipelineSummary() {
   const tc2=psActive.reduce((s,p)=>s+parseInt((p.eco?.construccionEur||'').replace(/\D/g,'')||0),0);
   const totViv=psActive.reduce((s,p)=>s+parseInt(String(p.nViviendas||'').replace(/\D/g,'')||0),0);
   const totEdif=psActive.reduce((s,p)=>s+parseInt(String(p.edificabilidad||'').replace(/\D/g,'')||0),0);
+  // Medias para sub-datos KPI cards
+  const ventaM2Vals = psActive.map(p=>parseFloat(String(p.eco?.ventaEurM2||'').replace(/[^\d.]/g,''))).filter(v=>!isNaN(v)&&v>0);
+  const ventaUdVals = psActive.map(p=>parseFloat(String(p.eco?.ventaVivEur||'').replace(/[^\d.]/g,''))).filter(v=>!isNaN(v)&&v>0);
+  const constM2Vals = psActive.map(p=>parseFloat(String(p.eco?.construccionEurM2||'').replace(/[^\d.]/g,''))).filter(v=>!isNaN(v)&&v>0);
+  const ventaM2Med = ventaM2Vals.length ? Math.round(ventaM2Vals.reduce((a,b)=>a+b,0)/ventaM2Vals.length) : null;
+  const ventaUdMed = ventaUdVals.length ? Math.round(ventaUdVals.reduce((a,b)=>a+b,0)/ventaUdVals.length) : null;
+  const constM2Med = constM2Vals.length ? Math.round(constM2Vals.reduce((a,b)=>a+b,0)/constM2Vals.length) : null;
+  // Margen total = suma(venta * margen%/100)
+  const mgTotalEur = psActive.reduce((s,p)=>{
+    const v = parseInt((p.eco?.ventaEur||'').replace(/\D/g,'')||0);
+    const m = parseFloat(String(p.eco?.margen||'').replace(/[^\d.]/g,''));
+    return s + (isNaN(m)?0:v*m/100);
+  },0);
   const maxT=Math.max(...tirVals,1),maxM=Math.max(...mgVals,1);
 
   // ── MAP ───────────────────────────────────────────────────────
@@ -3674,15 +3687,19 @@ function renderPipelineSummary() {
   const kpiBoxes=[
     ['Proyectos', psActive.length, psActive.length!==ps.length?`+${ps.length-psActive.length} stand by`:''],
     ['Uds / Edif.', totViv>0?fmtMiles(totViv)+' uds':'—', totEdif>0?fmtMiles(Math.round(totEdif/1000))+'K m²':''],
-    ['Venta total', fm(tv), ''],
-    ['Construcción', fm(tc2), ''],
-    ['TIR media', at!=='—'?at+'%':'—', ''],
-    ['Margen medio', am!=='—'?am+'%':'—', ''],
+    ['Venta total', fm(tv), [
+      ventaM2Med?fmtMiles(ventaM2Med)+' €/m²':'',
+      ventaUdMed?fm(ventaUdMed)+'/ud':''
+    ].filter(Boolean).join(' · ')],
+    ['Construcción', fm(tc2), constM2Med?fmtMiles(constM2Med)+' €/m² medio':''],
+    ['TIR media', at!=='—'?at+'%':'—', 'media ponderada'],
+    ['Margen', mgTotalEur>0?fm(Math.round(mgTotalEur)):'—', am!=='—'?am+'% medio':''],
   ].map(([l,v,sub])=>
-    `<div style="background:#f8f7f3;border-radius:6px;padding:9px 12px;border-top:2.5px solid #1a3a2a">
-      <div style="font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:4px;font-weight:700">${l}</div>
-      <div style="font-size:17px;font-weight:800;color:#1a3a2a;line-height:1.05">${v}</div>
-      ${sub?`<div style="font-size:9px;color:#888;margin-top:3px">${sub}</div>`:''}
+    `<div style="background:white;border-radius:6px;padding:9px 11px;border:1px solid #d0d0c8;border-top:4px solid #1a3a2a;box-shadow:0 2px 6px rgba(0,0,0,0.05);position:relative;overflow:hidden">
+      <div style="position:absolute;top:-30px;right:-30px;width:60px;height:60px;background:radial-gradient(circle,rgba(82,183,136,0.06) 0%,transparent 70%);pointer-events:none"></div>
+      <div style="font-size:7.5px;text-transform:uppercase;letter-spacing:.1em;color:#1a3a2a;margin-bottom:3px;font-weight:800">${l}</div>
+      <div style="font-size:17px;font-weight:800;color:#1a1a18;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em">${v}</div>
+      ${sub?`<div style="font-size:8.5px;color:#888;margin-top:3px;font-weight:500">${sub}</div>`:''}
     </div>`
   ).join('');
 
@@ -3723,12 +3740,6 @@ function renderPipelineSummary() {
           <div style="${CT}">Nota ejecutiva</div>
           <div style="font-size:8.5px;color:#555;line-height:1.6;background:#f8f7f3;border-radius:4px;padding:5px 7px;border-left:2px solid #1a3a2a;cursor:text" id="ps-nota-display" onclick="this.style.display='none';document.getElementById('ps-nota-edit').style.display='block'">${window._pipelineNota||'Pipeline activo con '+ps.length+' proyectos. TIR media del '+at+'%. Haz clic para editar…'}</div>
           <textarea id="ps-nota-edit" style="display:none;width:100%;font-size:8.5px;padding:5px 7px;border-radius:4px;border:1px solid #1a3a2a;font-family:inherit;color:#555;line-height:1.6;resize:none;height:58px" onblur="window._pipelineNota=this.value;document.getElementById('ps-nota-display').textContent=this.value||'Haz clic para editar…';this.style.display='none';document.getElementById('ps-nota-display').style.display='block'">${window._pipelineNota||''}</textarea>
-        </div>
-
-        <!-- Por país -->
-        <div>
-          <div style="${CT}">Por país</div>
-          ${funnelRows}
         </div>
 
         <!-- Por estado -->
@@ -3772,7 +3783,7 @@ function renderPipelineSummary() {
               +est
               +'</div>';
             byEstNI[est].forEach(p=>{
-              const tir = p.eco && p.eco.tir ? parseFloat(p.eco.tir) : null;
+              const tir = p.eco && p.eco.tirPct ? parseFloat(String(p.eco.tirPct).replace(',','.')) : null;
               out += '<div style="font-size:8.5px;color:#666;padding:1px 0;display:flex;align-items:baseline;gap:5px">'
                 +'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#888">'+p.nombre+'</span>'
                 +(tir && !isNaN(tir) ? '<span style="font-size:7.5px;color:#3d7058;font-weight:700;font-variant-numeric:tabular-nums;background:#f0f7f1;padding:1px 5px;border-radius:6px;letter-spacing:.02em;white-space:nowrap">TIR '+tir.toFixed(1).replace('.',',')+'%</span>' : '')
