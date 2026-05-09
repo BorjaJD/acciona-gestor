@@ -369,22 +369,22 @@
     .mob-search::placeholder{color:rgba(255,255,255,0.5)}
     .mob-filter-select{padding:8px 12px;border-radius:20px;border:none;background:rgba(255,255,255,0.18);color:white;font-size:12px;font-family:var(--font);outline:none;-webkit-appearance:none;cursor:pointer;font-weight:500}
     /* MOBILE — bloques agrupados */
-    .mob-bloque{background:white;margin:12px 12px 0;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.04)}
-    .mob-bloque-header{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:#fdfdfb;border-bottom:1px solid var(--border)}
-    .mob-bloque-header.collapsed{border-bottom:none}
+    .mob-bloque{background:white;margin:14px 12px 0;border-radius:12px;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.04);overflow:hidden}
+    .mob-bloque-header{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);color:white}
+    .mob-bloque-header.collapsed{}
     .mob-bloque-title{display:flex;align-items:center;gap:10px;flex:1}
-    .mob-bloque-bar{width:3px;height:18px;background:#1a3a2a;border-radius:2px}
-    .mob-bloque-name{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#1a3a2a}
-    .mob-bloque-count{font-size:11px;color:#888;font-weight:500;background:#f0efe9;padding:2px 8px;border-radius:10px}
-    .mob-bloque-arrow{font-size:11px;color:#aaa;transition:transform .2s}
+    .mob-bloque-bar{width:3px;height:18px;background:rgba(255,255,255,0.85);border-radius:2px}
+    .mob-bloque-name{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:white}
+    .mob-bloque-count{font-size:11px;color:white;font-weight:700;background:rgba(255,255,255,0.2);padding:2px 9px;border-radius:10px}
+    .mob-bloque-arrow{font-size:11px;color:rgba(255,255,255,0.85);transition:transform .2s}
     .mob-bloque-header.collapsed .mob-bloque-arrow{transform:rotate(-90deg)}
     /* MOBILE — proyecto card */
-    .mob-proj{padding:11px 14px;border-bottom:1px solid #f0efe9;cursor:pointer;background:white;-webkit-tap-highlight-color:transparent}
+    .mob-proj{padding:11px 16px 11px 14px;border-bottom:1px solid #f0efe9;cursor:pointer;background:white;-webkit-tap-highlight-color:transparent}
     .mob-proj:last-child{border-bottom:none}
     .mob-proj:active{background:#fafaf8}
-    .mob-proj-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}
-    .mob-proj-name{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3;flex:1}
-    .mob-proj-prio{flex-shrink:0;font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:8px;letter-spacing:.04em;align-self:flex-start;margin-top:2px}
+    .mob-proj-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px}
+    .mob-proj-name{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3;flex:1;min-width:0;word-break:break-word}
+    .mob-proj-prio{flex-shrink:0;font-size:9px;font-weight:700;text-transform:uppercase;padding:2.5px 8px;border-radius:8px;letter-spacing:.04em;align-self:flex-start;margin-top:2px;white-space:nowrap}
     .mob-proj-prio.prio-1{background:#fde8e3;color:#a85c4a}
     .mob-proj-prio.prio-2{background:#fdf3dc;color:#946818}
     .mob-proj-prio.prio-3{background:#eef2f5;color:#5a6a85}
@@ -2928,10 +2928,11 @@ function renderMobile() {
     </div>
   </div>`;
 
-  // Agrupar por bloque
+  // Agrupar por bloque (Postventa NO aparece en móvil)
   const bloques = {};
   filtered.forEach(p=>{
     const b = p.bloque || 'Sin bloque';
+    if(b === 'Postventa') return; // Postventa fuera de móvil
     if(!bloques[b]) bloques[b] = [];
     bloques[b].push(p);
   });
