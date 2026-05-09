@@ -432,6 +432,7 @@
     /* MOBILE — KPIs */
     .mob-kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px;background:#fdfdfb;border-bottom:1px solid var(--border)}
     .mob-kpi-cell{background:white;border-radius:8px;padding:10px 11px;border:1px solid var(--border)}
+    .mob-kpi-sub{font-size:9px;color:#888;margin-top:3px;font-weight:500;line-height:1.2;font-variant-numeric:tabular-nums}
     .mob-kpi-label{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999}
     .mob-kpi-value{font-size:16px;font-weight:800;color:#1a3a2a;margin-top:2px;font-variant-numeric:tabular-nums}
     .mob-kpi-value.tir{color:#1a3a2a}
@@ -3095,12 +3096,23 @@ function renderMobileDetail(p, mfe, mfp, trackClsM){
 
   // KPIs económicos
   if(eco.tirPct||eco.margenPct||eco.ventaEur||eco.sueloEur||eco.construccionEur){
+    // Calcular sub-datos
+    function fmtVal(n){if(!n||isNaN(n))return '';return n>=1e6?fmtMiles(Math.round(n/1e6))+' M€':n>=1e3?fmtMiles(Math.round(n/1e3))+' K€':fmtMiles(n)+' €';}
+    const ventaEurNum = parseInt(String(eco.ventaEur||'').replace(/\D/g,''));
+    const margenEurNum = parseInt(String(eco.margenEur||'').replace(/\D/g,''));
+    const margenPctNum = parseFloat(String(eco.margenPct||'').replace(',','.'));
+    let mgTotalCalc = 0;
+    if(!isNaN(margenEurNum) && margenEurNum>0) mgTotalCalc = margenEurNum;
+    else if(!isNaN(ventaEurNum) && !isNaN(margenPctNum)) mgTotalCalc = Math.round(ventaEurNum*margenPctNum/100);
+    const nUdsNum = parseInt(String(p.nViviendas||'').replace(/\D/g,''));
+    const ventaUdCalc = (!isNaN(ventaEurNum)&&!isNaN(nUdsNum)&&nUdsNum>0)?Math.round(ventaEurNum/nUdsNum):null;
+
     html += '<div class="mob-kpi-grid">';
     if(eco.tirPct) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">TIR</div><div class="mob-kpi-value tir">${mfp(eco.tirPct)}</div></div>`;
-    if(eco.margenPct) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Margen</div><div class="mob-kpi-value">${mfp(eco.margenPct)}</div></div>`;
-    if(eco.ventaEur) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Ventas</div><div class="mob-kpi-value">${mfe(eco.ventaEur)}</div></div>`;
-    if(eco.sueloEur) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Suelo</div><div class="mob-kpi-value">${mfe(eco.sueloEur)}</div></div>`;
-    if(eco.construccionEur) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Construcción</div><div class="mob-kpi-value">${mfe(eco.construccionEur)}</div></div>`;
+    if(eco.margenPct) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Margen</div><div class="mob-kpi-value">${mfp(eco.margenPct)}</div>${mgTotalCalc>0?`<div class="mob-kpi-sub">${fmtVal(mgTotalCalc)} total</div>`:''}</div>`;
+    if(eco.ventaEur) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Ventas</div><div class="mob-kpi-value">${mfe(eco.ventaEur)}</div>${eco.ventaEurM2||ventaUdCalc?`<div class="mob-kpi-sub">${eco.ventaEurM2?fmtMiles(parseInt(String(eco.ventaEurM2).replace(/\D/g,'')))+' €/m²':''}${eco.ventaEurM2&&ventaUdCalc?' · ':''}${ventaUdCalc?fmtVal(ventaUdCalc)+'/ud':''}</div>`:''}</div>`;
+    if(eco.sueloEur) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Suelo</div><div class="mob-kpi-value">${mfe(eco.sueloEur)}</div>${eco.sueloEurM2?`<div class="mob-kpi-sub">${fmtMiles(parseInt(String(eco.sueloEurM2).replace(/\D/g,'')))} €/m²</div>`:''}</div>`;
+    if(eco.construccionEur) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Construcción</div><div class="mob-kpi-value">${mfe(eco.construccionEur)}</div>${eco.construccionEurM2?`<div class="mob-kpi-sub">${fmtMiles(parseInt(String(eco.construccionEurM2).replace(/\D/g,'')))} €/m²</div>`:''}</div>`;
     html += '</div>';
   }
 
@@ -3183,13 +3195,21 @@ function toggleMobBloque(b){
   render();
 }
 function openMobDetail(id){
+  // Guardar scroll del listado para restaurarlo al volver
+  window._mobListScroll = window.scrollY || 0;
   S.selectedId = id;
   render();
-  setTimeout(()=>window.scrollTo({top:0,behavior:'instant'}), 10);
+  // Subir al top del detalle
+  requestAnimationFrame(() => window.scrollTo({top:0, behavior:'instant'}));
+  setTimeout(() => window.scrollTo({top:0, behavior:'instant'}), 50);
 }
 function closeMobDetail(){
   S.selectedId = null;
   render();
+  // Restaurar scroll del listado donde estaba
+  const saved = window._mobListScroll || 0;
+  requestAnimationFrame(() => window.scrollTo({top:saved, behavior:'instant'}));
+  setTimeout(() => window.scrollTo({top:saved, behavior:'instant'}), 50);
 }
 
 
@@ -3219,17 +3239,26 @@ function preserveScroll(fn) {
 }
 
 function render() {
+  // En móvil, NO usar preserveScroll para el render principal — el scroll lo gestiona window directamente
+  const mobile = isMobile();
+  if(mobile && S.view!=='dealsheet') {
+    const m = document.getElementById('main');
+    // Guardar scroll del window para no perderlo en re-renders pequeños (búsqueda, etc.)
+    const winScroll = window.scrollY || 0;
+    try {
+      m.innerHTML = renderMobile();
+    } catch(e) {
+      console.error('renderMobile error:', e);
+      m.innerHTML = '<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error móvil:</strong><br><pre style="white-space:pre-wrap;font-size:11px">'+e.message+'</pre></div>';
+    }
+    // Restaurar el scroll de window solo si ya estaba en alguna posición
+    if(winScroll > 0) {
+      requestAnimationFrame(() => window.scrollTo({top:winScroll, behavior:'instant'}));
+    }
+    return;
+  }
   preserveScroll(() => {
     const m = document.getElementById('main');
-    if(isMobile() && S.view!=='dealsheet') {
-      try {
-        m.innerHTML = renderMobile();
-      } catch(e) {
-        console.error('renderMobile error:', e);
-        m.innerHTML = '<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error móvil:</strong><br><pre style="white-space:pre-wrap;font-size:11px">'+e.message+'</pre></div>';
-      }
-      return;
-    }
     const focused = document.activeElement;
     const detailHasFocus = focused && focused.closest && focused.closest('.detail-panel');
     if(S.view==='dashboard') {
@@ -6197,6 +6226,10 @@ if(window.location.protocol === 'file:') {
   const ind=document.getElementById('sb-indicator');
   if(ind){ind.textContent='⚡ Local';ind.style.color='var(--text3)';}
   render();
+  // Asegurar scroll arriba al inicio (móvil sobre todo) - varios intentos para garantizarlo
+  requestAnimationFrame(() => window.scrollTo(0, 0));
+  setTimeout(() => window.scrollTo(0, 0), 100);
+  setTimeout(() => window.scrollTo(0, 0), 400);
 } else {
   // En GitHub: mostrar spinner, esperar Supabase
   const main = document.getElementById('main');
@@ -6207,11 +6240,17 @@ if(window.location.protocol === 'file:') {
     .then(ok=>{
       addMsg('system', ok ? 'Gestor listo · '+projects.length+' proyectos' : 'Sin conexión — datos locales');
       render();
+      requestAnimationFrame(() => window.scrollTo(0, 0));
+      setTimeout(() => window.scrollTo(0, 0), 100);
+      setTimeout(() => window.scrollTo(0, 0), 400);
     })
     .catch(err=>{
       console.error('Init error:', err);
       addMsg('system','Error de conexión — '+projects.length+' proyectos locales');
       render();
+      requestAnimationFrame(() => window.scrollTo(0, 0));
+      setTimeout(() => window.scrollTo(0, 0), 100);
+      setTimeout(() => window.scrollTo(0, 0), 400);
     });
 }
 </script>
