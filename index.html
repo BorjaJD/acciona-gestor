@@ -792,6 +792,44 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 async function sbSave(data) {
   try {
+    // Compactar: quitar campos vacíos / null / undefined / strings vacíos para reducir peso
+    const compactProject = (p) => {
+      const out = {};
+      Object.keys(p).forEach(k => {
+        const v = p[k];
+        if(v === null || v === undefined) return;
+        if(typeof v === 'string' && (v === '' || v === '—')) return;
+        if(Array.isArray(v) && v.length === 0) return;
+        if(typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0) return;
+        if(v === false && (k === 'tracksEnabled' || k === 'mapUrlEnabled')) return;
+        // Recursivo para objetos anidados (eco, hitos, etc.)
+        if(typeof v === 'object' && !Array.isArray(v)){
+          const nested = {};
+          Object.keys(v).forEach(k2 => {
+            const v2 = v[k2];
+            if(v2 === null || v2 === undefined) return;
+            if(typeof v2 === 'string' && (v2 === '' || v2 === '—')) return;
+            if(typeof v2 === 'number' && v2 === 0 && k2 !== 'id') return;
+            nested[k2] = v2;
+          });
+          if(Object.keys(nested).length > 0) out[k] = nested;
+          return;
+        }
+        // Limpiar acciones y tracks
+        if(Array.isArray(v)){
+          if(k === 'acciones'){
+            out[k] = v.filter(a => a && a.t && a.t.trim());
+            if(out[k].length === 0) delete out[k];
+            return;
+          }
+          out[k] = v;
+          return;
+        }
+        out[k] = v;
+      });
+      return out;
+    };
+    const compactData = data.map(compactProject);
     const resp = await fetch(SB_URL+'/rest/v1/proyectos?id=eq.1', {
       method: 'PATCH',
       headers: {
@@ -800,9 +838,13 @@ async function sbSave(data) {
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal'
       },
-      body: JSON.stringify({data: data, updated_at: new Date().toISOString()})
+      body: JSON.stringify({data: compactData, updated_at: new Date().toISOString()})
     });
-    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    if(!resp.ok) {
+      const errText = await resp.text();
+      console.error('Supabase save error HTTP '+resp.status+':', errText);
+      throw new Error('HTTP '+resp.status);
+    }
     return true;
   } catch(e) { console.error('Supabase save error:', e); return false; }
 }
@@ -1966,7 +2008,7 @@ function renderUbicSection(p) {
         +'<button type="button" class="rich-btn" onclick="event.stopPropagation();richExec(this,\'italic\')" title="Cursiva (Ctrl+I)"><i>I</i></button>'
         +'<button type="button" class="rich-btn" onclick="event.stopPropagation();richExec(this,\'insertParagraph\')" title="Salto de párrafo">¶</button>'
       +'</div>'
-      +'<div class="rich-editor ubic-textarea" contenteditable="true" data-field="narrativa" data-pid="'+p.id+'" style="height:162px;overflow-y:auto" placeholder="Descripción del activo, contexto urbanístico…" onclick="event.stopPropagation()" onkeydown="richKeydown(event)" oninput="richSave(this)">'+((p.narrativa||'').replace(/</g,'&lt;'))+'</div>'
+      +'<div class="rich-editor ubic-textarea" contenteditable="true" data-field="narrativa" data-pid="'+p.id+'" style="height:162px;overflow-y:auto" placeholder="Descripción del activo, contexto urbanístico…" onclick="event.stopPropagation()" onkeydown="richKeydown(event)" oninput="richSave(this)">'+(p.narrativa||'')+'</div>'
     +'</div>'
     +'</div>'
 
@@ -1992,7 +2034,7 @@ function renderUbicSection(p) {
         +'<button type="button" class="rich-btn" onclick="event.stopPropagation();richExec(this,\'italic\')" title="Cursiva (Ctrl+I)"><i>I</i></button>'
         +'<button type="button" class="rich-btn" onclick="event.stopPropagation();richExec(this,\'insertParagraph\')" title="Salto de párrafo">¶</button>'
       +'</div>'
-      +'<div class="rich-editor ubic-textarea" contenteditable="true" data-field="narrativaBottom" data-pid="'+p.id+'" style="height:162px;overflow-y:auto" placeholder="Proceso, estado negociación…" onclick="event.stopPropagation()" onkeydown="richKeydown(event)" oninput="richSave(this)">'+((p.narrativaBottom||'').replace(/</g,'&lt;'))+'</div>'
+      +'<div class="rich-editor ubic-textarea" contenteditable="true" data-field="narrativaBottom" data-pid="'+p.id+'" style="height:162px;overflow-y:auto" placeholder="Proceso, estado negociación…" onclick="event.stopPropagation()" onkeydown="richKeydown(event)" oninput="richSave(this)">'+(p.narrativaBottom||'')+'</div>'
     +'</div>'
     +'</div>'
 
