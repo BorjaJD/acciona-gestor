@@ -22,6 +22,7 @@
 
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{background:#0d1f15;height:-webkit-fill-available}
   @import url('https://fonts.googleapis.com/css2?family=Aptos:wght@400;500;600;700&display=swap');
   :root{
     --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;
@@ -424,7 +425,7 @@
     .mob-track-broker{font-weight:600;color:#444}
     .mob-track-est{color:#888;font-size:10px}
     /* MOBILE — detalle */
-    .mob-detail-header{background:linear-gradient(135deg,#1a3a2a,#2d6a4f);padding:14px 16px 14px;color:white;flex-shrink:0}
+    .mob-detail-header{background:linear-gradient(135deg,#1a3a2a,#2d6a4f);padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px;color:white;flex-shrink:0}
     .mob-detail-back{display:inline-flex;align-items:center;gap:6px;color:white;font-size:14px;cursor:pointer;margin-bottom:12px;font-weight:600;background:rgba(255,255,255,0.18);padding:7px 14px 7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.25);transition:background .15s;-webkit-tap-highlight-color:transparent}
     .mob-detail-back:active{background:rgba(255,255,255,0.28)}
     .mob-detail-title{font-size:18px;font-weight:800;line-height:1.25;margin-bottom:4px;color:#fff}
@@ -642,7 +643,7 @@
   .btn-secondary{padding:8px 16px;font-size:13px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font);transition:background .15s}
   .btn-secondary:hover{background:var(--surface2)}
   /* ── LOGIN ──────────────────────────────────────────────── */
-  .login-overlay{display:flex;position:fixed;inset:0;top:0;left:0;right:0;bottom:0;min-height:100%;min-height:-webkit-fill-available;background:#0d1f15;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:0}
+  .login-overlay{display:flex;position:fixed;inset:0;top:0;left:0;right:0;bottom:0;min-height:100%;min-height:-webkit-fill-available;background:#0d1f15;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:0;padding-bottom:env(safe-area-inset-bottom,0px)}
   .login-overlay.hidden{display:none}
   .login-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%, rgba(26,58,42,0.8) 0%, transparent 70%), radial-gradient(ellipse at 70% 20%, rgba(45,90,61,0.4) 0%, transparent 60%);pointer-events:none}
 
