@@ -4586,15 +4586,15 @@ function renderDealSheet() {
 
     // Bloque PROCESO
     +(p.narrativaBottom&&p.narrativaBottom!=='—'
-      ?'<div style="margin-top:8px;padding-top:6px;border-top:1px solid #e8e8e0">'
-        +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:3px;margin-bottom:5px">Proceso</div>'
-        +'<div class="ds-narrativa" style="font-size:9.5px;color:#555;line-height:1.45">'+fvHtml(p.narrativaBottom)+'</div>'
+      ?'<div style="margin-top:5px;padding-top:4px;border-top:1px solid #e8e8e0">'
+        +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:2px;margin-bottom:4px">Proceso</div>'
+        +'<div class="ds-narrativa" style="font-size:9.5px;color:#555;line-height:1.38">'+fvHtml(p.narrativaBottom)+'</div>'
       +'</div>'
       :'')
     +'</div>'
 
     // COL 3 — Imagen(s) con pies de imagen
-    +'<div style="display:flex;flex-direction:column;height:100%;background:#fafaf8;overflow:hidden;padding:14px;gap:18px;box-sizing:border-box">'
+    +'<div style="display:flex;flex-direction:column;height:100%;background:#fafaf8;overflow:hidden;padding:10px 14px 10px;gap:14px;box-sizing:border-box">'
     +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">'
     +(p.imgData
       ?'<div style="aspect-ratio:3/2;width:100%;overflow:hidden;border-radius:3px"><img src="'+p.imgData+'" style="width:100%;height:100%;object-fit:cover;display:block"/></div>'
