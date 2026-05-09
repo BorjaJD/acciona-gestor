@@ -368,6 +368,13 @@
     .mob-search{flex:1;padding:9px 14px;border-radius:20px;border:none;background:rgba(255,255,255,0.18);color:white;font-size:13px;font-family:var(--font);outline:none;-webkit-appearance:none}
     .mob-search::placeholder{color:rgba(255,255,255,0.5)}
     .mob-filter-select{padding:8px 12px;border-radius:20px;border:none;background:rgba(255,255,255,0.18);color:white;font-size:12px;font-family:var(--font);outline:none;-webkit-appearance:none;cursor:pointer;font-weight:500}
+    /* MOBILE — KPI cards (encima de los bloques) */
+    .mob-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 12px 0}
+    .mob-kpi-card{background:white;border:1px solid #e8e8e0;border-top:3px solid #1a3a2a;border-radius:7px;padding:7px 8px 6px;box-shadow:0 1px 3px rgba(0,0,0,0.04);position:relative;overflow:hidden;display:flex;flex-direction:column;gap:1px;min-height:58px}
+    .mob-kpi-card::before{content:'';position:absolute;top:-20px;right:-20px;width:40px;height:40px;background:radial-gradient(circle,rgba(82,183,136,0.07) 0%,transparent 70%);pointer-events:none}
+    .mob-kpi-card-label{font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#1a3a2a;line-height:1}
+    .mob-kpi-card-val{font-size:13px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em;margin-top:3px}
+    .mob-kpi-card-sub{font-size:8px;color:#888;font-weight:500;line-height:1.2;margin-top:1px}
     /* MOBILE — bloques agrupados */
     .mob-bloque{background:white;margin:14px 12px 0;border-radius:12px;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.04);overflow:hidden}
     .mob-bloque-header{padding:15px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);color:white}
@@ -2947,6 +2954,52 @@ function renderMobile() {
     bloques[b].push(p);
   });
 
+  // ── KPI cards versión móvil ──
+  const npAllMob = projects.filter(p => p.bloque==='Pipeline');
+  const npActMob = npAllMob.filter(p => !['Descartado','Cerrado'].includes(p.estado));
+  const npConModeloMob = npActMob.filter(p => {const e=p.eco||{};return !!(e.tirPct||e.margenPct||e.ventaEur||e.sueloEur);});
+  const totSueloMob = npActMob.reduce((s,p)=>s+parseInt(String(p.eco?.sueloEur||'').replace(/\D/g,'')||0),0);
+  const totConstrMob = npActMob.reduce((s,p)=>s+parseInt(String(p.eco?.construccionEur||'').replace(/\D/g,'')||0),0);
+  const totVentaMob = npActMob.reduce((s,p)=>s+parseInt(String(p.eco?.ventaEur||'').replace(/\D/g,'')||0),0);
+  const sueloM2Vals = npActMob.map(p=>parseFloat(String(p.eco?.sueloEurM2||'').replace(/[^\d.]/g,''))).filter(v=>!isNaN(v)&&v>0);
+  const constM2Vals = npActMob.map(p=>parseFloat(String(p.eco?.construccionEurM2||'').replace(/[^\d.]/g,''))).filter(v=>!isNaN(v)&&v>0);
+  const ventaM2Vals = npActMob.map(p=>parseFloat(String(p.eco?.ventaEurM2||'').replace(/[^\d.]/g,''))).filter(v=>!isNaN(v)&&v>0);
+  const tirVValsMob = npActMob.map(p=>parseFloat(String(p.eco?.tirPct||'').replace(',','.'))).filter(v=>!isNaN(v)&&v>0);
+  const mgValsMob = npActMob.map(p=>parseFloat(String(p.eco?.margenPct||'').replace(',','.'))).filter(v=>!isNaN(v)&&v>0);
+  const mgEurTotalMob = npActMob.reduce((s,p)=>{
+    const eco = p.eco||{};
+    const me = parseInt(String(eco.margenEur||'').replace(/\D/g,''));
+    if(!isNaN(me)&&me>0) return s+me;
+    const v = parseInt(String(eco.ventaEur||'').replace(/\D/g,''));
+    const m = parseFloat(String(eco.margenPct||'').replace(',','.').replace(/[^\d.-]/g,''));
+    if(!isNaN(v)&&!isNaN(m)) return s+(v*m/100);
+    return s;
+  },0);
+  const sueloM2Med = sueloM2Vals.length?Math.round(sueloM2Vals.reduce((a,b)=>a+b,0)/sueloM2Vals.length):null;
+  const constM2Med = constM2Vals.length?Math.round(constM2Vals.reduce((a,b)=>a+b,0)/constM2Vals.length):null;
+  const ventaM2Med = ventaM2Vals.length?Math.round(ventaM2Vals.reduce((a,b)=>a+b,0)/ventaM2Vals.length):null;
+  const tirMedMob = tirVValsMob.length?(tirVValsMob.reduce((a,b)=>a+b,0)/tirVValsMob.length).toFixed(1):'—';
+  const mgMedMob = mgValsMob.length?(mgValsMob.reduce((a,b)=>a+b,0)/mgValsMob.length).toFixed(1):'—';
+  function fmM(n){if(!n||isNaN(n))return '—';return n>=1e6?fmtMiles(Math.round(n/1e6))+' M€':n>=1e3?fmtMiles(Math.round(n/1e3))+' K€':fmtMiles(n)+' €';}
+  
+  const KPI_DATA = [
+    {label:'Proyectos', val:npActMob.length+' / '+npConModeloMob.length, sub:npConModeloMob.length+' con modelo', color:'#3d7058'},
+    {label:'Suelo', val:fmM(totSueloMob), sub:sueloM2Med?fmtMiles(sueloM2Med)+' €/m²':'—', color:'#7a9d8a'},
+    {label:'Construcción', val:fmM(totConstrMob), sub:constM2Med?fmtMiles(constM2Med)+' €/m²':'—', color:'#a8b5ae'},
+    {label:'Venta total', val:fmM(totVentaMob), sub:ventaM2Med?fmtMiles(ventaM2Med)+' €/m²':'—', color:'#1a3a2a'},
+    {label:'TIR media', val:tirMedMob!=='—'?String(tirMedMob).replace('.',',')+'%':'—', sub:tirVValsMob.length+' proyecto'+(tirVValsMob.length!==1?'s':''), color:'#52b788'},
+    {label:'Margen', val:mgEurTotalMob>0?fmM(Math.round(mgEurTotalMob)):'—', sub:mgMedMob!=='—'?String(mgMedMob).replace('.',',')+'% medio':'—', color:'#2d6a4f'},
+  ];
+  html += '<div class="mob-kpi-grid">'
+    + KPI_DATA.map(k => 
+        '<div class="mob-kpi-card" style="border-top-color:'+k.color+'">'
+        +'<div class="mob-kpi-card-label">'+k.label+'</div>'
+        +'<div class="mob-kpi-card-val" style="color:'+k.color+'">'+k.val+'</div>'
+        +'<div class="mob-kpi-card-sub">'+k.sub+'</div>'
+        +'</div>'
+      ).join('')
+    + '</div>';
+
   // Orden personalizado: Pipeline primero, luego Desinversión, luego el resto
   const ORDEN_BLOQUES_MOVIL = ['Pipeline','Desinversión','Desarrollo / Operación','Clientes / Gestión','Sin bloque'];
   const bloquesOrdenados = ORDEN_BLOQUES_MOVIL.filter(b => bloques[b] && bloques[b].length > 0)
@@ -3108,13 +3161,24 @@ function closeMobDetail(){
 // Helper: ejecuta una función de render preservando posición de scroll
 function preserveScroll(fn) {
   const m = document.getElementById('main');
+  // Guardar scrollTop de TODOS los contenedores scrollables conocidos
+  const SCROLLABLES = ['.dash', '.eco-dashboard', '.view-panel', '.ds-wrap', '.table-wrap'];
+  const saved = SCROLLABLES.map(sel => {
+    const el = document.querySelector(sel);
+    return el ? {sel, top: el.scrollTop} : null;
+  }).filter(Boolean);
   const scrollY = window.scrollY || window.pageYOffset || 0;
   const mScroll = m ? m.scrollTop : 0;
-  // También guardar scroll de cualquier scrollable ancestor
   fn();
   // Restaurar scroll en próximo frame para evitar layout shifts
   requestAnimationFrame(() => {
     if(m) m.scrollTop = mScroll;
+    saved.forEach(({sel, top}) => {
+      if(top > 0){
+        const el = document.querySelector(sel);
+        if(el) el.scrollTop = top;
+      }
+    });
     window.scrollTo({top:scrollY, behavior:'instant'});
   });
 }
@@ -4378,19 +4442,38 @@ function renderDealSheet() {
         {label:'1ª Ocupación', date:eco.fechaEntrega, color:'#1a3a2a'}
       ].filter(h=>h.date);
       if(hitos.length<2) return '';
+      // Calcular meses entre hitos consecutivos
+      function mesesEntre(a, b){
+        const da = parseFecha(a), db = parseFecha(b);
+        if(!da || !db) return null;
+        return Math.round((db.getFullYear()-da.getFullYear())*12 + (db.getMonth()-da.getMonth()));
+      }
       const dots = hitos.map((h,i)=>{
         const isLast = i===hitos.length-1;
         return '<div style="flex:1;display:flex;flex-direction:column;align-items:'+(i===0?'flex-start':isLast?'flex-end':'center')+';position:relative;min-width:0">'
-          +'<div style="font-size:8.5px;font-weight:700;color:#1a3a2a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;white-space:nowrap">'+h.label+'</div>'
+          +'<div style="font-size:8.5px;font-weight:700;color:#1a3a2a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:9px;white-space:nowrap">'+h.label+'</div>'
           +'<div style="display:flex;align-items:center;gap:0;width:100%;'+(i===0?'justify-content:flex-start':isLast?'justify-content:flex-end':'justify-content:center')+'">'
-            +'<div style="width:12px;height:12px;border-radius:50%;background:'+h.color+';box-shadow:0 0 0 2.5px white,0 0 0 3.5px '+h.color+';flex-shrink:0;z-index:2"></div>'
+            +'<div style="width:12px;height:12px;border-radius:50%;background:'+h.color+';box-shadow:0 0 0 5px white,0 0 0 6px '+h.color+';flex-shrink:0;z-index:2;margin:4px 0"></div>'
           +'</div>'
-          +'<div style="font-size:9.5px;color:#555;margin-top:3px;font-weight:500;white-space:nowrap">'+fd(h.date)+'</div>'
+          +'<div style="font-size:9.5px;color:#555;margin-top:11px;font-weight:500;white-space:nowrap">'+fd(h.date)+'</div>'
         +'</div>';
       }).join('');
+      // Pildoras de meses entre hitos consecutivos, posicionadas sobre la línea
+      let pildorasHtml = '';
+      for(let i=0; i<hitos.length-1; i++){
+        const meses = mesesEntre(hitos[i].date, hitos[i+1].date);
+        if(meses===null || meses<=0) continue;
+        // Posición: para 2 hitos → 50%; para 3 hitos → entre 0 y 1: 29%, entre 1 y 2: 71%
+        let leftPct;
+        if(hitos.length===2) leftPct = 50;
+        else if(hitos.length===3) leftPct = i===0 ? 29 : 71;
+        else leftPct = 8 + ((i+0.5)/(hitos.length-1))*84;
+        pildorasHtml += '<div style="position:absolute;top:50%;left:'+leftPct+'%;transform:translate(-50%,-50%);background:white;border:1px solid #d0d0c8;border-radius:10px;padding:1.5px 8px;font-size:8.5px;color:#3d7058;font-weight:700;white-space:nowrap;z-index:3;box-shadow:0 1px 3px rgba(0,0,0,0.06);font-variant-numeric:tabular-nums">'+meses+' meses</div>';
+      }
       return '<div style="margin-top:10px;padding:10px 8px 8px;background:linear-gradient(135deg,#f8f7f3 0%,#fafaf8 100%);border-radius:8px;border:1px solid #e8e8e0">'
         +'<div style="position:relative">'
           +'<div style="position:absolute;top:50%;left:8%;right:8%;height:2px;background:linear-gradient(90deg,#52b788 0%,#2d6a4f 50%,#1a3a2a 100%);transform:translateY(-2px);z-index:1"></div>'
+          +pildorasHtml
           +'<div style="display:flex;position:relative;z-index:2">'+dots+'</div>'
         +'</div>'
       +'</div>';
