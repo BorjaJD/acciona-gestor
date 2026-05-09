@@ -4245,7 +4245,7 @@ function renderDealSheet() {
     const iso=s.match(/^(\d{4})-(\d{2})/);if(iso){const mn=M_NUM[iso[2]];return (mn||iso[2])+'-'+yy(iso[1]);}
     return v;
   }
-  let _dsRowIdx=0;function dsRow(l,v,bold){const bg=_dsRowIdx++%2===0?'background:#fdfdfb':'background:white';return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:3px 10px;border-bottom:1px solid #f0efe9;font-size:11px;'+bg+'"><span style="color:#888;font-weight:500">'+l+'</span><span style="font-weight:'+(bold?'700':'600')+';color:#1a1a18;font-variant-numeric:tabular-nums">'+v+'</span></div>';}
+  let _dsRowIdx=0;function dsRow(l,v,bold){const bg=_dsRowIdx++%2===0?'background:#fdfdfb':'background:white';return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 10px;border-bottom:1px solid #f0efe9;font-size:11px;'+bg+'"><span style="color:#888;font-weight:500">'+l+'</span><span style="font-weight:'+(bold?'700':'600')+';color:#1a1a18;font-variant-numeric:tabular-nums">'+v+'</span></div>';}
   function dsRow2(l,v1,v2){const bg=_dsRowIdx++%2===0?'background:#fdfdfb':'background:white';return '<div style="padding:3px 10px;border-bottom:1px solid #f0efe9;font-size:11px;'+bg+'">'
     +'<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="color:#888;font-weight:500">'+l+'</span><span style="font-weight:600;color:#1a1a18;font-variant-numeric:tabular-nums">'+v1+'</span></div>'
     +(v2?'<div style="text-align:right;font-size:9.5px;color:#666;font-weight:500;font-variant-numeric:tabular-nums;margin-top:1px">'+v2+'</div>':'')
