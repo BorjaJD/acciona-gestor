@@ -2619,14 +2619,16 @@ function renderEconomico() {
   }
   function fmtDt(v) {
     if(!v||v==='') return '<span style="color:var(--text3)">—</span>';
-    // Format: "02 ene 2028" → "ene-28", "T2 2028" → "T2-28", ISO "2028-01" → "ene-28"
-    const MESES_LONG={'01':'enero','02':'febrero','03':'marzo','04':'abril','05':'mayo','06':'junio','07':'julio','08':'agosto','09':'septiembre','10':'octubre','11':'noviembre','12':'diciembre'};
-    const MESES_SHORT={'ene':'01','feb':'02','mar':'03','abr':'04','may':'05','jun':'06','jul':'07','ago':'08','sep':'09','oct':'10','nov':'11','dic':'12'};
+    // Format: "02 ene 2028" → "ene-28", "T2 2028" → "T2-28", ISO "2028-01" → "ene-28", "30 sept 2030" → "sep-30"
+    const MESES_LONG={'01':'ene','02':'feb','03':'mar','04':'abr','05':'may','06':'jun','07':'jul','08':'ago','09':'sep','10':'oct','11':'nov','12':'dic'};
+    // Acepta variantes de meses (sep, sept, septiembre, etc) y devuelve siempre 3 letras
+    const MES_NORM={'ene':'ene','enero':'ene','feb':'feb','febrero':'feb','mar':'mar','marzo':'mar','abr':'abr','abril':'abr','may':'may','mayo':'may','jun':'jun','junio':'jun','jul':'jul','julio':'jul','ago':'ago','agosto':'ago','sep':'sep','sept':'sep','septiembre':'sep','oct':'oct','octubre':'oct','nov':'nov','noviembre':'nov','dic':'dic','diciembre':'dic'};
     function yyStr(y){return String(y).slice(-2);}
-    const parts=v.trim().split(' ');
-    if(parts.length===3){const m=MESES_SHORT[parts[1].toLowerCase()];if(m)return parts[1].toLowerCase()+'-'+yyStr(parts[2]);}
+    function normalizeMes(m){return MES_NORM[m.toLowerCase().replace('.','')]||null;}
+    const parts=String(v).trim().replace(/\./g,'').split(/\s+/);
+    if(parts.length===3){const m=normalizeMes(parts[1]);if(m)return m+'-'+yyStr(parts[2]);}
     if(parts.length===2&&/^\d{4}$/.test(parts[1])){return parts[0]+'-'+yyStr(parts[1]);} // "T2 2028" → "T2-28"
-    const iso=v.match(/^(\d{4})-(\d{2})/);if(iso){const mn=MESES_LONG[iso[2]];return (mn||iso[2])+'-'+yyStr(iso[1]);}
+    const iso=String(v).match(/^(\d{4})-(\d{2})/);if(iso){const mn=MESES_LONG[iso[2]];return (mn||iso[2])+'-'+yyStr(iso[1]);}
     return v;
   }
   function fmtTxt(v) { return v||'<span style="color:var(--text3)">—</span>'; }
