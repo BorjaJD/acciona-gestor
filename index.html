@@ -3981,7 +3981,7 @@ function renderDealSheet() {
     +'</div>'
 
     // COL 2 — 3 cajitas + 2 bloques
-    +'<div style="padding:16px 18px;border-right:1px solid #e8e8e0;background:white">'
+    +'<div style="padding:16px 18px 12px;border-right:1px solid #e8e8e0;background:white;overflow:hidden;display:flex;flex-direction:column">'
 
     // 3 cajitas retornos
     // Lógica C: si las cifras de alquiler son iguales que las de venta Y no hay yield → no aplica
@@ -4061,9 +4061,9 @@ function renderDealSheet() {
 
     // Bloque PROCESO
     +(p.narrativaBottom&&p.narrativaBottom!=='—'
-      ?'<div style="margin-top:14px;padding-top:8px;border-top:1px solid #e8e8e0">'
-        +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:4px;margin-bottom:8px">Proceso</div>'
-        +'<div class="ds-narrativa" style="font-size:10px;color:#555;line-height:1.7">'+fvHtml(p.narrativaBottom)+'</div>'
+      ?'<div style="margin-top:8px;padding-top:6px;border-top:1px solid #e8e8e0">'
+        +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;border-bottom:2px solid #1a3a2a;padding-bottom:3px;margin-bottom:5px">Proceso</div>'
+        +'<div class="ds-narrativa" style="font-size:9.5px;color:#555;line-height:1.45">'+fvHtml(p.narrativaBottom)+'</div>'
       +'</div>'
       :'')
     +'</div>'
@@ -4573,7 +4573,10 @@ function renderEstudioSection() {
     +'</div>';
 
   const thS='padding:7px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface2)';
-  const tdS='padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle';
+  const tdS='padding:9px 10px;font-size:12px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:top;height:50px;box-sizing:border-box';
+  // Para celdas sin sub-dato (texto simple), usar wrapper que las centra visualmente
+  const cellTop = '<div style="line-height:1.4">';
+  const cellMid = '<div style="display:flex;align-items:center;height:32px">';
   const EDOT=STATE_COLORS;
 
   // Sort: estado urgencia → prioridad, sin UW al final. SOLO proyectos no descartados (los descartados van en sección colapsable)
@@ -4630,19 +4633,19 @@ function renderEstudioSection() {
       return '<div style="margin-top:2px"><span style="font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;background:'+(up?'#e8f5e9':'#fde8e8')+';color:'+(up?'#2d6a4f':'#c0392b')+'">'+txt+'</span></div>';
     }
     return '<tr style="'+bg+';cursor:pointer" onclick="navigateTo(\'tabla\',{id:'+p.id+'})">'
-      +'<td style="'+tdS+';font-weight:500;overflow:hidden;text-overflow:ellipsis">'+p.nombre+'</td>'
-      +'<td style="'+tdS+';text-align:center">'+pillP(p.prioridad)+'</td>'
-      +'<td style="'+tdS+';text-align:center">'+uwBadge+'</td>'
-      +'<td style="'+tdS+'">'+dot+p.estado+'</td>'
-      +'<td style="'+tdS+';color:#1a1a18;overflow:hidden;text-overflow:ellipsis">'+p.tipo+'</td>'
-      +'<td style="'+tdS+';color:#1a1a18">'+ciudad+'</td>'
-      +'<td style="'+tdS+';text-align:right" class="private-val">'+fmtBlack(fmtM(e.sueloEur))+dd(e.sueloEur,ecoSnap.sueloEur,false)+(e.sueloEurM2?'<div style="font-size:9px;color:var(--text3);margin-top:1px">'+fmtMiles(Math.round(parseFloat(e.sueloEurM2)))+' €/m²</div>':'')+'</td>'
-      +'<td style="'+tdS+';text-align:right" class="private-val">'+fmtBlack(fmtM(e.construccionEur))+dd(e.construccionEur,ecoSnap.construccionEur,false)+(e.construccionEurM2?'<div style="font-size:9px;color:var(--text3);margin-top:1px">'+fmtMiles(Math.round(parseFloat(e.construccionEurM2)))+' €/m²</div>':'')+'</td>'
-      +'<td style="'+tdS+';text-align:right" class="private-val">'+fmtBlack(fmtM(e.ventaEur))+dd(e.ventaEur,ecoSnap.ventaEur,false)+(e.ventaEurM2?'<div style="font-size:9px;color:var(--text3);margin-top:1px">'+fmtMiles(Math.round(parseFloat(e.ventaEurM2)))+' €/m²</div>':'')+'</td>'
-      +'<td style="'+tdS+';text-align:right" class="private-val">'+fmtTIRBold(e.tirPct)+dd(e.tirPct,ecoSnap.tirPct,true)+'</td>'
-      +'<td style="'+tdS+';text-align:right" class="private-val">'+fmtBlack(fmtM(e.margenEur))+dd(e.margenEur,ecoSnap.margenEur,false)+(e.ventaUnidadEur?'<div style="font-size:9px;color:var(--text3);margin-top:1px">'+fmtMiles(Math.round(parseFloat(e.ventaUnidadEur)))+' €/ud</div>':'')+'</td>'
-      +'<td style="'+tdS+';text-align:right" class="private-val">'+fmtPctBold(e.margenPct)+dd(e.margenPct,ecoSnap.margenPct,true)+'</td>'
-      +'<td style="'+tdS+';text-align:right;padding-right:16px;color:#1a1a18">'+fmtFecha(e.fechaEntrega)+'</td>'
+      +'<td style="'+tdS+';font-weight:500;overflow:hidden;text-overflow:ellipsis">'+cellMid+p.nombre+'</div></td>'
+      +'<td style="'+tdS+';text-align:center">'+cellMid+'<div style="margin:0 auto">'+pillP(p.prioridad)+'</div></div></td>'
+      +'<td style="'+tdS+';text-align:center">'+cellMid+'<div style="margin:0 auto">'+uwBadge+'</div></div></td>'
+      +'<td style="'+tdS+'">'+cellMid+dot+p.estado+'</div></td>'
+      +'<td style="'+tdS+';color:#1a1a18;overflow:hidden;text-overflow:ellipsis">'+cellMid+p.tipo+'</div></td>'
+      +'<td style="'+tdS+';color:#1a1a18">'+cellMid+ciudad+'</div></td>'
+      +'<td style="'+tdS+';text-align:right" class="private-val">'+cellTop+fmtBlack(fmtM(e.sueloEur))+dd(e.sueloEur,ecoSnap.sueloEur,false)+(e.sueloEurM2?'<div style="font-size:9px;color:var(--text3);margin-top:1px">'+fmtMiles(Math.round(parseFloat(e.sueloEurM2)))+' €/m²</div>':'')+'</div></td>'
+      +'<td style="'+tdS+';text-align:right" class="private-val">'+cellTop+fmtBlack(fmtM(e.construccionEur))+dd(e.construccionEur,ecoSnap.construccionEur,false)+(e.construccionEurM2?'<div style="font-size:9px;color:var(--text3);margin-top:1px">'+fmtMiles(Math.round(parseFloat(e.construccionEurM2)))+' €/m²</div>':'')+'</div></td>'
+      +'<td style="'+tdS+';text-align:right" class="private-val">'+cellTop+fmtBlack(fmtM(e.ventaEur))+dd(e.ventaEur,ecoSnap.ventaEur,false)+(e.ventaEurM2?'<div style="font-size:9px;color:var(--text3);margin-top:1px">'+fmtMiles(Math.round(parseFloat(e.ventaEurM2)))+' €/m²</div>':'')+'</div></td>'
+      +'<td style="'+tdS+';text-align:right" class="private-val">'+cellTop+fmtTIRBold(e.tirPct)+dd(e.tirPct,ecoSnap.tirPct,true)+'</div></td>'
+      +'<td style="'+tdS+';text-align:right" class="private-val">'+cellTop+fmtBlack(fmtM(e.margenEur))+dd(e.margenEur,ecoSnap.margenEur,false)+(e.ventaUnidadEur?'<div style="font-size:9px;color:var(--text3);margin-top:1px">'+fmtMiles(Math.round(parseFloat(e.ventaUnidadEur)))+' €/ud</div>':'')+'</div></td>'
+      +'<td style="'+tdS+';text-align:right" class="private-val">'+cellTop+fmtPctBold(e.margenPct)+dd(e.margenPct,ecoSnap.margenPct,true)+'</div></td>'
+      +'<td style="'+tdS+';text-align:right;padding-right:16px;color:#1a1a18">'+cellMid+'<div style="margin-left:auto">'+fmtFecha(e.fechaEntrega)+'</div></div></td>'
       +'</tr>';
   }).join('');
 
