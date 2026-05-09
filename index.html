@@ -370,7 +370,7 @@
     .mob-filter-select{padding:8px 12px;border-radius:20px;border:none;background:rgba(255,255,255,0.18);color:white;font-size:12px;font-family:var(--font);outline:none;-webkit-appearance:none;cursor:pointer;font-weight:500}
     /* MOBILE — bloques agrupados */
     .mob-bloque{background:white;margin:14px 12px 0;border-radius:12px;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.04);overflow:hidden}
-    .mob-bloque-header{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);color:white}
+    .mob-bloque-header{padding:15px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);color:white}
     .mob-bloque-header.collapsed{}
     .mob-bloque-title{display:flex;align-items:center;gap:10px;flex:1}
     .mob-bloque-bar{width:3px;height:18px;background:rgba(255,255,255,0.85);border-radius:2px}
@@ -382,9 +382,9 @@
     .mob-proj{padding:11px 14px 11px 14px;border-bottom:1px solid #f0efe9;cursor:pointer;background:white;-webkit-tap-highlight-color:transparent}
     .mob-proj:last-child{border-bottom:none}
     .mob-proj:active{background:#fafaf8}
-    .mob-proj-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px;width:100%;box-sizing:border-box}
-    .mob-proj-name{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3;flex:1;min-width:0;word-break:break-word;padding-right:0}
-    .mob-proj-prio{flex-shrink:0;font-size:9px;font-weight:700;text-transform:uppercase;padding:3px 9px;border-radius:8px;letter-spacing:.04em;align-self:flex-start;margin-top:2px;white-space:nowrap;display:inline-block}
+    .mob-proj-row1{margin-bottom:4px}
+    .mob-proj-name{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3;word-break:break-word}
+    .mob-proj-prio{display:inline-block;font-size:8.5px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:7px;letter-spacing:.04em;white-space:nowrap;vertical-align:middle;margin-left:4px;position:relative;top:-1px}
     .mob-proj-prio.prio-1{background:#fde8e3;color:#a85c4a}
     .mob-proj-prio.prio-2{background:#fdf3dc;color:#946818}
     .mob-proj-prio.prio-3{background:#eef2f5;color:#5a6a85}
@@ -399,7 +399,8 @@
     .mob-track-est{color:#888;font-size:10px}
     /* MOBILE — detalle */
     .mob-detail-header{background:linear-gradient(135deg,#1a3a2a,#2d6a4f);padding:14px 16px 14px;color:white;flex-shrink:0}
-    .mob-detail-back{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.85);font-size:13px;cursor:pointer;margin-bottom:8px;font-weight:500}
+    .mob-detail-back{display:inline-flex;align-items:center;gap:6px;color:white;font-size:14px;cursor:pointer;margin-bottom:12px;font-weight:600;background:rgba(255,255,255,0.18);padding:7px 14px 7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.25);transition:background .15s;-webkit-tap-highlight-color:transparent}
+    .mob-detail-back:active{background:rgba(255,255,255,0.28)}
     .mob-detail-title{font-size:18px;font-weight:800;line-height:1.25;margin-bottom:4px;color:#fff}
     .mob-detail-subtitle{font-size:11px;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:.05em}
     .mob-detail-pills{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
@@ -637,7 +638,7 @@
   ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.14);border-radius:3px}
 
   /* ── DASHBOARD ───────────────────────────────────────────── */
-  .dash{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:18px;background:var(--bg)}
+  .dash{flex:1;overflow-y:auto;padding:14px 22px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
   .dash-row{display:grid;gap:14px}
   .dash-row-4{grid-template-columns:repeat(4,1fr)}
   .dash-row-3{grid-template-columns:repeat(3,1fr)}
@@ -646,12 +647,12 @@
   .dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;display:flex;flex-direction:column;gap:10px}
   .dash-card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
   /* KPI cards */
-  .kpi-card{background:#ffffff;border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden;cursor:pointer;transition:box-shadow .15s,transform .12s;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+  .kpi-card{background:#ffffff;border:1px solid var(--border);border-radius:var(--rl);padding:10px 14px;display:flex;flex-direction:column;gap:3px;position:relative;overflow:hidden;cursor:pointer;transition:box-shadow .15s,transform .12s;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
   .kpi-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.09);transform:translateY(-1px)}
   .kpi-card-accent{position:absolute;top:0;left:0;width:4px;height:100%;border-radius:var(--rl) 0 0 var(--rl)}
-  .kpi-card-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600}
-  .kpi-card-value{font-size:28px;font-weight:700;color:var(--text);line-height:1}
-  .kpi-card-sub{font-size:11px;color:var(--text3)}
+  .kpi-card-label{font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600}
+  .kpi-card-value{font-size:22px;font-weight:700;color:var(--text);line-height:1}
+  .kpi-card-sub{font-size:10.5px;color:var(--text3)}
   .kpi-card-delta{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;align-self:flex-start;margin-top:2px}
   /* SVG charts */
   .chart-wrap{width:100%;position:relative}
@@ -2987,8 +2988,7 @@ function renderMobileProjCard(p, trackBgM){
     : '';
   return `<div class="mob-proj" onclick="openMobDetail(${p.id})">
     <div class="mob-proj-row1">
-      <div class="mob-proj-name">${p.nombre||'(sin nombre)'}</div>
-      ${prioLabel?`<div class="mob-proj-prio prio-${p.prioridad}">${prioLabel}</div>`:''}
+      <div class="mob-proj-name">${p.nombre||'(sin nombre)'}${(p.prioridad===1||p.prioridad===2)?` <span class="mob-proj-prio prio-${p.prioridad}">${prioLabel}</span>`:''}</div>
     </div>
     <div class="mob-proj-row2">
       <span class="mob-proj-estado"><span class="mob-proj-dot" style="background:${stColor}"></span>${p.estado||'—'}</span>
@@ -3006,7 +3006,7 @@ function renderMobileDetail(p, mfe, mfp, trackClsM){
   const TRACK_HITOS_M = [{key:'contacto',label:'Contacto'},{key:'nda',label:'NDA'},{key:'im',label:'IM'},{key:'nbo',label:'NBO'},{key:'bo',label:'BO'}];
 
   let html = `<div class="mob-detail-header">
-    <div class="mob-detail-back" onclick="closeMobDetail()">‹ Volver</div>
+    <div class="mob-detail-back" onclick="closeMobDetail()"><span style="font-size:16px;line-height:1;margin-top:-1px">←</span> Volver</div>
     <div class="mob-detail-title">${p.nombre||'(sin nombre)'}</div>
     <div class="mob-detail-subtitle">${[p.bloque,p.tipo,p.ciudad].filter(Boolean).join(' · ')||'—'}</div>
     <div class="mob-detail-pills">
@@ -3226,6 +3226,9 @@ let S_dealView = 'ficha'; // 'ficha' | 'pipeline'
 let S_dealPdf  = []; // IDs selected for multi-PDF
 let S_multiPdfModal = false; // open/close modal multi-pdf
 let S_pdfDropOpen = false;
+let S_pipelineSelection = null; // null = use defaults; array of IDs = manual selection
+let S_pipelineSelectModal = false; // open/close pipeline selector modal
+const PIPELINE_MAX = 10;
 let S_noUWDash = false;  // expand no-UW in dashboard pipeline table
 let S_descDash = false;  // expand descartados in dashboard pipeline table
 let S_noUWEco  = false;  // expand no-UW in UW|Modelo table
@@ -3287,9 +3290,95 @@ function printMultiDealSheet() {
   setTimeout(()=>win.print(), 800);
 }
 
+// ─── Modal selector de pipeline ───────────────────────────────
+function openPipelineSelector(){ S_pipelineSelectModal=true; render(); }
+function closePipelineSelector(){ S_pipelineSelectModal=false; render(); }
+function togglePipelineProj(id){
+  const SKIP = ['Descartado','Cerrado'];
+  const allPipeline = projects.filter(p => p.bloque==='Pipeline');
+  let cur = S_pipelineSelection === null
+    ? allPipeline.filter(p=>!SKIP.includes(p.estado) && p.estado!=='Stand By').slice(0, PIPELINE_MAX).map(p=>p.id)
+    : [...S_pipelineSelection];
+  const idx = cur.indexOf(id);
+  if(idx >= 0){
+    cur.splice(idx,1);
+  } else {
+    if(cur.length >= PIPELINE_MAX) return;
+    cur.push(id);
+  }
+  S_pipelineSelection = cur;
+  render();
+}
+function resetPipelineSelection(){ S_pipelineSelection = null; render(); }
+function renderPipelineSelectorModal(){
+  if(!S_pipelineSelectModal) return '';
+  const SKIP = ['Descartado','Cerrado'];
+  const allPipeline = projects.filter(p => p.bloque==='Pipeline');
+  const selectedIds = S_pipelineSelection === null
+    ? allPipeline.filter(p=>!SKIP.includes(p.estado) && p.estado!=='Stand By').slice(0, PIPELINE_MAX).map(p=>p.id)
+    : S_pipelineSelection;
+  const count = selectedIds.length;
+  const ORDER = ['WIP','Due diligence','En análisis','Recibido','Stand By','Descartado','Cerrado'];
+  const byEst = {};
+  allPipeline.forEach(p=>{
+    const e = p.estado || 'Sin estado';
+    if(!byEst[e]) byEst[e]=[];
+    byEst[e].push(p);
+  });
+  const EC = STATE_COLORS;
+  let body = '';
+  ORDER.forEach(est=>{
+    if(!byEst[est] || !byEst[est].length) return;
+    body += '<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#666;margin:10px 0 5px;display:flex;align-items:center;gap:6px">'
+      + '<div style="width:3px;height:11px;background:'+(EC[est]||'#888')+';border-radius:1px"></div>'
+      + est+' · '+byEst[est].length
+      + '</div>';
+    byEst[est].forEach(p=>{
+      const isSel = selectedIds.includes(p.id);
+      const dis = !isSel && count>=PIPELINE_MAX;
+      const bg = isSel?'background:#f0f7f1;border-color:#cfe6d5':'';
+      const op = dis?'opacity:.4;cursor:not-allowed':'cursor:pointer';
+      const onclick = dis?'':'onclick="togglePipelineProj('+p.id+')"';
+      body += '<div '+onclick+' style="display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:5px;font-size:12px;border:1px solid transparent;'+bg+';'+op+'">'
+        + '<div style="width:16px;height:16px;border-radius:3px;border:1.5px solid '+(isSel?'#3d7058':'#ddd')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;background:'+(isSel?'#3d7058':'white')+';color:white;font-size:11px">'+(isSel?'✓':'')+'</div>'
+        + '<div style="flex:1;font-weight:500">'+(p.nombre||'(sin nombre)')+'</div>'
+        + '<div style="font-size:9.5px;color:#888;font-weight:600">'+(p.tipo||'—')+(p.ciudad?' · '+p.ciudad:'')+'</div>'
+        + '</div>';
+    });
+  });
+  const counterClass = count>=PIPELINE_MAX?'background:#a85c4a':'background:rgba(255,255,255,0.2)';
+  return '<div onclick="if(event.target===this)closePipelineSelector()" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000">'
+    + '<div style="background:white;border-radius:10px;width:540px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3)">'
+    + '<div style="padding:14px 20px;background:#1a3a2a;color:white;display:flex;justify-content:space-between;align-items:center">'
+    +   '<div style="font-size:14px;font-weight:700">Seleccionar proyectos del Pipeline</div>'
+    +   '<div style="font-size:11px;'+counterClass+';color:white;padding:3px 10px;border-radius:11px;font-weight:600">'+count+' / '+PIPELINE_MAX+'</div>'
+    + '</div>'
+    + '<div style="flex:1;overflow-y:auto;padding:10px 18px">'+body+'</div>'
+    + '<div style="padding:11px 18px;background:#fafaf8;border-top:1px solid #f0efe9;display:flex;justify-content:space-between;align-items:center;gap:10px">'
+    +   '<div style="font-size:11px;color:#888">Máximo '+PIPELINE_MAX+' proyectos. Los no marcados aparecerán en el listado lateral.</div>'
+    +   '<div style="display:flex;gap:6px">'
+    +     '<button onclick="resetPipelineSelection();closePipelineSelector()" style="padding:7px 12px;border-radius:5px;border:1px solid #ddd;background:white;font-size:11px;cursor:pointer;font-family:var(--font);color:#888">↺ Restablecer</button>'
+    +     '<button onclick="closePipelineSelector()" style="padding:7px 14px;border-radius:5px;border:1px solid #1a3a2a;background:#1a3a2a;color:white;font-size:12px;cursor:pointer;font-family:var(--font);font-weight:500">Cerrar</button>'
+    +   '</div>'
+    + '</div>'
+    + '</div></div>';
+}
+
 function renderPipelineSummary() {
   const SKIP = ['Descartado','Cerrado'];
-  const ps = projects.filter(p => p.bloque==='Pipeline' && !SKIP.includes(p.estado));
+  const allPipeline = projects.filter(p => p.bloque==='Pipeline'); // TODO el pipeline (incluye descartados/cerrados, para el modal)
+  const activePipeline = allPipeline.filter(p => !SKIP.includes(p.estado));
+  
+  // Determinar IDs seleccionados
+  let selectedIds;
+  if(S_pipelineSelection === null){
+    // Default: pipeline activos (no Stand By)
+    selectedIds = activePipeline.filter(p=>p.estado!=='Stand By').slice(0, PIPELINE_MAX).map(p=>p.id);
+  } else {
+    selectedIds = S_pipelineSelection;
+  }
+  const ps = activePipeline.filter(p => selectedIds.includes(p.id));
+  const noIncluidos = allPipeline.filter(p => !selectedIds.includes(p.id));
 
   const UBI2GEO = {
     'Madrid':'Madrid','Barcelona':'Barcelona','Valencia':'València/Valencia',
@@ -3328,8 +3417,8 @@ function renderPipelineSummary() {
 
   function fm(v){if(!v||v==='')return '—';const n=parseInt(String(v).replace(/\D/g,''),10);if(isNaN(n)||n===0)return '—';return n>=1e6?fmtMiles(Math.round(n/1e6))+' M€':n>=1e3?fmtMiles(Math.round(n/1e3))+' K€':n+' €';}
   function fm2(v){if(!v||v==='')return '';const n=parseInt(String(v).replace(/\D/g,''),10);if(isNaN(n)||n===0)return '';return fmtMiles(Math.round(n))+' €/m²';}
-  function tirc(t){const n=parseFloat(t);return n>=18?'#1a3a2a':n>=15?'#2d6a4f':n>=12?'#52b788':'#95d5b2';}
-  function tirGrey(t){const n=parseFloat(t);return n>=18?'#2a2a2a':n>=15?'#555':n>=12?'#888':'#b8b8b8';}
+  function tirc(t){const n=parseFloat(t);return n>=20?'#1a3a2a':n>=14?'#3d7058':'#a85c4a';}
+  function tirGrey(t){const n=parseFloat(t);return n>=20?'#2a2a2a':n>=14?'#555':'#a85c4a';}
   function parseFecha(v){
     if(!v||v==='—'||v==='')return null;
     const s=String(v).toLowerCase().trim().replace(/\./g,'');
@@ -3660,6 +3749,40 @@ function renderPipelineSummary() {
               </div>`).join('')}
           </div>
         </div>` : ''}
+
+        ${noIncluidos.length ? (() => {
+          const ORDER_NI = ['En análisis','Recibido','Stand By','Descartado','Cerrado'];
+          const byEstNI = {};
+          noIncluidos.forEach(p=>{
+            const e = p.estado || 'Sin estado';
+            if(!byEstNI[e]) byEstNI[e]=[];
+            byEstNI[e].push(p);
+          });
+          let out = '<div style="margin-top:10px;padding-top:8px;border-top:1px solid #d8d6cd">'
+            +'<div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#a85c4a;margin-bottom:4px;display:flex;align-items:center;gap:5px">'
+            +'<div style="width:2px;height:9px;background:#a85c4a;border-radius:1px"></div>'
+            +'NO INCLUIDOS · '+noIncluidos.length
+            +'</div>'
+            +'<div style="font-size:7px;color:#999;margin-bottom:6px;font-style:italic">% = TIR del proyecto</div>';
+          ORDER_NI.forEach(est=>{
+            if(!byEstNI[est] || !byEstNI[est].length) return;
+            out += '<div style="margin-bottom:6px">'
+              +'<div style="font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:3px;display:flex;align-items:center;gap:5px">'
+              +'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+(EC[est]||'#888')+'"></span>'
+              +est
+              +'</div>';
+            byEstNI[est].forEach(p=>{
+              const tir = p.eco && p.eco.tir ? parseFloat(p.eco.tir) : null;
+              out += '<div style="font-size:8.5px;color:#666;padding:1px 0;display:flex;align-items:baseline;gap:5px">'
+                +'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#888">'+p.nombre+'</span>'
+                +(tir && !isNaN(tir) ? '<span style="font-size:7.5px;color:#3d7058;font-weight:700;font-variant-numeric:tabular-nums;background:#f0f7f1;padding:1px 5px;border-radius:6px;letter-spacing:.02em;white-space:nowrap">TIR '+tir.toFixed(1).replace('.',',')+'%</span>' : '')
+                +'</div>';
+            });
+            out += '</div>';
+          });
+          out += '</div>';
+          return out;
+        })() : ''}
       </div>
 
       <!-- COL 2: tabla + chart -->
@@ -3887,12 +4010,13 @@ function renderDealSheet() {
     +'<button onclick="S_dealView=\'ficha\';render()" style="font-size:12px;padding:6px 14px;border-radius:var(--r);border:1px solid '+(S_dealView==='ficha'?'#1a3a2a':'var(--border2)')+';background:'+(S_dealView==='ficha'?'#1a3a2a':'transparent')+';color:'+(S_dealView==='ficha'?'white':'var(--text2)')+';cursor:pointer;font-family:var(--font);font-weight:500">📄 Deal Sheet</button>'
     +(S_dealView==='ficha'?'<select class="ds-selector" onchange="S_dealId=parseInt(this.value)||null;render()">'+opts+'</select>':'')
     +(S_dealView==='ficha'&&S_dealId?'<button class="ds-export-btn" onclick="printDealSheet()">Convertir PDF</button>':'')
+    +(S_dealView==='pipeline'?'<button onclick="openPipelineSelector()" style="font-size:12px;padding:6px 14px;border-radius:var(--r);border:1px solid var(--border2);background:white;color:var(--text);cursor:pointer;font-family:var(--font);font-weight:500">⚙ Seleccionar proyectos</button>':'')
     +(S_dealView==='pipeline'?'<button class="ds-export-btn" onclick="printPipelineSummary()">Exportar PDF</button>':'')
     +multiBtn
     +'</div>'
     +'</div>';
 
-  if(S_dealView==='pipeline') return '<div class="ds-wrap">'+selector+renderPipelineSummary()+'</div>'+multiModal;
+  if(S_dealView==='pipeline') return '<div class="ds-wrap">'+selector+renderPipelineSummary()+'</div>'+multiModal+renderPipelineSelectorModal();
   if(!S_dealId) return '<div class="ds-wrap">'+selector+'<div class="ds-empty"><div style="font-size:36px">📄</div><div>Selecciona un proyecto de <strong>Pipeline</strong></div></div></div>'+multiModal;
   const p = projects.find(x=>x.id===S_dealId);
   if(!p) return '<div class="ds-wrap">'+selector+'</div>'+multiModal;
@@ -4634,7 +4758,7 @@ function renderDashboard() {
   const matrixDesinv = buildMatrix('Desinversión', '#2d6a4f');
   const totalPip = projects.filter(p=>p.bloque==='Pipeline' && !['Descartado','Cerrado'].includes(p.estado)).length;
   const totalDes = projects.filter(p=>p.bloque==='Desinversión' && !['Descartado','Cerrado'].includes(p.estado)).length;
-  const avanceBlock = '<div class="dash-card" style="margin-bottom:12px">'
+  const avanceBlock = '<div class="dash-card">'
     +'<div class="dash-card-title">Avance de oportunidades</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start">'
       +'<div style="min-width:0">'
@@ -4666,11 +4790,11 @@ function renderDashboard() {
       "<div class=\"dash-card\" style=\"justify-content:space-between\"><div class=\"dash-card-title\">Matriz estado \u00d7 prioridad</div>"+matrixHtml+"</div>"+
     "</div>"+
     // Fila 3: Urgentes ancho completo
-    "<div class=\"dash-card\" style=\"margin-bottom:12px\"><div class=\"dash-card-title\">Acciones urgentes \u2014 Prioridad Alta</div>"+urgHtml+"</div>"+
+    "<div class=\"dash-card\"><div class=\"dash-card-title\">Acciones urgentes \u2014 Prioridad Alta</div>"+urgHtml+"</div>"+
     // Fila 4: Avance de oportunidad (Pipeline + Desinversión)
     avanceBlock+
     // Fila 5: Pipeline dentro de dash-card
-    "<div class=\"dash-card\" style=\"margin-top:4px\">"
+    "<div class=\"dash-card\">"
     +"<div class=\"dash-card-title\">Pipeline</div>"
     +renderEstudioSection()
     +"</div>"+
@@ -4947,7 +5071,7 @@ function renderKpiCards(){
     {label:"En negociaci\u00f3n", value:avanzados, sub:"WIP \u00b7 Due diligence", accent:"#52b788", filter:{estado:"WIP|Due diligence"}},
     {label:"En estudio", value:pendientes, sub:"Recibido \u00b7 En an\u00e1lisis", accent:"#95d5b2", filter:{estado:"Recibido|En an\u00e1lisis"}},
   ];
-  var html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">';
+  var html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">';
   kpis.forEach(function(k){
     var view = k.view || "tabla";
     var onclick = "navigateTo('"+view+"',"+(k.filter ? JSON.stringify(k.filter).replace(/"/g,"'") : "{}")+")";
