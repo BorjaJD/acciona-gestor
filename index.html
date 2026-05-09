@@ -345,7 +345,7 @@
 
   /* ── RESPONSIVE MÓVIL ───────────────────────────────────── */
   @media (max-width: 768px) {
-    body{overflow:auto}
+    body{overflow:auto;height:auto;display:block}
     .app-body{flex-direction:column;overflow:auto;height:auto}
     .topbar{display:none!important}
     .main-area{overflow:visible;min-height:0;height:auto}
@@ -379,12 +379,12 @@
     .mob-bloque-arrow{font-size:11px;color:rgba(255,255,255,0.85);transition:transform .2s}
     .mob-bloque-header.collapsed .mob-bloque-arrow{transform:rotate(-90deg)}
     /* MOBILE — proyecto card */
-    .mob-proj{padding:11px 16px 11px 14px;border-bottom:1px solid #f0efe9;cursor:pointer;background:white;-webkit-tap-highlight-color:transparent}
+    .mob-proj{padding:11px 14px 11px 14px;border-bottom:1px solid #f0efe9;cursor:pointer;background:white;-webkit-tap-highlight-color:transparent}
     .mob-proj:last-child{border-bottom:none}
     .mob-proj:active{background:#fafaf8}
-    .mob-proj-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px}
-    .mob-proj-name{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3;flex:1;min-width:0;word-break:break-word}
-    .mob-proj-prio{flex-shrink:0;font-size:9px;font-weight:700;text-transform:uppercase;padding:2.5px 8px;border-radius:8px;letter-spacing:.04em;align-self:flex-start;margin-top:2px;white-space:nowrap}
+    .mob-proj-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px;width:100%;box-sizing:border-box}
+    .mob-proj-name{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3;flex:1;min-width:0;word-break:break-word;padding-right:0}
+    .mob-proj-prio{flex-shrink:0;font-size:9px;font-weight:700;text-transform:uppercase;padding:3px 9px;border-radius:8px;letter-spacing:.04em;align-self:flex-start;margin-top:2px;white-space:nowrap;display:inline-block}
     .mob-proj-prio.prio-1{background:#fde8e3;color:#a85c4a}
     .mob-proj-prio.prio-2{background:#fdf3dc;color:#946818}
     .mob-proj-prio.prio-3{background:#eef2f5;color:#5a6a85}
@@ -1050,6 +1050,13 @@ const ECO_MONEY = ['sueloEur','sueloEurM2','ventaEur','ventaEurM2','construccion
 function fmtMiles(n) {
   if(n===null||n===undefined||isNaN(n)) return '—';
   return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+// Render de campo rich (narrativa, narrativaBottom): si es HTML, dejarlo tal cual; si es texto plano antiguo, convertir saltos de línea en <br>
+function fvHtml(v){
+  if(!v||v===''||v==='—') return '';
+  if(/<\/?(p|div|br|b|strong|i|em|ul|ol|li|span)\b/i.test(v)) return v;
+  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
 }
 
 let projects = [];
@@ -2937,11 +2944,16 @@ function renderMobile() {
     bloques[b].push(p);
   });
 
-  if(Object.keys(bloques).length === 0){
+  // Orden personalizado: Pipeline primero, luego Desinversión, luego el resto
+  const ORDEN_BLOQUES_MOVIL = ['Pipeline','Desinversión','Desarrollo / Operación','Clientes / Gestión','Sin bloque'];
+  const bloquesOrdenados = ORDEN_BLOQUES_MOVIL.filter(b => bloques[b] && bloques[b].length > 0)
+    .concat(Object.keys(bloques).filter(b => !ORDEN_BLOQUES_MOVIL.includes(b)));
+
+  if(bloquesOrdenados.length === 0){
     html += '<div style="padding:50px 20px;text-align:center;color:#aaa;font-size:13px">Sin resultados</div>';
   }
 
-  Object.keys(bloques).forEach(bloque=>{
+  bloquesOrdenados.forEach(bloque=>{
     const items = bloques[bloque];
     const collapsed = window._mobBloqExp[bloque] === false;
     html += `<div class="mob-bloque">
