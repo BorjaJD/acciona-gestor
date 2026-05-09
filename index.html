@@ -4472,7 +4472,7 @@ function renderDealSheet() {
     +'</div>'
 
     // COL 2 — 3 cajitas + 2 bloques
-    +'<div style="padding:12px 18px 10px;border-right:1px solid #e8e8e0;background:white;overflow:hidden;display:flex;flex-direction:column">'
+    +'<div style="padding:11px 18px 9px;border-right:1px solid #e8e8e0;background:white;overflow:hidden;display:flex;flex-direction:column">'
 
     // 3 cajitas retornos
     // Lógica C: si las cifras de alquiler son iguales que las de venta Y no hay yield → no aplica
@@ -4499,14 +4499,14 @@ function renderDealSheet() {
 
     // Bloque PROGRAMA (independiente)
     +(_dsRowIdx=0,'')
-    +'<div style="margin-top:6px">'+secTitle('Programa')+'</div>'
+    +'<div style="margin-top:7px">'+secTitle('Programa')+'</div>'
     +dsRow('Edificabilidad', p.edificabilidad?fmtMiles(p.edificabilidad)+' m²':'—')
     +dsRow(p.tipo==='PBSA'?'Nº camas':'Nº viviendas', p.nViviendas?fmtMiles(p.nViviendas)+' uds':'—')
     +dsRow('Parking', eco.parkingN?fmtMiles(eco.parkingN)+' plz':'—')
 
     // Bloque Propuesta
     +(_dsRowIdx=0,'')
-    +'<div style="margin-top:6px">'+secTitle('Propuesta de inversión')+'</div>'
+    +'<div style="margin-top:7px">'+secTitle('Propuesta de inversión')+'</div>'
     +dsRow('Compra', fe(eco.sueloEur)+(eco.sueloEurM2?' | '+fm2(eco.sueloEurM2):''))
     +dsRow('Pago', pagos)
     +dsRow('Construcción', fe(eco.construccionEur)+(eco.construccionEurM2?' | '+fm2(eco.construccionEurM2):''))
