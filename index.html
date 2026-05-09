@@ -31,7 +31,8 @@
     --accent:#1a3a2a;--accent-light:#e8f2ec;
     --font:'Aptos','Segoe UI',system-ui,sans-serif;--r:8px;--rl:12px;
   }
-  body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+  body{font-family:var(--font);background:#0d1f15;color:var(--text);font-size:14px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+  body.app-ready{background:var(--bg)}
   /* TOPBAR */
   .topbar{display:flex;align-items:center;background:var(--accent);color:#fff;height:52px;flex-shrink:0}
   .logo-area{padding:0 20px;display:flex;align-items:center;gap:10px;border-right:1px solid rgba(255,255,255,0.12);height:100%}
@@ -5934,6 +5935,7 @@ function checkLogin(){
   if(simpleHash(val)===PWD_CHECK){
     try{sessionStorage.setItem('acciona_auth','1');}catch(e){}
     document.getElementById('login-overlay').classList.add('hidden');
+    document.body.classList.add('app-ready');
     errEl.textContent='';
     resetInactivityTimer();
   } else {
@@ -5946,7 +5948,7 @@ function checkLogin(){
 }
 
 function checkSession(){
-  try{if(sessionStorage.getItem('acciona_auth')==='1'){document.getElementById('login-overlay').classList.add('hidden');resetInactivityTimer();return true;}}catch(e){}
+  try{if(sessionStorage.getItem('acciona_auth')==='1'){document.getElementById('login-overlay').classList.add('hidden');document.body.classList.add('app-ready');resetInactivityTimer();return true;}}catch(e){}
   setTimeout(()=>{const el=document.getElementById('login-pwd');if(el)el.focus();},100);
   return false;
 }
