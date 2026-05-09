@@ -3034,7 +3034,7 @@ function renderMobileDetail(p, mfe, mfp, trackClsM){
     <div class="mob-det-row"><span class="mob-det-label">Vendedor</span><span class="mob-det-value">${p.vendor||p.contraparte||'—'}</span></div>
     <div class="mob-det-row"><span class="mob-det-label">Broker / Agente</span><span class="mob-det-value">${p.comprador||'—'}</span></div>
     <div class="mob-det-row"><span class="mob-det-label">Responsable</span><span class="mob-det-value">${p.responsable||'—'}</span></div>
-    <div class="mob-det-row"><span class="mob-det-label">Ubicación</span><span class="mob-det-value">${[p.ciudad,p.ubicacion].filter(Boolean).join(', ')||'—'}${p.mapUrl?` <a href="${p.mapUrl.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:2px 8px;background:#e8f0eb;color:#1a3a2a;border-radius:11px;font-size:10px;font-weight:600;text-decoration:none;border:1px solid #cfe6d5;vertical-align:middle">📍 Ver mapa</a>`:''}</span></div>
+    <div class="mob-det-row"><span class="mob-det-label">Ubicación</span><span class="mob-det-value">${[p.ciudad,p.ubicacion].filter(Boolean).join(', ')||'—'}${p.mapUrl?` <a href="${p.mapUrl.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-left:8px;padding:5px 12px;background:#e8f0eb;color:#1a3a2a;border-radius:14px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid #cfe6d5;vertical-align:middle">📍 Ver mapa</a>`:''}</span></div>
     ${p.delegacion?`<div class="mob-det-row"><span class="mob-det-label">Delegación</span><span class="mob-det-value">${p.delegacion}</span></div>`:''}
   </div>`;
 
@@ -3449,7 +3449,22 @@ function renderPipelineSummary() {
   const EC={'WIP':STATE_COLORS['WIP'],'Due diligence':STATE_COLORS['Due diligence'],'En análisis':STATE_COLORS['En análisis'],'Recibido':STATE_COLORS['Recibido'],'Stand By':STATE_COLORS['Stand By']};
   function hasEcoData(p){const e=p.eco||{};return !!(e.tirPct||e.ventaEur||e.sueloEur||e.margenPct);}
   const psActive=ps.filter(p=>p.estado!=='Stand By');
-  const sorted=[...ps].sort((a,b)=>parseFloat(b.eco?.tirPct||0)-parseFloat(a.eco?.tirPct||0));
+  // Orden: por 1ª Ocup. (fechaEntrega) ascendente, luego por estado (más avanzado primero)
+  const ESTADO_ORDEN_PIP = {'WIP':0,'Due diligence':1,'En análisis':2,'Recibido':3,'Stand By':4,'Descartado':5,'Cerrado':6};
+  const sorted=[...ps].sort((a,b)=>{
+    const fa = parseFecha(a.eco?.fechaEntrega);
+    const fb = parseFecha(b.eco?.fechaEntrega);
+    if(fa && fb){
+      const d = fa - fb;
+      if(d !== 0) return d;
+    } else if(fa && !fb) {
+      return -1; // los que tienen fecha primero
+    } else if(!fa && fb) {
+      return 1;
+    }
+    // Empate (o sin fecha) → por estado
+    return (ESTADO_ORDEN_PIP[a.estado]??99) - (ESTADO_ORDEN_PIP[b.estado]??99);
+  });
   const sortedMain = sorted.filter(p=>hasEcoData(p) && p.estado!=='Stand By');
   const sortedSB   = sorted.filter(p=>p.estado==='Stand By');
   const sortedPend = sorted.filter(p=>!hasEcoData(p) && p.estado!=='Stand By');
