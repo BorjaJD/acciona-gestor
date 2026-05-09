@@ -4358,7 +4358,7 @@ function renderDashboard() {
         "<td style=\""+tdUrow+";text-align:center\">"+prioDot+"</td>"+
         "<td style=\""+tdUrow+";font-size:10px;color:var(--text3)\">"+p.bloque+"</td>"+
         "<td style=\""+tdUrow+"\">"+dot+p.estado+"</td>"+
-        "<td style=\""+tdUrow+";color:var(--text2)\">"+p.responsable.split("/")[0].trim()+"</td>"+
+        "<td style=\""+tdUrow+";color:var(--text2)\">"+(p.responsable?p.responsable.split("/")[0].trim():'—')+"</td>"+
         "<td style=\""+tdUrow+";color:var(--text2);white-space:normal;min-width:200px\">"+accionesHtml+"</td>"+
         "</tr>";
     });
