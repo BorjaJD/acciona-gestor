@@ -350,6 +350,111 @@
     .topbar{display:none!important}
     .main-area{overflow:visible;min-height:0;height:auto}
     .sidebar{display:none!important}
+    /* MOBILE — header sticky */
+    .mob-header{background:linear-gradient(135deg,#1a3a2a,#2d6a4f);padding:14px 16px 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.15)}
+    .mob-header-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .mob-brand-name{font-size:13px;font-weight:700;color:white;letter-spacing:.5px;line-height:1}
+    .mob-brand-sub{font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:.3px;margin-top:1px}
+    .mob-stats{display:flex;align-items:center;gap:6px}
+    .mob-stats-pill{background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 11px;display:flex;gap:9px;align-items:center}
+    .mob-stats-num{font-size:12px;color:white;font-weight:700}
+    .mob-stats-lbl{font-weight:400;opacity:.65;font-size:11px}
+    .mob-stats-sep{color:rgba(255,255,255,0.3)}
+    .mob-stats-active{color:#81c995;font-weight:700;font-size:12px}
+    .mob-alta-toggle{padding:5px 11px;border-radius:20px;border:none;font-size:13px;font-weight:700;cursor:pointer;color:white}
+    .mob-alta-toggle.off{background:rgba(255,255,255,0.15)}
+    .mob-alta-toggle.on{background:#a85c4a;box-shadow:0 0 0 2px rgba(168,92,74,0.3)}
+    .mob-filters{display:flex;gap:6px}
+    .mob-search{flex:1;padding:9px 14px;border-radius:20px;border:none;background:rgba(255,255,255,0.18);color:white;font-size:13px;font-family:var(--font);outline:none;-webkit-appearance:none}
+    .mob-search::placeholder{color:rgba(255,255,255,0.5)}
+    .mob-filter-select{padding:8px 12px;border-radius:20px;border:none;background:rgba(255,255,255,0.18);color:white;font-size:12px;font-family:var(--font);outline:none;-webkit-appearance:none;cursor:pointer;font-weight:500}
+    /* MOBILE — bloques agrupados */
+    .mob-bloque{background:white;margin:12px 12px 0;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+    .mob-bloque-header{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:#fdfdfb;border-bottom:1px solid var(--border)}
+    .mob-bloque-header.collapsed{border-bottom:none}
+    .mob-bloque-title{display:flex;align-items:center;gap:10px;flex:1}
+    .mob-bloque-bar{width:3px;height:18px;background:#1a3a2a;border-radius:2px}
+    .mob-bloque-name{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#1a3a2a}
+    .mob-bloque-count{font-size:11px;color:#888;font-weight:500;background:#f0efe9;padding:2px 8px;border-radius:10px}
+    .mob-bloque-arrow{font-size:11px;color:#aaa;transition:transform .2s}
+    .mob-bloque-header.collapsed .mob-bloque-arrow{transform:rotate(-90deg)}
+    /* MOBILE — proyecto card */
+    .mob-proj{padding:11px 14px;border-bottom:1px solid #f0efe9;cursor:pointer;background:white;-webkit-tap-highlight-color:transparent}
+    .mob-proj:last-child{border-bottom:none}
+    .mob-proj:active{background:#fafaf8}
+    .mob-proj-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}
+    .mob-proj-name{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3;flex:1}
+    .mob-proj-prio{flex-shrink:0;font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:8px;letter-spacing:.04em;align-self:flex-start;margin-top:2px}
+    .mob-proj-prio.prio-1{background:#fde8e3;color:#a85c4a}
+    .mob-proj-prio.prio-2{background:#fdf3dc;color:#946818}
+    .mob-proj-prio.prio-3{background:#eef2f5;color:#5a6a85}
+    .mob-proj-row2{display:flex;align-items:center;gap:8px;font-size:11px;color:#888;flex-wrap:wrap}
+    .mob-proj-estado{display:inline-flex;align-items:center;gap:5px;font-weight:500}
+    .mob-proj-dot{width:7px;height:7px;border-radius:50%}
+    .mob-proj-meta-sep{color:#ddd}
+    .mob-proj-tracks{margin-top:6px;padding-top:6px;border-top:1px dashed #ececea;font-size:10.5px;color:#666;display:flex;flex-direction:column;gap:3px}
+    .mob-track-line{display:flex;align-items:center;gap:5px}
+    .mob-track-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+    .mob-track-broker{font-weight:600;color:#444}
+    .mob-track-est{color:#888;font-size:10px}
+    /* MOBILE — detalle */
+    .mob-detail-header{background:linear-gradient(135deg,#1a3a2a,#2d6a4f);padding:14px 16px 14px;color:white;flex-shrink:0}
+    .mob-detail-back{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.85);font-size:13px;cursor:pointer;margin-bottom:8px;font-weight:500}
+    .mob-detail-title{font-size:18px;font-weight:800;line-height:1.25;margin-bottom:4px;color:#fff}
+    .mob-detail-subtitle{font-size:11px;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:.05em}
+    .mob-detail-pills{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+    .mob-detail-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:11px;text-transform:uppercase;letter-spacing:.03em;color:white}
+    .mob-detail-pill.estado{background:rgba(255,255,255,0.18)}
+    .mob-detail-pill.prio{background:#a85c4a}
+    .mob-detail-pill.delegacion{background:rgba(255,255,255,0.13);color:rgba(255,255,255,0.85)}
+    .mob-detail-body{background:var(--bg);padding-bottom:30px}
+    .mob-det-section{background:white;margin:12px 12px 0;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+    .mob-det-section-title{padding:9px 14px;background:#fdfdfb;border-bottom:1px solid var(--border);font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#1a3a2a;display:flex;align-items:center;gap:7px}
+    .mob-det-section-bar{width:2.5px;height:11px;background:#1a3a2a;border-radius:1px}
+    .mob-det-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 14px;border-bottom:1px solid #f0efe9;font-size:12px;gap:10px}
+    .mob-det-row:last-child{border-bottom:none}
+    .mob-det-label{color:#888;font-weight:500;flex-shrink:0;font-size:11.5px}
+    .mob-det-value{color:var(--text);font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+    .mob-det-narrative{padding:11px 14px;font-size:11.5px;color:#555;line-height:1.6;background:white}
+    .mob-det-narrative p{margin:0 0 5px 0}
+    .mob-det-narrative strong,.mob-det-narrative b{color:#1a1a18;font-weight:700}
+    /* MOBILE — KPIs */
+    .mob-kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px;background:#fdfdfb;border-bottom:1px solid var(--border)}
+    .mob-kpi-cell{background:white;border-radius:8px;padding:10px 11px;border:1px solid var(--border)}
+    .mob-kpi-label{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999}
+    .mob-kpi-value{font-size:16px;font-weight:800;color:#1a3a2a;margin-top:2px;font-variant-numeric:tabular-nums}
+    .mob-kpi-value.tir{color:#1a3a2a}
+    /* MOBILE — Acciones */
+    .mob-accion-item{padding:8px 14px;border-bottom:1px solid #f0efe9;display:flex;align-items:flex-start;gap:9px;font-size:12px;color:#444;line-height:1.4}
+    .mob-accion-item:last-child{border-bottom:none}
+    .mob-accion-check{width:14px;height:14px;border:1.5px solid #c8c8c0;border-radius:3px;flex-shrink:0;margin-top:2px}
+    .mob-accion-check.done{background:#3d7058;border-color:#3d7058;display:flex;align-items:center;justify-content:center;color:white;font-size:9px}
+    .mob-accion-text.done{text-decoration:line-through;color:#aaa}
+    /* MOBILE — Tracks */
+    .mob-track-card{margin:8px 14px;background:#fafaf8;border-radius:10px;border:1px solid #eaeae5;overflow:hidden;border-left:3px solid #b8c8d4}
+    .mob-track-card.s-activo{border-left-color:#b8c8d4}
+    .mob-track-card.s-info{border-left-color:#1e40af}
+    .mob-track-card.s-negociacion{border-left-color:#3d7058}
+    .mob-track-card.s-cierre{border-left-color:#1a3a2a}
+    .mob-track-card.s-descartado{border-left-color:#3a3a3a}
+    .mob-track-head{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:white}
+    .mob-track-broker{font-size:13px;font-weight:700;color:#1a1a18;flex:1}
+    .mob-track-tipo{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+    .mob-track-status-pill{font-size:9px;font-weight:700;padding:2.5px 8px;border-radius:9px;text-transform:uppercase;letter-spacing:.04em;color:white;flex-shrink:0}
+    .mob-track-status-pill.s-activo{background:#b8c8d4;color:#1a3045}
+    .mob-track-status-pill.s-info{background:#1e40af}
+    .mob-track-status-pill.s-negociacion{background:#3d7058}
+    .mob-track-status-pill.s-cierre{background:#1a3a2a}
+    .mob-track-status-pill.s-descartado{background:#3a3a3a}
+    .mob-track-body{padding:8px 12px 10px;font-size:11px;color:#666;line-height:1.5}
+    .mob-track-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #ececea;gap:10px}
+    .mob-track-row:last-child{border-bottom:none}
+    .mob-track-row-label{color:#888}
+    .mob-track-row-value{color:#1a1a18;font-weight:600;text-align:right}
+    .mob-track-hitos{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+    .mob-track-hito-pill{font-size:9px;padding:2px 7px;border-radius:9px;background:#f0efe9;color:#888;font-weight:600}
+    .mob-track-hito-pill.done{background:#1a3a2a;color:white}
+    /* MOBILE — viejos elementos del responsive original */
     .kpi-bar{display:grid;grid-template-columns:1fr 1fr;gap:1px}
     .kpi-cell{padding:8px 12px}
     .kpi-value{font-size:18px}
@@ -2775,174 +2880,215 @@ function isMobile() {
 
 function renderMobile() {
   const activos = projects.filter(p=>!['Descartado','Cerrado'].includes(p.estado));
-  const alta = projects.filter(p=>p.prioridad===1);
-  const EC={'WIP':STATE_COLORS['WIP'],'Due diligence':STATE_COLORS['Due diligence'],'En análisis':STATE_COLORS['En análisis'],'Recibido':STATE_COLORS['Recibido'],'Stand By':STATE_COLORS['Stand By'],'Descartado':STATE_COLORS['Descartado'],'Cerrado':STATE_COLORS['Cerrado']};
-  const BLOQ_ICON={};
-  const BLOQ_COLOR={'Desinversión':'#1a3a2a','Pipeline':'#2d6a4f','Desarrollo / Operación':'#52b788','Clientes / Gestión':'#95d5b2','Postventa':'#a8b5ae'};
-
   if(!window._mobBloqExp) window._mobBloqExp = {};
-  if(!window._mobProjExp) window._mobProjExp = {};
 
-  const q = S.fSearch.toLowerCase();
+  const q = (S.fSearch||'').toLowerCase();
   const filtered = projects.filter(p=>
-    (!q || p.nombre.toLowerCase().includes(q) || p.tipo.toLowerCase().includes(q))
-    && (!S.fEstado || S.fEstado.split("|").includes(p.estado))
+    (!q || (p.nombre||'').toLowerCase().includes(q) || (p.tipo||'').toLowerCase().includes(q))
+    && (!S.fEstado || S.fEstado.split('|').includes(p.estado))
     && (!S.fPrio || String(p.prioridad)===S.fPrio)
   );
 
-  function mfe(v){if(!v||v==='')return null;const n=parseInt(String(v).replace(/\./g,'').replace(/,/g,''),10);if(isNaN(n))return null;if(n>=1000000)return fmtMiles(Math.round(n/1000000))+' M€';if(n>=1000)return fmtMiles(Math.round(n/1000))+' K€';return fmtMiles(n)+' €';}
-  function mfp(v){if(!v||v==='')return null;const n=parseFloat(v);return isNaN(n)?null:n.toFixed(2).replace('.',',')+' %';}
-  function mfm2(v){if(!v||v==='')return null;const n=parseInt(String(v).replace(/\./g,'').replace(/,/g,''),10);return isNaN(n)?null:fmtMiles(Math.round(n))+' €/m²';}
+  function mfe(v){if(!v||v==='')return '—';const n=parseInt(String(v).replace(/[.,]/g,''),10);if(isNaN(n))return '—';if(n>=1000000)return fmtMiles(Math.round(n/1000000))+' M€';if(n>=1000)return fmtMiles(Math.round(n/1000))+' K€';return fmtMiles(n)+' €';}
+  function mfp(v){if(!v||v==='')return '—';return String(v).replace('.',',')+' %';}
+  function trackClsM(estado){return (estado||'').toLowerCase().replace(/[áé]/g,c=>({'á':'a','é':'e'}[c])).replace(/\s/g,'-');}
+  function trackBgM(estado){const m={'Activo':'#b8c8d4','Info':'#1e40af','Negociación':'#3d7058','Cierre':'#1a3a2a','Descartado':'#3a3a3a'};return m[estado]||'#999';}
 
-  // ── HEADER ──────────────────────────────────────────────────
-  let html = `<div style="background:#1a3a2a;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);padding:14px 16px 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.2)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:8px">
-        <div>
-          <div style="font-size:13px;font-weight:700;color:white;letter-spacing:.5px;line-height:1">ACCIONA</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.3px">Inmobiliaria</div>
-        </div>
+  // ── Si hay un proyecto seleccionado, mostrar DETALLE ───────────
+  if(S.selectedId){
+    const p = projects.find(x=>x.id===S.selectedId);
+    if(p){
+      ensureTracks(p);
+      return renderMobileDetail(p, mfe, mfp, trackClsM);
+    }
+  }
+
+  // ── HEADER ─────────────────────────────────────────────────────
+  let html = `<div class="mob-header">
+    <div class="mob-header-row1">
+      <div class="mob-brand">
+        <div class="mob-brand-name">▲ ACCIONA</div>
+        <div class="mob-brand-sub">Inmobiliaria</div>
       </div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <div style="background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 10px;display:flex;gap:10px">
-          <span style="font-size:12px;color:white;font-weight:600">${projects.length} <span style="font-weight:400;opacity:.6">total</span></span>
-          <span style="color:rgba(255,255,255,0.3)">·</span>
-          <span style="font-size:12px;color:#81c995;font-weight:600">${activos.length} <span style="font-weight:400;opacity:.7">activos</span></span>
+      <div class="mob-stats">
+        <div class="mob-stats-pill">
+          <span class="mob-stats-num">${projects.length} <span class="mob-stats-lbl">total</span></span>
+          <span class="mob-stats-sep">·</span>
+          <span class="mob-stats-active">${activos.length} <span class="mob-stats-lbl">activos</span></span>
         </div>
-        <button onclick="S.fPrio=S.fPrio==='1'?'':'1';render()" style="padding:5px 10px;border-radius:20px;border:none;font-size:11px;font-weight:700;cursor:pointer;background:${S.fPrio==='1'?'#f28b82':'rgba(255,255,255,0.15)'};color:white;transition:all .2s">🔴</button>
+        <button class="mob-alta-toggle ${S.fPrio==='1'?'on':'off'}" onclick="S.fPrio=S.fPrio==='1'?'':'1';render()">🔴</button>
       </div>
     </div>
-    <div style="display:flex;gap:6px">
-      <input type="text" placeholder="Buscar…" value="${S.fSearch}" oninput="S.fSearch=this.value;render()"
-        style="flex:1;padding:9px 12px;border-radius:20px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:13px;font-family:inherit;outline:none;-webkit-appearance:none"
-        onfocus="this.style.background='rgba(255,255,255,0.22)'" onblur="this.style.background='rgba(255,255,255,0.15)'"/>
-      <select onchange="S.fEstado=this.value;render()" style="padding:8px 10px;border-radius:20px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-family:inherit;outline:none;-webkit-appearance:none;cursor:pointer">
+    <div class="mob-filters">
+      <input class="mob-search" type="text" placeholder="Buscar proyecto…" value="${(S.fSearch||'').replace(/"/g,'&quot;')}" oninput="S.fSearch=this.value;render()"/>
+      <select class="mob-filter-select" onchange="S.fEstado=this.value;render()">
         <option value="" style="color:#1a1a18">Todo</option>
-        ${['WIP','Due diligence','En análisis','Recibido','Stand By'].map(e=>`<option value="${e}" style="color:#1a1a18"${S.fEstado===e?' selected':''}>${e}</option>`).join('')}
+        ${Object.keys(STATE_COLORS).map(s=>`<option value="${s}" style="color:#1a1a18" ${S.fEstado===s?'selected':''}>${s}</option>`).join('')}
       </select>
     </div>
   </div>`;
 
-  html += '<div style="padding:12px;background:var(--bg);min-height:calc(100vh - 110px)">';
-
-  // ── BLOQUE ACCORDION GROUPS ─────────────────────────────────
-  const MOBILE_BLOQUES_ORDER = ['Pipeline','Desinversión','Desarrollo / Operación','Clientes / Gestión','Postventa'];
-  MOBILE_BLOQUES_ORDER.forEach(b => {
-    const bp = filtered.filter(p=>p.bloque===b).sort((a,b2)=>{
-      const ai=ESTADO_ORDER.indexOf(a.estado), bi=ESTADO_ORDER.indexOf(b2.estado);
-      const ed=(ai===-1?99:ai)-(bi===-1?99:bi);
-      if(ed!==0) return ed;
-      return a.prioridad-b2.prioridad;
-    });
-    if(!bp.length) return;
-    const bloqColor = BLOQ_COLOR[b]||'#1a3a2a';
-    const icon = BLOQ_ICON[b]||'📁';
-    const isOpen = !!window._mobBloqExp[b]; // closed by default
-    const prioCount = bp.filter(p=>p.prioridad===1).length;
-
-    html += `<div style="margin-bottom:10px;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08)">
-      <div onclick="_mobBloqExp['${b}']=!_mobBloqExp['${b}'];document.getElementById('mb-${b.replace(/[\s\/]/g,'_')}').style.display=_mobBloqExp['${b}']?'block':'none';this.querySelector('.mb-chev').textContent=_mobBloqExp['${b}']?'▾':'▸'"
-        style="background:${bloqColor};padding:13px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;-webkit-tap-highlight-color:transparent">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div>
-            <div style="font-size:13px;font-weight:700;color:white;letter-spacing:.2px">${b}</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-top:1px">${bp.length} proyecto${bp.length!==1?'s':''}</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${prioCount?`<span style="background:rgba(242,139,130,0.9);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;color:white">🔴 ${prioCount}</span>`:''}
-          <span class="mb-chev" style="color:rgba(255,255,255,0.7);font-size:16px">${isOpen?'▾':'▸'}</span>
-        </div>
-      </div>
-      <div id="mb-${b.replace(/[\s\/]/g,'_')}" style="display:${isOpen?'block':'none'};background:var(--surface2)">`;
-
-    bp.forEach((p, idx) => {
-      const dot = EC[p.estado]||'#aaa';
-      const prioColor = p.prioridad===1?'#f28b82':p.prioridad===2?'#fdd580':'#81c995';
-      const acc = Array.isArray(p.acciones)?p.acciones.filter(a=>!a.d):[];
-      const eco = p.eco||{};
-      const isPipeline = p.bloque==='Pipeline';
-      const pExp = !!window._mobProjExp[p.id];
-      const isLast = idx === bp.length-1;
-
-      const su = mfe(eco.sueloEur), sm2 = mfm2(eco.sueloEurM2);
-      const co = mfe(eco.construccionEur), cm2 = mfm2(eco.construccionEurM2);
-      const ve = mfe(eco.ventaEur), vm2 = mfm2(eco.ventaEurM2), vu = mfe(eco.ventaVivEur);
-      const mg = mfe(eco.margenEur), mp = mfp(eco.margenPct);
-      const ti = mfp(eco.tirPct);
-      const hasEco = isPipeline && (su||co||ve||mg||ti);
-
-      html += `<div style="border-bottom:${isLast?'none':'1px solid var(--border)'}">
-        <div onclick="_mobProjExp[${p.id}]=!_mobProjExp[${p.id}];document.getElementById('mp-${p.id}').style.display=_mobProjExp[${p.id}]?'block':'none';this.querySelector('.mp-chev').textContent=_mobProjExp[${p.id}]?'▴':'▾'"
-          style="padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:space-between;gap:8px">
-          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
-            <div style="width:4px;height:36px;border-radius:2px;background:${dot};flex-shrink:0"></div>
-            <div style="min-width:0;flex:1">
-              <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nombre}</div>
-              <div style="display:flex;gap:5px;margin-top:4px;align-items:center;flex-wrap:wrap">
-                <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:${dot};color:white">${p.estado}</span>
-                ${p.tipo?`<span style="font-size:10px;color:var(--text3)">${p.tipo}</span>`:''}
-                ${isPipeline&&hasUW(p)?`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;background:#dceee2;color:#2e5c3e;border:1px solid #b6d9c2">✓ UW</span>`:''}
-              </div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            <span style="width:9px;height:9px;border-radius:50%;background:${prioColor};display:inline-block"></span>
-            <span class="mp-chev" style="font-size:12px;color:var(--text3)">${pExp?'▴':'▾'}</span>
-          </div>
-        </div>
-        <div id="mp-${p.id}" style="display:${pExp?'block':'none'};padding:0 14px 12px;background:var(--surface)">
-          ${p.avance&&p.avance!=='—'?`<div style="font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:10px;padding:8px 10px;background:var(--surface2);border-radius:8px;border-left:3px solid ${dot}">${p.avance}</div>`:''}
-          ${acc.length?`<div style="margin-bottom:10px">${acc.map(a=>`<div style="font-size:11px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.4">→ ${a.t}</div>`).join('')}</div>`:''}
-          ${(isPipeline||p.bloque==='Desinversión')&&Array.isArray(p.fases)&&p.fases.length?`
-            <div style="margin-bottom:10px">
-              <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:5px">Fase del proceso</div>
-              <div style="display:flex;gap:0;align-items:flex-start">
-                ${['Teaser/IM','NDA','NBO','BO','Escritura'].map((f,i,arr)=>{
-                  const done=p.fases.includes(f);
-                  const isLast=i===arr.length-1;
-                  return `<div style="display:flex;align-items:center;flex:1">
-                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
-                      <div style="width:100%;height:4px;background:${done?'#1a3a2a':'#e8e8e0'};border-radius:2px"></div>
-                      <span style="font-size:7.5px;color:${done?'#1a3a2a':'#bbb'};font-weight:${done?'700':'400'};white-space:nowrap">${done?'✓ ':''}${f}</span>
-                    </div>
-                    ${!isLast?'<div style="width:3px"></div>':''}
-                  </div>`;
-                }).join('')}
-                ${p.fases.includes('Comité')?`<div style="margin-left:6px;font-size:8px;font-weight:700;padding:2px 7px;border-radius:20px;background:#1a3a2a;color:white;white-space:nowrap;flex-shrink:0">✓ Comité</div>`:''}
-              </div>
-            </div>`:''}
-          ${isPipeline?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
-            ${(p.ubicacion||p.ciudad)?`<span style="font-size:10px;background:var(--surface2);padding:2px 8px;border-radius:20px;color:var(--text2)">📍 ${[p.ubicacion,p.ciudad].filter(Boolean).join(', ')}</span>`:''}
-            ${(p.vendor||p.contraparte)?`<span style="font-size:10px;background:var(--surface2);padding:2px 8px;border-radius:20px;color:var(--text2)">🤝 ${p.vendor||p.contraparte}</span>`:''}
-            ${p.fpa?`<span style="font-size:10px;background:#e8f4ef;padding:2px 8px;border-radius:20px;color:#1a3a2a;font-weight:600">FPA${p.fpaComprador?' · '+p.fpaComprador:''}</span>`:''}
-          </div>`:''}
-          ${p.mapUrl?`<a href="${p.mapUrl.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;margin-bottom:10px;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);border-radius:10px;text-decoration:none;color:white;font-size:12px;font-weight:600;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 6px rgba(26,58,42,0.2)"><span style="font-size:14px">📍</span><span>Ver ubicación en Google Maps</span><span style="font-size:11px;opacity:.8;margin-left:auto">↗</span></a>`:''}
-          ${hasEco?`<div style="background:var(--surface2);border-radius:10px;padding:10px 12px">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:${bloqColor};margin-bottom:8px">Datos económicos</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-              ${su?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Suelo</div><div style="font-size:13px;font-weight:700;color:var(--text)">${su}</div>${sm2?`<div style="font-size:10px;color:var(--text3)">${sm2}</div>`:''}</div>`:''}
-              ${co?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Construcción</div><div style="font-size:13px;font-weight:700;color:var(--text)">${co}</div>${cm2?`<div style="font-size:10px;color:var(--text3)">${cm2}</div>`:''}</div>`:''}
-              ${ve?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Venta</div><div style="font-size:13px;font-weight:700;color:var(--text)">${ve}</div>${vm2?`<div style="font-size:10px;color:var(--text3)">${vm2}</div>`:''}</div>`:''}
-              ${vu?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">€/unidad</div><div style="font-size:13px;font-weight:700;color:var(--text)">${vu}</div></div>`:''}
-              ${mg?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Margen €</div><div style="font-size:13px;font-weight:700;color:var(--text)">${mg}</div>${mp?`<div style="font-size:10px;color:var(--text3)">${mp}</div>`:''}</div>`:''}
-              ${ti?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">TIR</div><div style="font-size:13px;font-weight:700;color:${parseFloat(eco.tirPct)>=20?'#1a3a2a':parseFloat(eco.tirPct)>=13?'#2d6a4f':'#8b3030'}">${ti}</div></div>`:''}
-              ${eco.inicioProy?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Inicio</div><div style="font-size:12px;font-weight:600;color:var(--text)">${eco.inicioProy}</div></div>`:''}
-              ${eco.fechaEntrega?`<div style="background:var(--surface);border-radius:6px;padding:7px 9px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">1ª Ocup.</div><div style="font-size:12px;font-weight:600;color:var(--text)">${eco.fechaEntrega}</div></div>`:''}
-            </div>
-          </div>`:''}
-        </div>
-      </div>`;
-    });
-
-    html += '</div></div>';
+  // Agrupar por bloque
+  const bloques = {};
+  filtered.forEach(p=>{
+    const b = p.bloque || 'Sin bloque';
+    if(!bloques[b]) bloques[b] = [];
+    bloques[b].push(p);
   });
 
-  if(!filtered.length) html += '<div style="text-align:center;padding:48px 20px;color:var(--text3)"><div style="font-size:36px;margin-bottom:10px">🔍</div><div style="font-size:14px;font-weight:500">Sin resultados</div></div>';
+  if(Object.keys(bloques).length === 0){
+    html += '<div style="padding:50px 20px;text-align:center;color:#aaa;font-size:13px">Sin resultados</div>';
+  }
+
+  Object.keys(bloques).forEach(bloque=>{
+    const items = bloques[bloque];
+    const collapsed = window._mobBloqExp[bloque] === false;
+    html += `<div class="mob-bloque">
+      <div class="mob-bloque-header${collapsed?' collapsed':''}" onclick="toggleMobBloque('${bloque.replace(/'/g,"\\'")}')">
+        <div class="mob-bloque-title">
+          <div class="mob-bloque-bar"></div>
+          <div class="mob-bloque-name">${bloque}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="mob-bloque-count">${items.length}</span>
+          <span class="mob-bloque-arrow">▼</span>
+        </div>
+      </div>
+      ${!collapsed ? items.map(p=>renderMobileProjCard(p,trackBgM)).join('') : ''}
+    </div>`;
+  });
+
+  html += `<div style="padding:18px 14px 30px;text-align:center;color:#aaa;font-size:10px;letter-spacing:.05em">Acciona Gestor · Móvil v1.0</div>`;
+  return html;
+}
+
+function renderMobileProjCard(p, trackBgM){
+  ensureTracks(p);
+  const stColor = STATE_COLORS[p.estado] || '#888';
+  const prioLabel = {1:'Alta',2:'Media',3:'Baja'}[p.prioridad]||'';
+  const tracksHtml = (p.tracksEnabled && Array.isArray(p.tracks) && p.tracks.length)
+    ? `<div class="mob-proj-tracks">${p.tracks.slice(0,3).map(t=>{
+        const oferta = t.ofertaImporte?` · ${(function(v){const n=parseInt(String(v).replace(/[.,]/g,''),10);if(isNaN(n))return '—';if(n>=1000000)return fmtMiles(Math.round(n/1000000))+' M€';if(n>=1000)return fmtMiles(Math.round(n/1000))+' K€';return fmtMiles(n)+' €';})(t.ofertaImporte)}`:'';
+        return `<div class="mob-track-line"><span class="mob-track-dot" style="background:${trackBgM(t.estado)}"></span><span class="mob-track-broker">${t.broker||'—'}</span><span class="mob-track-est">${t.estado||''}${oferta}</span></div>`;
+      }).join('')}</div>`
+    : '';
+  return `<div class="mob-proj" onclick="openMobDetail(${p.id})">
+    <div class="mob-proj-row1">
+      <div class="mob-proj-name">${p.nombre||'(sin nombre)'}</div>
+      ${prioLabel?`<div class="mob-proj-prio prio-${p.prioridad}">${prioLabel}</div>`:''}
+    </div>
+    <div class="mob-proj-row2">
+      <span class="mob-proj-estado"><span class="mob-proj-dot" style="background:${stColor}"></span>${p.estado||'—'}</span>
+      <span class="mob-proj-meta-sep">·</span>
+      <span class="mob-proj-meta">${p.tipo||'—'}</span>
+      ${p.ciudad?`<span class="mob-proj-meta-sep">·</span><span class="mob-proj-meta">${p.ciudad}</span>`:''}
+    </div>
+    ${tracksHtml}
+  </div>`;
+}
+
+function renderMobileDetail(p, mfe, mfp, trackClsM){
+  const eco = p.eco||{};
+  const stColor = STATE_COLORS[p.estado] || '#888';
+  const TRACK_HITOS_M = [{key:'contacto',label:'Contacto'},{key:'nda',label:'NDA'},{key:'im',label:'IM'},{key:'nbo',label:'NBO'},{key:'bo',label:'BO'}];
+
+  let html = `<div class="mob-detail-header">
+    <div class="mob-detail-back" onclick="closeMobDetail()">‹ Volver</div>
+    <div class="mob-detail-title">${p.nombre||'(sin nombre)'}</div>
+    <div class="mob-detail-subtitle">${[p.bloque,p.tipo,p.ciudad].filter(Boolean).join(' · ')||'—'}</div>
+    <div class="mob-detail-pills">
+      <div class="mob-detail-pill estado" style="background:${stColor}">${p.estado||'—'}</div>
+      ${p.prioridad===1?'<div class="mob-detail-pill prio">Alta</div>':''}
+      ${p.delegacion?`<div class="mob-detail-pill delegacion">${p.delegacion}</div>`:''}
+    </div>
+  </div>
+  <div class="mob-detail-body">`;
+
+  // KPIs económicos
+  if(eco.tirPct||eco.margenPct||eco.ventaEur||eco.sueloEur||eco.construccionEur){
+    html += '<div class="mob-kpi-grid">';
+    if(eco.tirPct) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">TIR</div><div class="mob-kpi-value tir">${mfp(eco.tirPct)}</div></div>`;
+    if(eco.margenPct) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Margen</div><div class="mob-kpi-value">${mfp(eco.margenPct)}</div></div>`;
+    if(eco.ventaEur) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Ventas</div><div class="mob-kpi-value">${mfe(eco.ventaEur)}</div></div>`;
+    if(eco.sueloEur) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Suelo</div><div class="mob-kpi-value">${mfe(eco.sueloEur)}</div></div>`;
+    if(eco.construccionEur) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Construcción</div><div class="mob-kpi-value">${mfe(eco.construccionEur)}</div></div>`;
+    html += '</div>';
+  }
+
+  // Datos básicos
+  html += `<div class="mob-det-section">
+    <div class="mob-det-section-title"><div class="mob-det-section-bar"></div>Datos</div>
+    <div class="mob-det-row"><span class="mob-det-label">Vendedor</span><span class="mob-det-value">${p.vendor||p.contraparte||'—'}</span></div>
+    <div class="mob-det-row"><span class="mob-det-label">Broker / Agente</span><span class="mob-det-value">${p.comprador||'—'}</span></div>
+    <div class="mob-det-row"><span class="mob-det-label">Responsable</span><span class="mob-det-value">${p.responsable||'—'}</span></div>
+    <div class="mob-det-row"><span class="mob-det-label">Ubicación</span><span class="mob-det-value">${[p.ciudad,p.ubicacion].filter(Boolean).join(', ')||'—'}</span></div>
+    ${p.delegacion?`<div class="mob-det-row"><span class="mob-det-label">Delegación</span><span class="mob-det-value">${p.delegacion}</span></div>`:''}
+  </div>`;
+
+  // Acciones
+  if(Array.isArray(p.acciones) && p.acciones.length){
+    const pend = p.acciones.filter(a=>!a.d);
+    const done = p.acciones.filter(a=>a.d);
+    html += `<div class="mob-det-section">
+      <div class="mob-det-section-title"><div class="mob-det-section-bar"></div>Acciones (${pend.length}/${p.acciones.length})</div>`;
+    if(pend.length) html += pend.map(a=>`<div class="mob-accion-item"><div class="mob-accion-check"></div><div class="mob-accion-text">${(a.t||'').replace(/</g,'&lt;')}</div></div>`).join('');
+    if(done.length) html += done.map(a=>`<div class="mob-accion-item"><div class="mob-accion-check done">✓</div><div class="mob-accion-text done">${(a.t||'').replace(/</g,'&lt;')}</div></div>`).join('');
+    html += '</div>';
+  }
+
+  // Proceso / negociación
+  if(p.narrativaBottom){
+    html += `<div class="mob-det-section">
+      <div class="mob-det-section-title"><div class="mob-det-section-bar"></div>Proceso / Negociación</div>
+      <div class="mob-det-narrative">${fvHtml(p.narrativaBottom)}</div>
+    </div>`;
+  }
+
+  // Tracks comerciales
+  if(p.tracksEnabled && Array.isArray(p.tracks) && p.tracks.length){
+    html += `<div class="mob-det-section">
+      <div class="mob-det-section-title"><div class="mob-det-section-bar"></div>Tracks comerciales · ${p.tracks.length}</div>
+    </div>`;
+    p.tracks.forEach(t=>{
+      const cls = trackClsM(t.estado);
+      html += `<div class="mob-track-card s-${cls}">
+        <div class="mob-track-head">
+          <div class="mob-track-broker">${t.broker||'—'} <span class="mob-track-tipo">· ${t.tipo||'—'}</span></div>
+          <div class="mob-track-status-pill s-${cls}">${t.estado||'—'}</div>
+        </div>
+        <div class="mob-track-body">`;
+      if(t.contactoNombre) html += `<div class="mob-track-row"><span class="mob-track-row-label">Contacto</span><span class="mob-track-row-value">${t.contactoNombre}</span></div>`;
+      if(t.ofertaImporte) html += `<div class="mob-track-row"><span class="mob-track-row-label">Oferta</span><span class="mob-track-row-value">${mfe(t.ofertaImporte)}</span></div>`;
+      if(t.ofertaFecha) html += `<div class="mob-track-row"><span class="mob-track-row-label">Fecha oferta</span><span class="mob-track-row-value">${t.ofertaFecha}</span></div>`;
+      if(t.notas) html += `<div class="mob-track-row"><span class="mob-track-row-label">Notas</span><span class="mob-track-row-value" style="font-weight:500;font-style:italic;color:#666">${(t.notas||'').replace(/</g,'&lt;')}</span></div>`;
+      const hitosHtml = TRACK_HITOS_M.map(h=>{
+        const done = t.hitos && t.hitos[h.key] && t.hitos[h.key].done;
+        return `<div class="mob-track-hito-pill${done?' done':''}">${h.label}</div>`;
+      }).join('');
+      html += `<div class="mob-track-hitos">${hitosHtml}</div>`;
+      html += '</div></div>';
+    });
+  }
 
   html += '</div>';
   return html;
 }
+
+function toggleMobBloque(b){
+  if(!window._mobBloqExp) window._mobBloqExp = {};
+  window._mobBloqExp[b] = window._mobBloqExp[b] === false ? true : false;
+  render();
+}
+function openMobDetail(id){
+  S.selectedId = id;
+  render();
+  setTimeout(()=>window.scrollTo({top:0,behavior:'instant'}), 10);
+}
+function closeMobDetail(){
+  S.selectedId = null;
+  render();
+}
+
 
 // Helper: ejecuta una función de render preservando posición de scroll
 function preserveScroll(fn) {
@@ -3759,7 +3905,7 @@ function renderDealSheet() {
     +'<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="color:#888;font-weight:500">'+l+'</span><span style="font-weight:600;color:#1a1a18;font-variant-numeric:tabular-nums">'+v1+'</span></div>'
     +(v2?'<div style="text-align:right;font-size:9.5px;color:#666;font-weight:500;font-variant-numeric:tabular-nums;margin-top:1px">'+v2+'</div>':'')
     +'</div>';}
-  function secTitle(t){return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div style="width:3px;height:12px;background:#1a3a2a;border-radius:2px"></div><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;color:#1a3a2a;flex:1;border-bottom:1.5px solid #1a3a2a;padding-bottom:3px">'+t+'</div></div>';}
+  function secTitle(t){return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:3px;height:14px;background:#1a3a2a;border-radius:2px"></div><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;color:#1a3a2a;flex:1;border-bottom:1.5px solid #1a3a2a;padding-bottom:5px">'+t+'</div></div>';}
 
   // ── Map of Spain ──────────────────────────────────────────
   // Province → approximate centroid region for coloring (simplified 6-zone map)
@@ -4008,14 +4154,14 @@ function renderDealSheet() {
 
     // Bloque PROGRAMA (independiente)
     +(_dsRowIdx=0,'')
-    +'<div style="margin-top:6px">'+secTitle('Programa')+'</div>'
+    +'<div style="margin-top:8px">'+secTitle('Programa')+'</div>'
     +dsRow('Edificabilidad', p.edificabilidad?fmtMiles(p.edificabilidad)+' m²':'—')
     +dsRow(p.tipo==='PBSA'?'Nº camas':'Nº viviendas', p.nViviendas?fmtMiles(p.nViviendas)+' uds':'—')
     +dsRow('Parking', eco.parkingN?fmtMiles(eco.parkingN)+' plz':'—')
 
     // Bloque Propuesta
     +(_dsRowIdx=0,'')
-    +'<div style="margin-top:6px">'+secTitle('Propuesta de inversión')+'</div>'
+    +'<div style="margin-top:8px">'+secTitle('Propuesta de inversión')+'</div>'
     +dsRow('Compra', fe(eco.sueloEur)+(eco.sueloEurM2?' | '+fm2(eco.sueloEurM2):''))
     +dsRow('Pago', pagos)
     +dsRow('Construcción', fe(eco.construccionEur)+(eco.construccionEurM2?' | '+fm2(eco.construccionEurM2):''))
@@ -4051,7 +4197,7 @@ function renderDealSheet() {
           +'<div style="font-size:9.5px;color:#555;margin-top:3px;font-weight:500;white-space:nowrap">'+fd(h.date)+'</div>'
         +'</div>';
       }).join('');
-      return '<div style="margin-top:6px;padding:8px 8px 6px;background:linear-gradient(135deg,#f8f7f3 0%,#fafaf8 100%);border-radius:8px;border:1px solid #e8e8e0">'
+      return '<div style="margin-top:10px;padding:10px 8px 8px;background:linear-gradient(135deg,#f8f7f3 0%,#fafaf8 100%);border-radius:8px;border:1px solid #e8e8e0">'
         +'<div style="position:relative">'
           +'<div style="position:absolute;top:50%;left:8%;right:8%;height:2px;background:linear-gradient(90deg,#52b788 0%,#2d6a4f 50%,#1a3a2a 100%);transform:translateY(-2px);z-index:1"></div>'
           +'<div style="display:flex;position:relative;z-index:2">'+dots+'</div>'
