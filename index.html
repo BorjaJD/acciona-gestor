@@ -1188,8 +1188,14 @@ function richExec(btn, cmd){
   richSave(ed);
 }
 function richKeydown(e){
-  // Ctrl+B / Ctrl+I como atajos nativos (ya los maneja contenteditable)
-  // Pero garantizamos que se persista al soltar tecla
+  // Enter sin Shift → salto de línea simple <br>, no <div>/<p>
+  if(e.key==='Enter' && !e.shiftKey){
+    e.preventDefault();
+    document.execCommand('insertLineBreak');
+    setTimeout(()=>richSave(e.target), 5);
+    return;
+  }
+  // Ctrl+B / Ctrl+I como atajos nativos
   if((e.ctrlKey||e.metaKey) && (e.key==='b'||e.key==='B'||e.key==='i'||e.key==='I')){
     setTimeout(()=>richSave(e.target), 10);
   }
@@ -1197,7 +1203,13 @@ function richKeydown(e){
 function richSave(ed){
   const pid = parseInt(ed.dataset.pid);
   const field = ed.dataset.field;
-  const html = ed.innerHTML;
+  // Limpiar HTML: quitar divs vacíos, normalizar
+  let html = ed.innerHTML
+    .replace(/<div><br\s*\/?><\/div>/gi, '<br>')
+    .replace(/<\/div><div>/gi, '<br>')
+    .replace(/<div>/gi, '')
+    .replace(/<\/div>/gi, '')
+    .replace(/<p><br\s*\/?><\/p>/gi, '<br>');
   const p = projects.find(x=>x.id===pid);
   if(!p) return;
   p[field] = html;
@@ -1208,6 +1220,16 @@ function richSave(ed){
 function ensureTracks(p){
   if(typeof p.tracksEnabled === 'undefined') p.tracksEnabled = false;
   if(!Array.isArray(p.tracks)) p.tracks = [];
+  // Limpieza one-shot de HTML residual del editor antiguo
+  ['narrativa','narrativaBottom'].forEach(k=>{
+    if(p[k] && typeof p[k]==='string' && p[k].includes('<div>')){
+      p[k] = p[k]
+        .replace(/<div><br\s*\/?><\/div>/gi, '<br>')
+        .replace(/<\/div><div>/gi, '<br>')
+        .replace(/<div>/gi, '')
+        .replace(/<\/div>/gi, '');
+    }
+  });
 }
 function toggleTracksEnabled(projectId){
   const p = projects.find(x=>x.id===projectId); if(!p) return;
@@ -3786,9 +3808,36 @@ function renderDealSheet() {
   }
   // ── Pago: contado → "Contado". Aplazado → "Aplazado — Tx YY (xx%) | …" sin decimales ni pagos en 0%
   function fmtTrimAnio(s){
-    // Convierte "T2 2026" → "T2 26", "T4 2027" → "T4 27"; deja igual si no hay año largo
     if(!s) return '';
-    return String(s).replace(/(T[1-4])\s+(\d{2})(\d{2})/g, '$1 $3').trim();
+    const str = String(s).trim();
+    // 1) Formato ya tipo "T2 2026" o "T2 26" → normalizar a "T2 '26"
+    let m = str.match(/(T[1-4])\s*(\d{2,4})/i);
+    if(m){
+      const t = m[1].toUpperCase();
+      const yy = m[2].length===4 ? m[2].slice(2) : m[2];
+      return t+" '"+yy;
+    }
+    // 2) Fecha tipo "30 abr 2027" o "30/04/2027" o "2027-04-30" → calcular trimestre
+    let date = null;
+    if(/^\d{4}-\d{2}-\d{2}/.test(str)){
+      date = new Date(str);
+    } else {
+      const meses = {'ene':0,'feb':1,'mar':2,'abr':3,'may':4,'jun':5,'jul':6,'ago':7,'sep':8,'oct':9,'nov':10,'dic':11};
+      const m1 = str.toLowerCase().match(/(\d{1,2})\s+([a-z]{3})\.?\s+(\d{4})/);
+      if(m1 && meses[m1[2]] !== undefined){
+        date = new Date(parseInt(m1[3]), meses[m1[2]], parseInt(m1[1]));
+      } else {
+        const m2 = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if(m2){ date = new Date(parseInt(m2[3]), parseInt(m2[2])-1, parseInt(m2[1])); }
+      }
+    }
+    if(date && !isNaN(date)){
+      const trim = Math.floor(date.getMonth()/3)+1;
+      const yy = String(date.getFullYear()).slice(-2);
+      return 'T'+trim+" '"+yy;
+    }
+    // No reconocido, devolver tal cual
+    return str;
   }
   function fmtPctEntero(v){
     // Convierte "50,00" → "50", "0" → "0"
@@ -3915,12 +3964,13 @@ function renderDealSheet() {
     +dsRow('Plazo obras', eco.plazoMeses?eco.plazoMeses+' meses':'—')
     +dsRow('Ventas | €/m²', fe(eco.ventaVivEur)+(eco.ventaEurM2?' | '+fm2(eco.ventaEurM2):''))
     +(function(){
-      // Ventas / Ud. = ventaEur / nViviendas
+      // Ventas / Ud. = ventaEur / nViviendas, formato K€
       const ventaTotal = parseInt(String(eco.ventaEur||'').replace(/\./g,'').replace(/,/g,''),10);
       const nUds = parseInt(String(p.nViviendas||'').replace(/\./g,'').replace(/,/g,''),10);
       if(!isNaN(ventaTotal) && !isNaN(nUds) && ventaTotal>0 && nUds>0){
         const porUd = Math.round(ventaTotal/nUds);
-        return dsRow('Ventas / Ud.', fmtMiles(porUd)+' €');
+        const enK = Math.round(porUd/1000);
+        return dsRow('Ventas / Ud.', fmtMiles(enK)+' K€');
       }
       return dsRow('Ventas / Ud.', '—');
     })()
