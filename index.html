@@ -23,6 +23,10 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{background:#0d1f15;height:-webkit-fill-available}
+  html.app-ready{background:var(--bg)}
+  @media (max-width: 768px) {
+    html.app-ready { background: #1a3a2a } /* verde para el notch en Safari */
+  }
   @import url('https://fonts.googleapis.com/css2?family=Aptos:wght@400;500;600;700&display=swap');
   :root{
     --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;
@@ -33,6 +37,7 @@
   }
   body{font-family:var(--font);background:#0d1f15;color:var(--text);font-size:14px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
   body.app-ready{background:var(--bg)}
+  html.app-ready{background:var(--bg)}
   /* TOPBAR */
   .topbar{display:flex;align-items:center;background:var(--accent);color:#fff;height:52px;flex-shrink:0}
   .logo-area{padding:0 20px;display:flex;align-items:center;gap:10px;border-right:1px solid rgba(255,255,255,0.12);height:100%}
@@ -363,7 +368,8 @@
 
   /* ── RESPONSIVE MÓVIL ───────────────────────────────────── */
   @media (max-width: 768px) {
-    body{overflow:auto;height:auto;display:block}
+    body{overflow:auto;height:auto;display:block;background:var(--bg)}
+    body.app-ready{background:var(--bg)}
     .app-body{flex-direction:column;overflow:auto;height:auto}
     .topbar{display:none!important}
     .main-area{overflow:visible;min-height:0;height:auto}
@@ -5936,6 +5942,7 @@ function checkLogin(){
     try{sessionStorage.setItem('acciona_auth','1');}catch(e){}
     document.getElementById('login-overlay').classList.add('hidden');
     document.body.classList.add('app-ready');
+    document.documentElement.classList.add('app-ready');
     errEl.textContent='';
     resetInactivityTimer();
   } else {
@@ -5948,7 +5955,7 @@ function checkLogin(){
 }
 
 function checkSession(){
-  try{if(sessionStorage.getItem('acciona_auth')==='1'){document.getElementById('login-overlay').classList.add('hidden');document.body.classList.add('app-ready');resetInactivityTimer();return true;}}catch(e){}
+  try{if(sessionStorage.getItem('acciona_auth')==='1'){document.getElementById('login-overlay').classList.add('hidden');document.body.classList.add('app-ready');document.documentElement.classList.add('app-ready');resetInactivityTimer();return true;}}catch(e){}
   setTimeout(()=>{const el=document.getElementById('login-pwd');if(el)el.focus();},100);
   return false;
 }
