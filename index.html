@@ -2958,7 +2958,7 @@ function renderMobile() {
 
   bloquesOrdenados.forEach(bloque=>{
     const items = bloques[bloque];
-    const collapsed = window._mobBloqExp[bloque] === false;
+    const collapsed = window._mobBloqExp[bloque] !== true;
     html += `<div class="mob-bloque">
       <div class="mob-bloque-header${collapsed?' collapsed':''}" onclick="toggleMobBloque('${bloque.replace(/'/g,"\\'")}')">
         <div class="mob-bloque-title">
@@ -3091,7 +3091,7 @@ function renderMobileDetail(p, mfe, mfp, trackClsM){
 
 function toggleMobBloque(b){
   if(!window._mobBloqExp) window._mobBloqExp = {};
-  window._mobBloqExp[b] = window._mobBloqExp[b] === false ? true : false;
+  window._mobBloqExp[b] = window._mobBloqExp[b] !== true; // toggle: si no está abierto, abrir; si está abierto, cerrar
   render();
 }
 function openMobDetail(id){
@@ -3446,7 +3446,14 @@ function renderPipelineSummary() {
     if(m5){const yr=parseInt(m5[1]);return new Date(yr<100?2000+yr:yr,0,1);}
     return null;
   }
-  function fmFecha(v){const d=parseFecha(v);if(!d)return '—';return d.toLocaleDateString('es-ES',{month:'short',year:'numeric'});}
+  function fmFecha(v){
+    if(!v||v===''||v==='—') return '—';
+    const d=parseFecha(v);
+    if(d) return d.toLocaleDateString('es-ES',{month:'short',year:'numeric'});
+    // Si hay valor pero no parsea, mostrarlo tal cual (truncado si es muy largo)
+    const s = String(v).trim();
+    return s.length > 12 ? s.substring(0,11)+'…' : s;
+  }
 
   const EC={'WIP':STATE_COLORS['WIP'],'Due diligence':STATE_COLORS['Due diligence'],'En análisis':STATE_COLORS['En análisis'],'Recibido':STATE_COLORS['Recibido'],'Stand By':STATE_COLORS['Stand By']};
   function hasEcoData(p){const e=p.eco||{};return !!(e.tirPct||e.ventaEur||e.sueloEur||e.margenPct);}
