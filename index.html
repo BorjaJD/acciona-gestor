@@ -3425,7 +3425,7 @@ function renderPipelineSummary() {
     if(!v||v==='—'||v==='')return null;
     const s=String(v).toLowerCase().trim().replace(/\./g,'');
     const M={enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11,
-             ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11};
+             ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,sept:8,oct:9,nov:10,dic:11};
     // "02 ene 2028" or "2 ene 2028" or "02 ene. 2028"
     const m0=s.match(/^\d{1,2}\s+([a-z]+)\s+(\d{4})$/);
     if(m0&&M[m0[1]]!==undefined)return new Date(parseInt(m0[2]),M[m0[1]],1);
