@@ -2,8 +2,24 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestor Proyectos — Acciona</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Acciona Inmobiliaria · Gestor</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a3a2a">
+<meta name="description" content="Gestor de portfolio inmobiliario Acciona">
+
+<!-- iOS específico -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Acciona">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<!-- Iconos generales -->
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   @import url('https://fonts.googleapis.com/css2?family=Aptos:wght@400;500;600;700&display=swap');
@@ -6252,6 +6268,19 @@ if(window.location.protocol === 'file:') {
       setTimeout(() => window.scrollTo(0, 0), 100);
       setTimeout(() => window.scrollTo(0, 0), 400);
     });
+}
+
+// ─── PWA: Registro de Service Worker ───────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => {
+        console.log('SW registrado:', reg.scope);
+        // Comprobar actualizaciones cada 30 minutos
+        setInterval(() => reg.update(), 30*60*1000);
+      })
+      .catch(err => console.warn('SW registro falló (no es problema en localhost):', err.message));
+  });
 }
 </script>
 </body>
