@@ -3271,7 +3271,7 @@ function renderPipelineSummary() {
       byYear[yr].venta+=v;
       byYear[yr].margen+=mg;
     }
-    byYear[yr].ps.push(p.nombre.replace(/\|.*/,'').trim().split(' ')[0]);
+    byYear[yr].ps.push((p.nombre||'').replace(/\|.*/,'').trim().split(' ')[0]);
   });
   const years=Object.keys(byYear).sort();
   let timelineSVG='<div style="font-size:8px;color:#bbb;font-style:italic;padding:4px 0">Sin fechas de entrega — añádelas en UW·Modelo (campo "Fecha entrega")</div>';
@@ -4099,8 +4099,8 @@ function renderDashboard() {
   BLOQUES_ORDER.forEach(b=>porBloque[b]=0);
   projects.forEach(p=>{
     if(porEstado[p.estado]!==undefined) porEstado[p.estado]++; else porEstado[p.estado]=(porEstado[p.estado]||0)+1;
-    const bMatch=BLOQUES_ORDER.find(b=>b.toLowerCase()===p.bloque.toLowerCase());
-    porBloque[bMatch||p.bloque]=(porBloque[bMatch||p.bloque]||0)+1;
+    const bMatch=p.bloque?BLOQUES_ORDER.find(b=>b.toLowerCase()===p.bloque.toLowerCase()):null;
+    porBloque[bMatch||p.bloque||'Sin bloque']=(porBloque[bMatch||p.bloque||'Sin bloque']||0)+1;
     porPrio[p.prioridad]=(porPrio[p.prioridad]||0)+1;
   });
   const activos=projects.filter(p=>!["Descartado","Cerrado"].includes(p.estado)).length;
