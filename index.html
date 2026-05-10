@@ -3117,9 +3117,10 @@ function renderMobileProjCard(p, trackBgM){
         return `<div class="mob-track-line"><span class="mob-track-dot" style="background:${trackBgM(t.estado)}"></span><span class="mob-track-broker">${t.broker||'—'}</span><span class="mob-track-est">${t.estado||''}${oferta}</span></div>`;
       }).join('')}</div>`
     : '';
+  const hasUW = p.bloque==='Pipeline' && !!(p.eco && (p.eco.tirPct||p.eco.margenPct||p.eco.ventaEur||p.eco.sueloEur));
   return `<div class="mob-proj" onclick="openMobDetail(${p.id})">
     <div class="mob-proj-row1">
-      <div class="mob-proj-name">${p.nombre||'(sin nombre)'}${prioLabel?` <span class="mob-proj-prio prio-${p.prioridad}">${prioLabel}</span>`:''}</div>
+      <div class="mob-proj-name">${p.nombre||'(sin nombre)'}${hasUW?' <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:3px;background:#1a3a2a;color:white;font-size:7px;font-weight:800;letter-spacing:0;vertical-align:middle;margin-left:3px">UW</span>':''}${prioLabel?` <span class="mob-proj-prio prio-${p.prioridad}">${prioLabel}</span>`:''}</div>
     </div>
     <div class="mob-proj-row2">
       <span class="mob-proj-estado"><span class="mob-proj-dot" style="background:${stColor}"></span>${p.estado||'—'}</span>
