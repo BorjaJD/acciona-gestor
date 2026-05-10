@@ -4472,7 +4472,7 @@ function renderDealSheet() {
     +'</div>'
 
     // COL 2 — 3 cajitas + 2 bloques
-    +'<div style="padding:11px 18px 9px;border-right:1px solid #e8e8e0;background:white;overflow:hidden;display:flex;flex-direction:column">'
+    +'<div style="padding:14px 18px 12px;border-right:1px solid #e8e8e0;background:white;overflow:hidden;display:flex;flex-direction:column">'
 
     // 3 cajitas retornos
     // Lógica C: si las cifras de alquiler son iguales que las de venta Y no hay yield → no aplica
@@ -5377,11 +5377,11 @@ function renderResumen() {
     if(!bp.length) return;
     const sorted = [...bp].sort((a,b2)=>{const ai=ESTADO_ORDER.indexOf(a.estado),bi=ESTADO_ORDER.indexOf(b2.estado);const ed=(ai===-1?99:ai)-(bi===-1?99:bi);return ed!==0?ed:a.prioridad-b2.prioridad;});
 
-    cards += `<div style="margin-bottom:28px">
+    cards += `<div style="margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
         <div style="height:2px;flex:1;background:#1a3a2a;border-radius:1px"></div>
-        <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;white-space:nowrap">${b}</span>
-        <span style="font-size:8.5px;color:#aaa;white-space:nowrap">${bp.length} proyecto${bp.length!==1?'s':''}</span>
+        <span style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;white-space:nowrap">${b}</span>
+        <span style="font-size:10px;color:#aaa;white-space:nowrap">${bp.length} proyecto${bp.length!==1?'s':''}</span>
         <div style="height:2px;flex:1;background:#e8e8e0;border-radius:1px"></div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">`;
@@ -5504,7 +5504,7 @@ function renderResumen() {
     // KPI cards unificadas
     + renderKpiCards()
     // Top bar
-    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0;flex-wrap:wrap;gap:10px">'
     + '<div>'
     + '<h2 style="margin:0 0 2px;font-size:16px;font-weight:800;color:#1a1a18">Resumen ejecutivo</h2>'
     + '<div style="font-size:11px;color:#aaa">'+fecha+'</div>'
