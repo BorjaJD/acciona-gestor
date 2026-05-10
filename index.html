@@ -5048,8 +5048,8 @@ function renderDashboard() {
     "<div style=\"display:grid;grid-template-columns:1fr 260px;gap:12px;align-items:stretch;margin-bottom:12px\">"+
       "<div class=\"dash-card\"><div class=\"dash-card-title\">Acciones urgentes \u2014 Prioridad Alta</div>"+urgHtml+"</div>"+
       "<div class=\"dash-card\" style=\"display:flex;flex-direction:column;justify-content:space-around\">"+
-        "<div style=\"text-align:center\"><div class=\"dash-card-title\" style=\"margin-bottom:8px\">Por delegaci\u00f3n</div><canvas id=\"delChartDash\" width=\"220\" height=\"130\" style=\"margin:0 auto;display:block\"></canvas><div id=\"delLegendDash\" style=\"display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:8px;justify-content:center\"></div></div>"+
-        "<div style=\"text-align:center;border-top:1px solid var(--border);padding-top:12px;margin-top:12px\"><div class=\"dash-card-title\" style=\"margin-bottom:8px\">Por bloque</div><canvas id=\"blqChartDash\" width=\"220\" height=\"130\" style=\"margin:0 auto;display:block\"></canvas><div id=\"blqLegendDash\" style=\"display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:8px;justify-content:center\"></div></div>"+
+        "<div style=\"text-align:center\"><div class=\"dash-card-title\" style=\"margin-bottom:8px\">Por delegaci\u00f3n</div><div id=\"delChartDash\" style=\"display:flex;justify-content:center\"></div><div id=\"delLegendDash\" style=\"display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:8px;justify-content:center\"></div></div>"+
+        "<div style=\"text-align:center;border-top:1px solid var(--border);padding-top:12px;margin-top:12px\"><div class=\"dash-card-title\" style=\"margin-bottom:8px\">Por bloque</div><div id=\"blqChartDash\" style=\"display:flex;justify-content:center\"></div><div id=\"blqLegendDash\" style=\"display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:8px;justify-content:center\"></div></div>"+
       "</div>"+
     "</div>"+
     // Fila 4: Avance de oportunidad (Pipeline + Desinversión)
@@ -5064,7 +5064,7 @@ function renderDashboard() {
 
 function initDashDonuts(){
   setTimeout(function(){
-    if(!window.Chart||!window.projects)return;
+    if(!window.projects)return;
     var DELS=['Centro','Norte','Este','Sur','Internacional'];
     var delColors=['#1a3a2a','#2d6a4f','#52b788','#95d5b2','#b7e4c7'];
     var BLQS=['Pipeline','Desinversión','Clientes / Gestión','Desarrollo / Operación'];
@@ -5072,12 +5072,36 @@ function initDashDonuts(){
     var blqLabels=['Pipeline','Desinv.','Clientes','Desar.'];
     var delCounts=DELS.map(function(d){return window.projects.filter(function(p){return p.delegacion===d&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;});
     var blqCounts=BLQS.map(function(b){return window.projects.filter(function(p){return p.bloque===b&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;});
-    function mkD(id,data,colors){var el=document.getElementById(id);if(!el)return;var total=data.reduce(function(a,b){return a+b;},0);var d=total===0?data.map(function(){return 1;}):data;var c=total===0?data.map(function(){return '#e8e8e0';}):colors;el.width=220;el.height=130;new Chart(el,{type:'doughnut',data:{datasets:[{data:d,backgroundColor:c,borderWidth:1,borderColor:'#fff',hoverOffset:3}]},options:{responsive:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return total===0?'Sin datos':' '+ctx.parsed+' proyectos'}}}}}});}
-    function mkLegend(id,labels,counts,colors){var el=document.getElementById(id);if(!el)return;el.innerHTML=labels.map(function(l,i){return '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;background:'+colors[i]+';display:inline-block"></span>'+l+' <b>'+counts[i]+'</b></span>';}).join('');}
-    mkD('delChartDash',delCounts,delColors);
-    mkD('blqChartDash',blqCounts,blqColors);
-    mkLegend('delLegendDash',DELS,delCounts,delColors);
-    mkLegend('blqLegendDash',blqLabels,blqCounts,blqColors);
+
+    function mkSVGDonut(counts,colors){
+      var total=counts.reduce(function(a,b){return a+b;},0);
+      if(total===0)return '<svg viewBox="0 0 100 100" width="100" height="100"><circle cx="50" cy="50" r="35" fill="none" stroke="#e8e8e0" stroke-width="18"/></svg>';
+      var cx=50,cy=50,r=35,sw=18;
+      var angle=-Math.PI/2,paths='';
+      counts.forEach(function(n,i){
+        if(n===0)return;
+        var slice=(n/total)*Math.PI*2;
+        var x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
+        var x2=cx+r*Math.cos(angle+slice),y2=cy+r*Math.sin(angle+slice);
+        var large=slice>Math.PI?1:0;
+        paths+='<path d="M '+x1+' '+y1+' A '+r+' '+r+' 0 '+large+' 1 '+x2+' '+y2+'" fill="none" stroke="'+colors[i]+'" stroke-width="'+sw+'" stroke-linecap="butt"/>';
+        angle+=slice;
+      });
+      return '<svg viewBox="0 0 100 100" width="100" height="100">'+paths+'</svg>';
+    }
+
+    function mkLegend(labels,counts,colors){
+      return labels.map(function(l,i){return '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:7px;height:7px;border-radius:2px;background:'+colors[i]+';flex-shrink:0;display:inline-block"></span>'+l+' <b>'+counts[i]+'</b></span>';}).join('');
+    }
+
+    var delEl=document.getElementById('delChartDash');
+    var blqEl=document.getElementById('blqChartDash');
+    var delLeg=document.getElementById('delLegendDash');
+    var blqLeg=document.getElementById('blqLegendDash');
+    if(delEl)delEl.innerHTML=mkSVGDonut(delCounts,delColors);
+    if(blqEl)blqEl.innerHTML=mkSVGDonut(blqCounts,blqColors);
+    if(delLeg)delLeg.innerHTML=mkLegend(DELS,delCounts,delColors);
+    if(blqLeg)blqLeg.innerHTML=mkLegend(blqLabels,blqCounts,blqColors);
   },150);
 }
 function renderEstudioSection() {
