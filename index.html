@@ -5016,13 +5016,25 @@ function renderDashboard() {
   // SVG donuts inline
   function mkDonutSVG(counts,colors){
     var total=counts.reduce(function(a,b){return a+b;},0);
-    if(!total)return '<svg viewBox="0 0 100 100" width="200" height="200"><circle cx="50" cy="50" r="32" fill="none" stroke="#e8e8e0" stroke-width="16"/><text x="50" y="54" text-anchor="middle" font-size="8" fill="#bbb">Sin datos</text></svg>';
-    var paths='',angle=-Math.PI/2;
-    counts.forEach(function(n,i){if(!n)return;var s=(n/total)*2*Math.PI,x1=50+32*Math.cos(angle),y1=50+32*Math.sin(angle),x2=50+32*Math.cos(angle+s),y2=50+32*Math.sin(angle+s);paths+='<path d="M'+x1.toFixed(1)+' '+y1.toFixed(1)+' A32 32 0 '+(s>Math.PI?1:0)+' 1 '+x2.toFixed(1)+' '+y2.toFixed(1)+'" fill="none" stroke="'+colors[i]+'" stroke-width="16"/>';angle+=s;});
-    return '<svg viewBox="0 0 100 100" width="200" height="200">'+paths+'</svg>';
+    if(!total)return '<svg viewBox="0 0 120 120" width="260" height="260"><circle cx="60" cy="60" r="44" fill="none" stroke="#e8e8e0" stroke-width="28"/><text x="60" y="65" text-anchor="middle" font-size="9" fill="#bbb">Sin datos</text></svg>';
+    var paths='',labels='',angle=-Math.PI/2,r=44,sw=28,cx=60,cy=60;
+    counts.forEach(function(n,i){
+      if(!n)return;
+      var s=(n/total)*2*Math.PI;
+      var x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
+      var x2=cx+r*Math.cos(angle+s),y2=cy+r*Math.sin(angle+s);
+      paths+='<path d="M'+x1.toFixed(1)+' '+y1.toFixed(1)+' A'+r+' '+r+' 0 '+(s>Math.PI?1:0)+' 1 '+x2.toFixed(1)+' '+y2.toFixed(1)+'" fill="none" stroke="'+colors[i]+'" stroke-width="'+sw+'"/>';
+      if(s>0.3){
+        var mid=angle+s/2,lx=cx+r*Math.cos(mid),ly=cy+r*Math.sin(mid);
+        var bright='#fff';
+        labels+='<text x="'+lx.toFixed(1)+'" y="'+(ly+3.5).toFixed(1)+'" text-anchor="middle" font-size="9" font-weight="700" fill="'+bright+'">'+n+'</text>';
+      }
+      angle+=s;
+    });
+    return '<svg viewBox="0 0 120 120" width="260" height="260">'+paths+labels+'</svg>';
   }
   function mkDonutLegend(labels,counts,colors){
-    return labels.map(function(l,i){return '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:7px;height:7px;border-radius:2px;background:'+colors[i]+';display:inline-block;flex-shrink:0"></span>'+l+' <b>'+counts[i]+'</b></span>';}).join('');
+    return labels.map(function(l,i){if(!counts[i])return '';return '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;background:'+colors[i]+';display:inline-block;flex-shrink:0"></span>'+l+'</span>';}).join('');
   }
   var DELS=['Centro','Norte','Este','Sur','Internacional','Sin asignar'];
   var delColors=['#1a3a2a','#2d6a4f','#52b788','#95d5b2','#b7e4c7','#e0e0d8'];
@@ -5033,14 +5045,14 @@ function renderDashboard() {
   var blqColors=['#1a3a2a','#2d6a4f','#52b788','#95d5b2'];
   var blqLabels=['Pipeline','Desinv.','Clientes','Desar.'];
   var blqCounts=BLQS.map(function(b){return projects.filter(function(p){return p.bloque===b&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;});
-  var donutCardHtml='<div class="dash-card" style="display:flex;flex-direction:column;gap:14px">'
-    +'<div><div class="dash-card-title" style="margin-bottom:8px">Por delegaci\u00f3n <span style="font-weight:400;color:var(--text3)">\u2014 Pipeline</span></div>'
-    +'<div style="display:flex;justify-content:center">'+mkDonutSVG(delCounts,delColors)+'</div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:8px">'+mkDonutLegend(DELS,delCounts,delColors)+'</div></div>'
-    +'<div style="border-top:1px solid var(--border);padding-top:12px">'
-    +'<div class="dash-card-title" style="margin-bottom:8px">Por bloque <span style="font-weight:400;color:var(--text3)">\u2014 activos</span></div>'
+  var donutCardHtml='<div class="dash-card" style="display:flex;flex-direction:column;gap:16px">'
+    +'<div><div class="dash-card-title" style="margin-bottom:6px">Por bloque <span style="font-weight:400;color:var(--text3)">\u2014 activos</span></div>'
     +'<div style="display:flex;justify-content:center">'+mkDonutSVG(blqCounts,blqColors)+'</div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:8px">'+mkDonutLegend(blqLabels,blqCounts,blqColors)+'</div></div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;justify-content:center">'+mkDonutLegend(blqLabels,blqCounts,blqColors)+'</div></div>'
+    +'<div style="border-top:1px solid var(--border);padding-top:14px">'
+    +'<div class="dash-card-title" style="margin-bottom:6px">Por delegaci\u00f3n <span style="font-weight:400;color:var(--text3)">\u2014 Pipeline</span></div>'
+    +'<div style="display:flex;justify-content:center">'+mkDonutSVG(delCounts,delColors)+'</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;justify-content:center">'+mkDonutLegend(DELS,delCounts,delColors)+'</div></div>'
     +'</div>';
 
   const avanceBlock = '<div class="dash-card">'
