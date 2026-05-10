@@ -5013,27 +5013,6 @@ function renderDashboard() {
   const totalPip = projects.filter(p=>p.bloque==='Pipeline' && !['Descartado','Cerrado'].includes(p.estado)).length;
   const totalDes = projects.filter(p=>p.bloque==='Desinversión' && !['Descartado','Cerrado'].includes(p.estado)).length;
 
-  // Datos para donuts
-  const DELS = ['Centro','Norte','Este','Sur','Internacional'];
-  const delColors = ['#1a3a2a','#2d6a4f','#52b788','#95d5b2','#b7e4c7'];
-  const delCounts = DELS.map(d => projects.filter(p=>p.delegacion===d && !['Descartado','Cerrado'].includes(p.estado)).length);
-  const BLOQUES_CHART = ['Pipeline','Desinversión','Clientes / Gestión','Desarrollo / Operación'];
-  const blqColors = ['#1a3a2a','#2d6a4f','#52b788','#95d5b2'];
-  const blqCounts = BLOQUES_CHART.map(b => projects.filter(p=>p.bloque===b && !['Descartado','Cerrado'].includes(p.estado)).length);
-  const delLegend = DELS.map(function(d,i){return '<span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text2)"><span style="width:7px;height:7px;border-radius:2px;background:'+delColors[i]+';display:inline-block;flex-shrink:0"></span>'+d+' <b>'+delCounts[i]+'</b></span>';}).join('');
-  const blqLabels = ['Pipeline','Desinv.','Clientes','Desar.'];
-  const blqLegend = blqLabels.map(function(d,i){return '<span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text2)"><span style="width:7px;height:7px;border-radius:2px;background:'+blqColors[i]+';display:inline-block;flex-shrink:0"></span>'+d+' <b>'+blqCounts[i]+'</b></span>';}).join('');
-  const donutSideHtml = '<div style="width:200px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px 14px;gap:14px">'
-    +'<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:6px">Por delegación</div>'
-    +'<div style="position:relative;height:80px"><canvas id="delChartDash"></canvas></div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:6px">'+delLegend+'</div></div>'
-    +'<div style="border-top:1px solid var(--border);padding-top:12px">'
-    +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:6px">Por bloque</div>'
-    +'<div style="position:relative;height:80px"><canvas id="blqChartDash"></canvas></div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:6px">'+blqLegend+'</div></div>'
-    +'</div>';
-  window._pendingDonuts = {del:delCounts, blq:blqCounts};
-
   const avanceBlock = '<div class="dash-card">'
     +'<div class="dash-card-title">Avance de oportunidades</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start">'
@@ -5065,8 +5044,14 @@ function renderDashboard() {
       "<div class=\"dash-card\" style=\"justify-content:space-between\"><div class=\"dash-card-title\">Proyectos por bloque</div>"+barsBloque+paisHtml+"</div>"+
       "<div class=\"dash-card\" style=\"justify-content:space-between\"><div class=\"dash-card-title\">Matriz estado \u00d7 prioridad</div>"+matrixHtml+"</div>"+
     "</div>"+
-    // Fila 3: Urgentes + donuts
-    (function(){try{return "<div class=\"dash-card\" style=\"padding:0;overflow:hidden\"><div style=\"display:flex\"><div style=\"flex:1;min-width:0;padding:14px 16px\"><div class=\"dash-card-title\" style=\"margin-bottom:10px\">Acciones urgentes \u2014 Prioridad Alta</div>"+urgHtml+"</div>"+donutSideHtml+"</div></div>";}catch(e){console.error('urgentes block error:',e);return "<div class='dash-card'><b>Error urgentes: "+e.message+"</b></div>";}})()+ 
+    // Fila 3: Urgentes + donuts lado a lado
+    "<div style=\"display:grid;grid-template-columns:1fr 200px;gap:12px;align-items:stretch;margin-bottom:12px\">"+
+      "<div class=\"dash-card\"><div class=\"dash-card-title\">Acciones urgentes \u2014 Prioridad Alta</div>"+urgHtml+"</div>"+
+      "<div class=\"dash-card\" style=\"display:flex;flex-direction:column;justify-content:space-between\">"+
+        "<div style=\"flex:1;display:flex;flex-direction:column\"><div class=\"dash-card-title\" style=\"margin-bottom:8px\">Por delegaci\u00f3n</div><div style=\"flex:1;position:relative;min-height:100px\"><canvas id=\"delChartDash\" style=\"display:block\"></canvas></div><div id=\"delLegendDash\" style=\"display:flex;flex-wrap:wrap;gap:3px 6px;margin-top:6px\"></div></div>"+
+        "<div style=\"flex:1;display:flex;flex-direction:column;border-top:1px solid var(--border);padding-top:10px;margin-top:10px\"><div class=\"dash-card-title\" style=\"margin-bottom:8px\">Por bloque</div><div style=\"flex:1;position:relative;min-height:100px\"><canvas id=\"blqChartDash\" style=\"display:block\"></canvas></div><div id=\"blqLegendDash\" style=\"display:flex;flex-wrap:wrap;gap:3px 6px;margin-top:6px\"></div></div>"+
+      "</div>"+
+    "</div>"+
     // Fila 4: Avance de oportunidad (Pipeline + Desinversión)
     avanceBlock+
     // Fila 5: Pipeline dentro de dash-card
@@ -5079,15 +5064,21 @@ function renderDashboard() {
 
 function initDashDonuts(){
   setTimeout(function(){
-    if(!window.Chart||!window._pendingDonuts)return;
-    var d=window._pendingDonuts;
-    function mkD(id,data,colors){
-      var el=document.getElementById(id);if(!el)return;
-      new Chart(el,{type:'doughnut',data:{datasets:[{data:data,backgroundColor:colors,borderWidth:1,borderColor:'#fff',hoverOffset:3}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return' '+c.parsed+' proyectos'}}}}}});
-    }
-    mkD('delChartDash',d.del,['#1a3a2a','#2d6a4f','#52b788','#95d5b2','#b7e4c7']);
-    mkD('blqChartDash',d.blq,['#1a3a2a','#2d6a4f','#52b788','#95d5b2']);
-  },100);
+    if(!window.Chart||!window.projects)return;
+    var DELS=['Centro','Norte','Este','Sur','Internacional'];
+    var delColors=['#1a3a2a','#2d6a4f','#52b788','#95d5b2','#b7e4c7'];
+    var BLQS=['Pipeline','Desinversión','Clientes / Gestión','Desarrollo / Operación'];
+    var blqColors=['#1a3a2a','#2d6a4f','#52b788','#95d5b2'];
+    var blqLabels=['Pipeline','Desinv.','Clientes','Desar.'];
+    var delCounts=DELS.map(function(d){return window.projects.filter(function(p){return p.delegacion===d&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;});
+    var blqCounts=BLQS.map(function(b){return window.projects.filter(function(p){return p.bloque===b&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;});
+    function mkD(id,data,colors){var el=document.getElementById(id);if(!el)return;el.width=170;el.height=110;new Chart(el,{type:'doughnut',data:{datasets:[{data:data,backgroundColor:colors,borderWidth:1,borderColor:'#fff',hoverOffset:3}]},options:{responsive:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return' '+c.parsed+' proyectos'}}}}}});}
+    function mkLegend(id,labels,counts,colors){var el=document.getElementById(id);if(!el)return;el.innerHTML=labels.map(function(l,i){return '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;background:'+colors[i]+';display:inline-block"></span>'+l+' <b>'+counts[i]+'</b></span>';}).join('');}
+    mkD('delChartDash',delCounts,delColors);
+    mkD('blqChartDash',blqCounts,blqColors);
+    mkLegend('delLegendDash',DELS,delCounts,delColors);
+    mkLegend('blqLegendDash',blqLabels,blqCounts,blqColors);
+  },150);
 }
 function renderEstudioSection() {
   const epAll=projects.filter(p=>p.bloque==='Pipeline');
