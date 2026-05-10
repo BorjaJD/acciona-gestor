@@ -5031,7 +5031,7 @@ function renderDashboard() {
       }
       angle+=s;
     });
-    return '<svg viewBox="0 0 120 120" width="260" height="260">'+paths+labels+'</svg>';
+    return '<svg viewBox="0 0 120 120" width="260" height="260">'+paths+labels+'<text x="60" y="57" text-anchor="middle" font-size="14" font-weight="700" fill="var(--text)">'+total+'</text><text x="60" y="70" text-anchor="middle" font-size="8" fill="#aaa">total</text></svg>';
   }
   function mkDonutLegend(labels,counts,colors){
     return labels.map(function(l,i){if(!counts[i])return '';return '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;background:'+colors[i]+';display:inline-block;flex-shrink:0"></span>'+l+'</span>';}).join('');
