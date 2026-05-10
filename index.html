@@ -5026,19 +5026,19 @@ function renderDashboard() {
   }
   var DELS=['Centro','Norte','Este','Sur','Internacional','Sin asignar'];
   var delColors=['#1a3a2a','#2d6a4f','#52b788','#95d5b2','#b7e4c7','#e0e0d8'];
-  var delCounts=DELS.slice(0,5).map(function(d){return projects.filter(function(p){return p.delegacion===d&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;});
-  var sinAsig=projects.filter(function(p){return !p.delegacion&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;
-  delCounts.push(sinAsig);
+  var pipelineActivos=projects.filter(function(p){return p.bloque==='Pipeline'&&['Descartado','Cerrado'].indexOf(p.estado)===-1;});
+  var delCounts=DELS.slice(0,5).map(function(d){return pipelineActivos.filter(function(p){return p.delegacion===d;}).length;});
+  delCounts.push(pipelineActivos.filter(function(p){return !p.delegacion;}).length);
   var BLQS=['Pipeline','Desinversión','Clientes / Gestión','Desarrollo / Operación'];
   var blqColors=['#1a3a2a','#2d6a4f','#52b788','#95d5b2'];
   var blqLabels=['Pipeline','Desinv.','Clientes','Desar.'];
   var blqCounts=BLQS.map(function(b){return projects.filter(function(p){return p.bloque===b&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;});
   var donutCardHtml='<div class="dash-card" style="display:flex;flex-direction:column;gap:14px">'
-    +'<div><div class="dash-card-title" style="margin-bottom:8px">Por delegaci\u00f3n</div>'
+    +'<div><div class="dash-card-title" style="margin-bottom:8px">Por delegaci\u00f3n <span style="font-weight:400;color:var(--text3)">\u2014 Pipeline</span></div>'
     +'<div style="display:flex;justify-content:center">'+mkDonutSVG(delCounts,delColors)+'</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:8px">'+mkDonutLegend(DELS,delCounts,delColors)+'</div></div>'
     +'<div style="border-top:1px solid var(--border);padding-top:12px">'
-    +'<div class="dash-card-title" style="margin-bottom:8px">Por bloque</div>'
+    +'<div class="dash-card-title" style="margin-bottom:8px">Por bloque <span style="font-weight:400;color:var(--text3)">\u2014 activos</span></div>'
     +'<div style="display:flex;justify-content:center">'+mkDonutSVG(blqCounts,blqColors)+'</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:8px">'+mkDonutLegend(blqLabels,blqCounts,blqColors)+'</div></div>'
     +'</div>';
