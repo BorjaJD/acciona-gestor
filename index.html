@@ -898,7 +898,14 @@
         </div>
       </div>
       <div class="modal-row">
-        <div class="modal-field"><label>Tipo</label><input id="m-tipo" type="text" placeholder="Ej. Resi, PBSA…"/></div>
+        <div class="modal-field"><label>Tipo</label>
+          <select id="m-tipo-sel" onchange="(function(s){const c=document.getElementById('m-tipo-custom');const h=document.getElementById('m-tipo');if(s.value==='Otro'){c.style.display='block';h.value='';}else{c.style.display='none';h.value=s.value;}})(this)" style="width:100%">
+            <option value="">—</option>
+            <option>Residencial</option><option>Oficinas</option><option>PBSA</option><option>Hotel</option><option>Logístico</option><option>Ofi - Resi</option><option>Co Living</option><option>Mixed-Use</option><option>Build to Rent</option><option>Suelo</option><option>Otro</option>
+          </select>
+          <input id="m-tipo-custom" type="text" placeholder="Especificar tipo…" style="display:none;margin-top:5px" oninput="document.getElementById('m-tipo').value=this.value"/>
+          <input id="m-tipo" type="hidden"/>
+        </div>
         <div class="modal-field"><label>Contraparte</label><input id="m-contraparte" type="text" placeholder="Ej. Argis, JLL…"/></div>
       </div>
       <div class="modal-row">
@@ -1011,6 +1018,7 @@ async function sbLoad() {
 
 // ─── DATA ─────────────────────────────────────────────────────
 const PRIO_LABELS = {1:'Alta',2:'Media',3:'Baja'};
+const TIPOS_PROYECTO = ['Residencial','Oficinas','PBSA','Hotel','Logístico','Ofi - Resi','Co Living','Mixed-Use','Build to Rent','Suelo','Otro'];
 const BLOQUES_ORDER_DEFAULT = ['Desinversión','Pipeline','Desarrollo / Operación','Clientes / Gestión','Postventa'];
 let BLOQUES_ORDER = [...BLOQUES_ORDER_DEFAULT];
 let BLOQUES_LOCKED = new Set(); // locked bloques can't be dragged
@@ -1800,7 +1808,13 @@ function renderDetail() {
     +'<div class="d-item"><label>Proyecto</label><input class="d-input" style="font-weight:600" value="'+p.nombre+'" oninput="saveField('+p.id+',\'nombre\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"><label>Estado</label><div style="padding:4px 2px">'+estadoPill(p.estado)+'</div></div>'
     +'<div class="d-item"><label>Prioridad</label><div style="padding:4px 2px;display:flex;align-items:center;gap:6px;font-size:12px">'+pillP(p.prioridad)+'<span style="color:var(--text2)">'+['','Alta','Media','Baja'][p.prioridad]+'</span></div></div>'
-    +'<div class="d-item"><label>Tipo</label><input class="d-input" value="'+p.tipo+'" oninput="saveField('+p.id+',\'tipo\',this.value)" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"><label>Tipo</label>'
+    +'<select class="d-input" onchange="(function(s,id){const custom=document.getElementById(\'tipo-custom-\'+id);if(s.value===\'Otro\'){custom.style.display=\'block\';}else{custom.style.display=\'none\';saveField(id,\'tipo\',s.value);}})(this,'+p.id+')">'
+    +'<option value="">—</option>'
+    +TIPOS_PROYECTO.map(t=>'<option value="'+t+'"'+(p.tipo===t?' selected':'')+'>'+t+'</option>').join('')
+    +'</select>'
+    +'<input id="tipo-custom-'+p.id+'" class="d-input" type="text" placeholder="Especificar…" style="margin-top:4px;display:'+(TIPOS_PROYECTO.includes(p.tipo)||!p.tipo||p.tipo==='—'?'none':'block')+'" value="'+(TIPOS_PROYECTO.includes(p.tipo)||p.tipo==='—'?'':p.tipo)+'" oninput="saveField('+p.id+',\'tipo\',this.value)" onclick="event.stopPropagation()"/>'
+    +'</div>'
     +'<div class="d-item"><label>Bloque</label><div style="padding:4px 2px;font-size:12px;color:var(--text2)">'+p.bloque+'</div></div>'
     +'<div class="d-item"><label>Responsable</label><input class="d-input" value="'+p.responsable+'" oninput="saveField('+p.id+',\'responsable\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'</div>'
@@ -5380,8 +5394,8 @@ function renderResumen() {
     cards += `<div style="margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
         <div style="height:2px;flex:1;background:#1a3a2a;border-radius:1px"></div>
-        <span style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#1a3a2a;white-space:nowrap">${b}</span>
-        <span style="font-size:10px;color:#aaa;white-space:nowrap">${bp.length} proyecto${bp.length!==1?'s':''}</span>
+        <span style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#1a3a2a;white-space:nowrap">${b}</span>
+        <span style="font-size:11px;color:#aaa;white-space:nowrap">${bp.length} proyecto${bp.length!==1?'s':''}</span>
         <div style="height:2px;flex:1;background:#e8e8e0;border-radius:1px"></div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">`;
@@ -5504,7 +5518,7 @@ function renderResumen() {
     // KPI cards unificadas
     + renderKpiCards()
     // Top bar
-    + '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0;flex-wrap:wrap;gap:10px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0 8px;flex-wrap:wrap;gap:10px">'
     + '<div>'
     + '<h2 style="margin:0 0 2px;font-size:16px;font-weight:800;color:#1a1a18">Resumen ejecutivo</h2>'
     + '<div style="font-size:11px;color:#aaa">'+fecha+'</div>'
@@ -5512,7 +5526,7 @@ function renderResumen() {
     + '<button onclick="copyEmailResumen()" style="padding:5px 14px;font-size:12px;border-radius:var(--r);border:none;background:#1a3a2a;color:white;cursor:pointer;font-family:var(--font);font-weight:600;white-space:nowrap">✉ Copiar email</button>'
     + '</div>'
     // Cards
-    + '<div id="resumen-cards" style="background:#f8f7f3;border-radius:10px;padding:20px">' + cards + '</div>'
+    + '<div id="resumen-cards" style="background:#f8f7f3;border-radius:10px;padding:12px 20px">' + cards + '</div>'
     + '<textarea id="resumen-email-txt" style="position:absolute;left:-9999px;opacity:0" readonly>' + email.replace(/</g,'&lt;') + '</textarea>'
     + '</div>';
 }
@@ -5767,7 +5781,7 @@ REGLAS:
 document.addEventListener('DOMContentLoaded',()=>{const ai=document.getElementById('ai-input');if(ai)ai.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI();}});});
 
 // ─── MODAL ────────────────────────────────────────────────────
-function openModal(){['m-nombre','m-tipo','m-contraparte','m-responsable','m-avance','m-proxima','m-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const b=document.getElementById('m-bloque');if(b)b.value='';const e=document.getElementById('m-estado');if(e)e.value='Recibido';const pr=document.getElementById('m-prioridad');if(pr)pr.value='2';const errEl=document.getElementById('m-error');if(errEl)errEl.style.display='none';const mo=document.getElementById('modal-overlay');if(mo)mo.classList.add('open');setTimeout(()=>{const n=document.getElementById('m-nombre');if(n)n.focus();},50);}
+function openModal(){['m-nombre','m-tipo','m-contraparte','m-responsable','m-avance','m-proxima','m-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const ts=document.getElementById('m-tipo-sel');if(ts)ts.value='';const tc=document.getElementById('m-tipo-custom');if(tc){tc.style.display='none';tc.value='';}const b=document.getElementById('m-bloque');if(b)b.value='';const e=document.getElementById('m-estado');if(e)e.value='Recibido';const pr=document.getElementById('m-prioridad');if(pr)pr.value='2';const errEl=document.getElementById('m-error');if(errEl)errEl.style.display='none';const mo=document.getElementById('modal-overlay');if(mo)mo.classList.add('open');setTimeout(()=>{const n=document.getElementById('m-nombre');if(n)n.focus();},50);}
 function closeModal(){const mo=document.getElementById('modal-overlay');if(mo)mo.classList.remove('open');}
 function addProject(){
   const nombre=document.getElementById('m-nombre').value.trim(),bloque=document.getElementById('m-bloque').value,errEl=document.getElementById('m-error');
