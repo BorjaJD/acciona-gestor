@@ -3051,6 +3051,25 @@ function renderMobile() {
       ).join('')
     + '</div>';
 
+  // Donut delegación Pipeline
+  (function(){
+    var DELS=['Centro','Norte','Este','Sur','Internacional','Sin asignar'];
+    var delColors=['#1a3a2a','#2d6a4f','#52b788','#95d5b2','#b7e4c7','#e0e0d8'];
+    var pip=projects.filter(function(p){return p.bloque==='Pipeline'&&['Descartado','Cerrado'].indexOf(p.estado)===-1;});
+    var counts=DELS.slice(0,5).map(function(d){return pip.filter(function(p){return p.delegacion===d;}).length;});
+    counts.push(pip.filter(function(p){return !p.delegacion;}).length);
+    var total=counts.reduce(function(a,b){return a+b;},0);
+    var paths='',lbls='',angle=-Math.PI/2,r=44,sw=26,cx=60,cy=60;
+    counts.forEach(function(n,i){if(!n)return;var s=(n/total)*2*Math.PI,x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle),x2=cx+r*Math.cos(angle+s),y2=cy+r*Math.sin(angle+s);paths+='<path d="M'+x1.toFixed(1)+' '+y1.toFixed(1)+' A'+r+' '+r+' 0 '+(s>Math.PI?1:0)+' 1 '+x2.toFixed(1)+' '+y2.toFixed(1)+'" fill="none" stroke="'+delColors[i]+'" stroke-width="'+sw+'"/>';if(s>0.3){var mx=cx+r*Math.cos(angle+s/2),my=cy+r*Math.sin(angle+s/2);lbls+='<text x="'+mx.toFixed(1)+'" y="'+(my+3.5).toFixed(1)+'" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">'+n+'</text>';}angle+=s;});
+    var maxCount=Math.max.apply(null,counts.filter(function(n){return n>0;}));
+    var bars=DELS.map(function(l,i){if(!counts[i])return '';var pct=Math.round((counts[i]/maxCount)*100);var pctTotal=Math.round((counts[i]/total)*100);return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:80px;font-size:10px;color:#555;text-align:left;flex-shrink:0">'+l+'</div><div style="flex:1;background:#f0efe9;border-radius:3px;height:18px;overflow:hidden"><div style="width:'+pct+'%;background:'+delColors[i]+';height:100%;border-radius:3px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px"><span style="font-size:9px;font-weight:700;color:#fff">'+counts[i]+'</span></div></div><div style="width:32px;font-size:9px;color:#888;text-align:right;flex-shrink:0">'+pctTotal+'%</div></div>';}).join('');
+    html+='<div style="margin:8px 12px;background:white;border-radius:10px;border:1px solid #e8e8e0;padding:12px 14px">'
+      +'<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#1a3a2a;margin-bottom:10px">Pipeline · Por delegación</div>'
+      +bars
+      +'<div style="font-size:9px;color:#aaa;margin-top:8px;padding-top:8px;border-top:1px solid #f0efe9">* Proyectos de Pipeline activos (excluye Descartados y Cerrados)</div>'
+    +'</div>';
+  })();
+
   // Orden personalizado: Pipeline primero, luego Desinversión, luego el resto
   const ORDEN_BLOQUES_MOVIL = ['Pipeline','Desinversión','Desarrollo / Operación','Clientes / Gestión','Sin bloque'];
   const bloquesOrdenados = ORDEN_BLOQUES_MOVIL.filter(b => bloques[b] && bloques[b].length > 0)
