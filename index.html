@@ -757,11 +757,9 @@
   .eco-card-footer { padding:8px 14px; background:var(--surface2); border-top:1px solid var(--border); display:flex; align-items:center; gap:6px; }
   .eco-edit-btn { font-size:11px; color:var(--accent); cursor:pointer; text-decoration:underline; background:none; border:none; font-family:var(--font); padding:0; }
   .eco-edit-btn:hover { opacity:.7; }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </style>
 </head>
-<body>
-
-<!-- LOGIN SCREEN -->
 <div class="login-overlay" id="login-overlay">
   <div class="login-bg"></div>
   <div class="login-box">
@@ -3299,7 +3297,7 @@ function render() {
     const focused = document.activeElement;
     const detailHasFocus = focused && focused.closest && focused.closest('.detail-panel');
     if(S.view==='dashboard') {
-      try { m.innerHTML=renderDashboard(); }
+      try { m.innerHTML=renderDashboard(); initDashDonuts(); }
       catch(e) { m.innerHTML='<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error en Dashboard:</strong><br><pre>'+e.message+'</pre></div>'; console.error(e); }
     }
     else if(S.view==='tabla') {
@@ -5010,6 +5008,11 @@ function renderDashboard() {
     return html;
   }
 
+  const matrixPipeline = buildMatrix('Pipeline', '#2d6a4f');
+  const matrixDesinv = buildMatrix('Desinversión', '#2d6a4f');
+  const totalPip = projects.filter(p=>p.bloque==='Pipeline' && !['Descartado','Cerrado'].includes(p.estado)).length;
+  const totalDes = projects.filter(p=>p.bloque==='Desinversión' && !['Descartado','Cerrado'].includes(p.estado)).length;
+
   // Datos para donuts
   const DELS = ['Centro','Norte','Este','Sur','Internacional'];
   const delColors = ['#1a3a2a','#2d6a4f','#52b788','#95d5b2','#b7e4c7'];
@@ -5017,37 +5020,20 @@ function renderDashboard() {
   const BLOQUES_CHART = ['Pipeline','Desinversión','Clientes / Gestión','Desarrollo / Operación'];
   const blqColors = ['#1a3a2a','#2d6a4f','#52b788','#95d5b2'];
   const blqCounts = BLOQUES_CHART.map(b => projects.filter(p=>p.bloque===b && !['Descartado','Cerrado'].includes(p.estado)).length);
-  const delLegend = DELS.map((d,i)=>`<span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text2)"><span style="width:7px;height:7px;border-radius:2px;background:${delColors[i]};display:inline-block;flex-shrink:0"></span>${d} <b>${delCounts[i]}</b></span>`).join('');
+  const delLegend = DELS.map(function(d,i){return '<span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text2)"><span style="width:7px;height:7px;border-radius:2px;background:'+delColors[i]+';display:inline-block;flex-shrink:0"></span>'+d+' <b>'+delCounts[i]+'</b></span>';}).join('');
   const blqLabels = ['Pipeline','Desinv.','Clientes','Desar.'];
-  const blqLegend = blqLabels.map((d,i)=>`<span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text2)"><span style="width:7px;height:7px;border-radius:2px;background:${blqColors[i]};display:inline-block;flex-shrink:0"></span>${d} <b>${blqCounts[i]}</b></span>`).join('');
-  const donutSideHtml = `<div style="width:200px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px 14px;gap:14px">
-    <div>
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:6px">Por delegación</div>
-      <div style="position:relative;height:80px"><canvas id="delChartDash"></canvas></div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:6px">${delLegend}</div>
-    </div>
-    <div style="border-top:1px solid var(--border);padding-top:12px">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:6px">Por bloque</div>
-      <div style="position:relative;height:80px"><canvas id="blqChartDash"></canvas></div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:6px">${blqLegend}</div>
-    </div>
-  </div>
-  <script>
-    (function(){
-      function mkDonut(id,data,colors){
-        const el=document.getElementById(id);if(!el)return;
-        new Chart(el,{type:'doughnut',data:{datasets:[{data,backgroundColor:colors,borderWidth:1,borderColor:'#fff',hoverOffset:3}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.parsed+' proyectos'}}}}});
-      }
-      if(window.Chart){
-        mkDonut('delChartDash',[${delCounts.join(',')}],[${delColors.map(c=>`'${c}'`).join(',')}]);
-        mkDonut('blqChartDash',[${blqCounts.join(',')}],[${blqColors.map(c=>`'${c}'`).join(',')}]);
-      }
-    })();
-  <\/script>`;
+  const blqLegend = blqLabels.map(function(d,i){return '<span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text2)"><span style="width:7px;height:7px;border-radius:2px;background:'+blqColors[i]+';display:inline-block;flex-shrink:0"></span>'+d+' <b>'+blqCounts[i]+'</b></span>';}).join('');
+  const donutSideHtml = '<div style="width:200px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px 14px;gap:14px">'
+    +'<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:6px">Por delegación</div>'
+    +'<div style="position:relative;height:80px"><canvas id="delChartDash"></canvas></div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:6px">'+delLegend+'</div></div>'
+    +'<div style="border-top:1px solid var(--border);padding-top:12px">'
+    +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:6px">Por bloque</div>'
+    +'<div style="position:relative;height:80px"><canvas id="blqChartDash"></canvas></div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:6px">'+blqLegend+'</div></div>'
+    +'</div>';
+  window._pendingDonuts = {del:delCounts, blq:blqCounts};
 
-  const matrixDesinv = buildMatrix('Desinversión', '#2d6a4f');
-  const totalPip = projects.filter(p=>p.bloque==='Pipeline' && !['Descartado','Cerrado'].includes(p.estado)).length;
-  const totalDes = projects.filter(p=>p.bloque==='Desinversión' && !['Descartado','Cerrado'].includes(p.estado)).length;
   const avanceBlock = '<div class="dash-card">'
     +'<div class="dash-card-title">Avance de oportunidades</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start">'
@@ -5079,8 +5065,8 @@ function renderDashboard() {
       "<div class=\"dash-card\" style=\"justify-content:space-between\"><div class=\"dash-card-title\">Proyectos por bloque</div>"+barsBloque+paisHtml+"</div>"+
       "<div class=\"dash-card\" style=\"justify-content:space-between\"><div class=\"dash-card-title\">Matriz estado \u00d7 prioridad</div>"+matrixHtml+"</div>"+
     "</div>"+
-    // Fila 3: Urgentes ancho completo
-    "<div class=\"dash-card\" style=\"padding:0;overflow:hidden\"><div style=\"display:flex\"><div style=\"flex:1;min-width:0;padding:14px 16px\"><div class=\"dash-card-title\" style=\"margin-bottom:10px\">Acciones urgentes — Prioridad Alta</div>"+urgHtml+"</div>"+donutSideHtml+"</div></div>"+
+    // Fila 3: Urgentes + donuts
+    (function(){try{return "<div class=\"dash-card\" style=\"padding:0;overflow:hidden\"><div style=\"display:flex\"><div style=\"flex:1;min-width:0;padding:14px 16px\"><div class=\"dash-card-title\" style=\"margin-bottom:10px\">Acciones urgentes \u2014 Prioridad Alta</div>"+urgHtml+"</div>"+donutSideHtml+"</div></div>";}catch(e){console.error('urgentes block error:',e);return "<div class='dash-card'><b>Error urgentes: "+e.message+"</b></div>";}})()+ 
     // Fila 4: Avance de oportunidad (Pipeline + Desinversión)
     avanceBlock+
     // Fila 5: Pipeline dentro de dash-card
@@ -5091,6 +5077,18 @@ function renderDashboard() {
   "</div>";
 }
 
+function initDashDonuts(){
+  setTimeout(function(){
+    if(!window.Chart||!window._pendingDonuts)return;
+    var d=window._pendingDonuts;
+    function mkD(id,data,colors){
+      var el=document.getElementById(id);if(!el)return;
+      new Chart(el,{type:'doughnut',data:{datasets:[{data:data,backgroundColor:colors,borderWidth:1,borderColor:'#fff',hoverOffset:3}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return' '+c.parsed+' proyectos'}}}}}});
+    }
+    mkD('delChartDash',d.del,['#1a3a2a','#2d6a4f','#52b788','#95d5b2','#b7e4c7']);
+    mkD('blqChartDash',d.blq,['#1a3a2a','#2d6a4f','#52b788','#95d5b2']);
+  },100);
+}
 function renderEstudioSection() {
   const epAll=projects.filter(p=>p.bloque==='Pipeline');
   if(!epAll.length) return '<div class="dash-card" style="border:2px dashed var(--border2);background:var(--surface2);text-align:center;padding:28px;color:var(--text3)"><div style="font-size:24px;margin-bottom:8px">&#x1F4E5;</div><div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:4px">Sin proyectos en Pipeline</div><div style="font-size:12px;margin-bottom:14px">Importa tu Excel desde la pestaña Económico</div><button onclick="navigateTo(\'economico\',{})" style="padding:7px 18px;font-size:12px;border-radius:var(--r);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);font-weight:500">Ir a Económico →</button></div>';
