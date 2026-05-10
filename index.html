@@ -5045,11 +5045,11 @@ function renderDashboard() {
       "<div class=\"dash-card\" style=\"justify-content:space-between\"><div class=\"dash-card-title\">Matriz estado \u00d7 prioridad</div>"+matrixHtml+"</div>"+
     "</div>"+
     // Fila 3: Urgentes + donuts lado a lado
-    "<div style=\"display:grid;grid-template-columns:1fr 200px;gap:12px;align-items:stretch;margin-bottom:12px\">"+
+    "<div style=\"display:grid;grid-template-columns:1fr 260px;gap:12px;align-items:stretch;margin-bottom:12px\">"+
       "<div class=\"dash-card\"><div class=\"dash-card-title\">Acciones urgentes \u2014 Prioridad Alta</div>"+urgHtml+"</div>"+
-      "<div class=\"dash-card\" style=\"display:flex;flex-direction:column;justify-content:space-between\">"+
-        "<div style=\"flex:1;display:flex;flex-direction:column\"><div class=\"dash-card-title\" style=\"margin-bottom:8px\">Por delegaci\u00f3n</div><div style=\"flex:1;position:relative;min-height:100px\"><canvas id=\"delChartDash\" style=\"display:block\"></canvas></div><div id=\"delLegendDash\" style=\"display:flex;flex-wrap:wrap;gap:3px 6px;margin-top:6px\"></div></div>"+
-        "<div style=\"flex:1;display:flex;flex-direction:column;border-top:1px solid var(--border);padding-top:10px;margin-top:10px\"><div class=\"dash-card-title\" style=\"margin-bottom:8px\">Por bloque</div><div style=\"flex:1;position:relative;min-height:100px\"><canvas id=\"blqChartDash\" style=\"display:block\"></canvas></div><div id=\"blqLegendDash\" style=\"display:flex;flex-wrap:wrap;gap:3px 6px;margin-top:6px\"></div></div>"+
+      "<div class=\"dash-card\" style=\"display:flex;flex-direction:column;justify-content:space-around\">"+
+        "<div style=\"text-align:center\"><div class=\"dash-card-title\" style=\"margin-bottom:8px\">Por delegaci\u00f3n</div><canvas id=\"delChartDash\" width=\"220\" height=\"130\" style=\"margin:0 auto;display:block\"></canvas><div id=\"delLegendDash\" style=\"display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:8px;justify-content:center\"></div></div>"+
+        "<div style=\"text-align:center;border-top:1px solid var(--border);padding-top:12px;margin-top:12px\"><div class=\"dash-card-title\" style=\"margin-bottom:8px\">Por bloque</div><canvas id=\"blqChartDash\" width=\"220\" height=\"130\" style=\"margin:0 auto;display:block\"></canvas><div id=\"blqLegendDash\" style=\"display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:8px;justify-content:center\"></div></div>"+
       "</div>"+
     "</div>"+
     // Fila 4: Avance de oportunidad (Pipeline + Desinversión)
@@ -5072,7 +5072,7 @@ function initDashDonuts(){
     var blqLabels=['Pipeline','Desinv.','Clientes','Desar.'];
     var delCounts=DELS.map(function(d){return window.projects.filter(function(p){return p.delegacion===d&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;});
     var blqCounts=BLQS.map(function(b){return window.projects.filter(function(p){return p.bloque===b&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;});
-    function mkD(id,data,colors){var el=document.getElementById(id);if(!el)return;el.width=170;el.height=110;new Chart(el,{type:'doughnut',data:{datasets:[{data:data,backgroundColor:colors,borderWidth:1,borderColor:'#fff',hoverOffset:3}]},options:{responsive:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return' '+c.parsed+' proyectos'}}}}}});}
+    function mkD(id,data,colors){var el=document.getElementById(id);if(!el)return;var total=data.reduce(function(a,b){return a+b;},0);var d=total===0?data.map(function(){return 1;}):data;var c=total===0?data.map(function(){return '#e8e8e0';}):colors;el.width=220;el.height=130;new Chart(el,{type:'doughnut',data:{datasets:[{data:d,backgroundColor:c,borderWidth:1,borderColor:'#fff',hoverOffset:3}]},options:{responsive:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return total===0?'Sin datos':' '+ctx.parsed+' proyectos'}}}}}});}
     function mkLegend(id,labels,counts,colors){var el=document.getElementById(id);if(!el)return;el.innerHTML=labels.map(function(l,i){return '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;background:'+colors[i]+';display:inline-block"></span>'+l+' <b>'+counts[i]+'</b></span>';}).join('');}
     mkD('delChartDash',delCounts,delColors);
     mkD('blqChartDash',blqCounts,blqColors);
