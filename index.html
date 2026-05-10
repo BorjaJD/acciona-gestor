@@ -5010,7 +5010,41 @@ function renderDashboard() {
     return html;
   }
 
-  const matrixPipeline = buildMatrix('Pipeline', '#2d6a4f');
+  // Datos para donuts
+  const DELS = ['Centro','Norte','Este','Sur','Internacional'];
+  const delColors = ['#1a3a2a','#2d6a4f','#52b788','#95d5b2','#b7e4c7'];
+  const delCounts = DELS.map(d => projects.filter(p=>p.delegacion===d && !['Descartado','Cerrado'].includes(p.estado)).length);
+  const BLOQUES_CHART = ['Pipeline','Desinversión','Clientes / Gestión','Desarrollo / Operación'];
+  const blqColors = ['#1a3a2a','#2d6a4f','#52b788','#95d5b2'];
+  const blqCounts = BLOQUES_CHART.map(b => projects.filter(p=>p.bloque===b && !['Descartado','Cerrado'].includes(p.estado)).length);
+  const delLegend = DELS.map((d,i)=>`<span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text2)"><span style="width:7px;height:7px;border-radius:2px;background:${delColors[i]};display:inline-block;flex-shrink:0"></span>${d} <b>${delCounts[i]}</b></span>`).join('');
+  const blqLabels = ['Pipeline','Desinv.','Clientes','Desar.'];
+  const blqLegend = blqLabels.map((d,i)=>`<span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text2)"><span style="width:7px;height:7px;border-radius:2px;background:${blqColors[i]};display:inline-block;flex-shrink:0"></span>${d} <b>${blqCounts[i]}</b></span>`).join('');
+  const donutSideHtml = `<div style="width:200px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px 14px;gap:14px">
+    <div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:6px">Por delegación</div>
+      <div style="position:relative;height:80px"><canvas id="delChartDash"></canvas></div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:6px">${delLegend}</div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:12px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:6px">Por bloque</div>
+      <div style="position:relative;height:80px"><canvas id="blqChartDash"></canvas></div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:6px">${blqLegend}</div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      function mkDonut(id,data,colors){
+        const el=document.getElementById(id);if(!el)return;
+        new Chart(el,{type:'doughnut',data:{datasets:[{data,backgroundColor:colors,borderWidth:1,borderColor:'#fff',hoverOffset:3}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.parsed+' proyectos'}}}}});
+      }
+      if(window.Chart){
+        mkDonut('delChartDash',[${delCounts.join(',')}],[${delColors.map(c=>`'${c}'`).join(',')}]);
+        mkDonut('blqChartDash',[${blqCounts.join(',')}],[${blqColors.map(c=>`'${c}'`).join(',')}]);
+      }
+    })();
+  <\/script>`;
+
   const matrixDesinv = buildMatrix('Desinversión', '#2d6a4f');
   const totalPip = projects.filter(p=>p.bloque==='Pipeline' && !['Descartado','Cerrado'].includes(p.estado)).length;
   const totalDes = projects.filter(p=>p.bloque==='Desinversión' && !['Descartado','Cerrado'].includes(p.estado)).length;
@@ -5046,7 +5080,7 @@ function renderDashboard() {
       "<div class=\"dash-card\" style=\"justify-content:space-between\"><div class=\"dash-card-title\">Matriz estado \u00d7 prioridad</div>"+matrixHtml+"</div>"+
     "</div>"+
     // Fila 3: Urgentes ancho completo
-    "<div class=\"dash-card\"><div class=\"dash-card-title\">Acciones urgentes \u2014 Prioridad Alta</div>"+urgHtml+"</div>"+
+    "<div class=\"dash-card\" style=\"padding:0;overflow:hidden\"><div style=\"display:flex\"><div style=\"flex:1;min-width:0;padding:14px 16px\"><div class=\"dash-card-title\" style=\"margin-bottom:10px\">Acciones urgentes — Prioridad Alta</div>"+urgHtml+"</div>"+donutSideHtml+"</div></div>"+
     // Fila 4: Avance de oportunidad (Pipeline + Desinversión)
     avanceBlock+
     // Fila 5: Pipeline dentro de dash-card
