@@ -4868,7 +4868,7 @@ function renderDashboard() {
   }
 
   // ACCIONES URGENTES — tabla compacta fila única por proyecto
-  var urgList=projects.filter(function(p){return p.prioridad===1;}).sort(function(a,b){var ai=ESTADO_ORDER.indexOf(a.estado),bi=ESTADO_ORDER.indexOf(b.estado);var ed=(ai===-1?99:ai)-(bi===-1?99:bi);return ed!==0?ed:a.prioridad-b.prioridad;});
+  var urgList=projects.filter(function(p){return p.prioridad===1&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).sort(function(a,b){var ai=ESTADO_ORDER.indexOf(a.estado),bi=ESTADO_ORDER.indexOf(b.estado);var ed=(ai===-1?99:ai)-(bi===-1?99:bi);return ed!==0?ed:a.prioridad-b.prioridad;});
   var urgHtml="";
   if(urgList.length){
     var thU="padding:5px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);border-bottom:2px solid var(--border);background:var(--surface2);white-space:nowrap";
@@ -5024,9 +5024,11 @@ function renderDashboard() {
   function mkDonutLegend(labels,counts,colors){
     return labels.map(function(l,i){return '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:7px;height:7px;border-radius:2px;background:'+colors[i]+';display:inline-block;flex-shrink:0"></span>'+l+' <b>'+counts[i]+'</b></span>';}).join('');
   }
-  var DELS=['Centro','Norte','Este','Sur','Internacional'];
-  var delColors=['#1a3a2a','#2d6a4f','#52b788','#95d5b2','#b7e4c7'];
-  var delCounts=DELS.map(function(d){return projects.filter(function(p){return p.delegacion===d&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;});
+  var DELS=['Centro','Norte','Este','Sur','Internacional','Sin asignar'];
+  var delColors=['#1a3a2a','#2d6a4f','#52b788','#95d5b2','#b7e4c7','#e0e0d8'];
+  var delCounts=DELS.slice(0,5).map(function(d){return projects.filter(function(p){return p.delegacion===d&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;});
+  var sinAsig=projects.filter(function(p){return !p.delegacion&&['Descartado','Cerrado'].indexOf(p.estado)===-1;}).length;
+  delCounts.push(sinAsig);
   var BLQS=['Pipeline','Desinversión','Clientes / Gestión','Desarrollo / Operación'];
   var blqColors=['#1a3a2a','#2d6a4f','#52b788','#95d5b2'];
   var blqLabels=['Pipeline','Desinv.','Clientes','Desar.'];
@@ -5073,7 +5075,7 @@ function renderDashboard() {
       "<div class=\"dash-card\" style=\"justify-content:space-between\"><div class=\"dash-card-title\">Matriz estado \u00d7 prioridad</div>"+matrixHtml+"</div>"+
     "</div>"+
     // Fila 3: Urgentes + donuts lado a lado
-    "<div style=\"display:grid;grid-template-columns:1fr 300px;gap:12px;align-items:stretch;margin-bottom:12px\">"+
+    "<div style=\"display:grid;grid-template-columns:1fr 380px;gap:12px;align-items:stretch;margin-bottom:12px\">"+
       "<div class=\"dash-card\"><div class=\"dash-card-title\">Acciones urgentes \u2014 Prioridad Alta</div>"+urgHtml+"</div>"+
       donutCardHtml+
     "</div>"+
