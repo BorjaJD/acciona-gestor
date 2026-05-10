@@ -5016,10 +5016,10 @@ function renderDashboard() {
   // SVG donuts inline
   function mkDonutSVG(counts,colors){
     var total=counts.reduce(function(a,b){return a+b;},0);
-    if(!total)return '<svg viewBox="0 0 100 100" width="130" height="130"><circle cx="50" cy="50" r="32" fill="none" stroke="#e8e8e0" stroke-width="16"/><text x="50" y="54" text-anchor="middle" font-size="8" fill="#bbb">Sin datos</text></svg>';
+    if(!total)return '<svg viewBox="0 0 100 100" width="200" height="200"><circle cx="50" cy="50" r="32" fill="none" stroke="#e8e8e0" stroke-width="16"/><text x="50" y="54" text-anchor="middle" font-size="8" fill="#bbb">Sin datos</text></svg>';
     var paths='',angle=-Math.PI/2;
     counts.forEach(function(n,i){if(!n)return;var s=(n/total)*2*Math.PI,x1=50+32*Math.cos(angle),y1=50+32*Math.sin(angle),x2=50+32*Math.cos(angle+s),y2=50+32*Math.sin(angle+s);paths+='<path d="M'+x1.toFixed(1)+' '+y1.toFixed(1)+' A32 32 0 '+(s>Math.PI?1:0)+' 1 '+x2.toFixed(1)+' '+y2.toFixed(1)+'" fill="none" stroke="'+colors[i]+'" stroke-width="16"/>';angle+=s;});
-    return '<svg viewBox="0 0 100 100" width="130" height="130">'+paths+'</svg>';
+    return '<svg viewBox="0 0 100 100" width="200" height="200">'+paths+'</svg>';
   }
   function mkDonutLegend(labels,counts,colors){
     return labels.map(function(l,i){return '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:7px;height:7px;border-radius:2px;background:'+colors[i]+';display:inline-block;flex-shrink:0"></span>'+l+' <b>'+counts[i]+'</b></span>';}).join('');
