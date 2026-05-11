@@ -2001,8 +2001,12 @@ function renderTrackCard(p, t){
         +'<div class="detail-section-title">Identificación</div>'
         +'<div class="detail-grid-2">'
           +'<div class="detail-field">'
-            +'<span class="detail-label">Broker / Track</span>'
+            +'<span class="detail-label">Broker</span>'
             +'<input class="detail-input" value="'+(t.broker||'').replace(/"/g,'&quot;')+'" placeholder="ej. JLL, CBRE…" onclick="event.stopPropagation()" oninput="updateTrackField('+p.id+','+t.id+',\'broker\',this.value)">'
+          +'</div>'
+          +'<div class="detail-field">'
+            +'<span class="detail-label">Comprador</span>'
+            +'<input class="detail-input" value="'+(t.compradorTarget||'').replace(/"/g,'&quot;')+'" placeholder="ej. Praemia, Greystar…" onclick="event.stopPropagation()" oninput="updateTrackField('+p.id+','+t.id+',\'compradorTarget\',this.value)">'
           +'</div>'
           +'<div class="detail-field">'
             +'<span class="detail-label">Tipo de proceso</span>'
@@ -2015,10 +2019,6 @@ function renderTrackCard(p, t){
             +'<select class="detail-select" onclick="event.stopPropagation()" onchange="updateTrackField('+p.id+','+t.id+',\'tipoVenta\',this.value)">'
               +['—','Forward Purchase','Venta directa'].map(tv=>'<option value="'+tv+'"'+(t.tipoVenta===tv?' selected':'')+'>'+tv+'</option>').join('')
             +'</select>'
-          +'</div>'
-          +'<div class="detail-field">'
-            +'<span class="detail-label">Comprador target</span>'
-            +'<input class="detail-input" value="'+(t.compradorTarget||'').replace(/"/g,'&quot;')+'" placeholder="ej. Praemia, Greystar…" onclick="event.stopPropagation()" oninput="updateTrackField('+p.id+','+t.id+',\'compradorTarget\',this.value)">'
           +'</div>'
         +'</div>'
       +'</div>'
@@ -2040,21 +2040,29 @@ function renderTrackCard(p, t){
           +'</div>'
         +'</div>'
       +'</div>'
-      // Económico
-      +'<div class="detail-section">'
-        +'<div class="detail-section-title">Económico</div>'
-        +'<div class="detail-grid-2">'
-          +'<div class="detail-field">'
-            +'<span class="detail-label">Oferta importe (€)</span>'
-            +'<input type="number" class="detail-input" value="'+(t.ofertaImporte||'')+'" placeholder="ej. 15500000" onclick="event.stopPropagation()" oninput="updateTrackField('+p.id+','+t.id+',\'ofertaImporte\',Number(this.value))">'
+      // Económico — vinculado al hito más avanzado con importe
+      +(function(){
+        const hitos = t.hitos||{};
+        // Hito más avanzado con importe: BO > NBO
+        const hitoActivo = ['bo','nbo'].find(k=>hitos[k]&&(hitos[k].importe>0||hitos[k].fecha));
+        const hitoLabel = hitoActivo ? (hitoActivo==='bo'?'BO':'NBO') : 'BO / NBO';
+        const hitoImporte = hitoActivo ? (hitos[hitoActivo].importe||0) : 0;
+        const hitoFecha = hitoActivo ? (hitos[hitoActivo].fecha||'') : '';
+        return '<div class="detail-section">'
+          +'<div class="detail-section-title">Económico <span style="font-weight:400;color:#aaa;font-size:9px">— vinculado a hito '+hitoLabel+'</span></div>'
+          +'<div class="detail-grid-2">'
+            +'<div class="detail-field">'
+              +'<span class="detail-label">Importe oferta (€)</span>'
+              +'<input type="number" class="detail-input" value="'+(hitoImporte||'')+'" placeholder="ej. 15500000" onclick="event.stopPropagation()" oninput="(function(v){var k=\''+( hitoActivo||'bo')+'\';updateTrackHito('+p.id+','+t.id+',k,\'importe\',Number(v));updateTrackField('+p.id+','+t.id+',\'ofertaImporte\',Number(v));})(this.value)">'
+            +'</div>'
+            +'<div class="detail-field">'
+              +'<span class="detail-label">Fecha oferta</span>'
+              +'<input type="date" class="detail-input" value="'+hitoFecha+'" onclick="event.stopPropagation()" onchange="(function(v){var k=\''+(hitoActivo||'bo')+'\';updateTrackHito('+p.id+','+t.id+',k,\'fecha\',v);updateTrackField('+p.id+','+t.id+',\'ofertaFecha\',v);})(this.value)">'
+            +'</div>'
           +'</div>'
-          +'<div class="detail-field">'
-            +'<span class="detail-label">Fecha oferta</span>'
-            +'<input type="date" class="detail-input" value="'+(t.ofertaFecha||'')+'" onclick="event.stopPropagation()" onchange="updateTrackField('+p.id+','+t.id+',\'ofertaFecha\',this.value)">'
-          +'</div>'
-        +'</div>'
-        + (t.ofertaImporte>0 ? '<div style="margin-top:6px;font-size:11px;color:#3d7058;font-weight:600">→ '+fmtMiles(t.ofertaImporte)+' €</div>' : '')
-      +'</div>'
+          +(hitoImporte>0?'<div style="margin-top:6px;font-size:11px;color:#3d7058;font-weight:600">→ '+fmtMiles(hitoImporte)+' €'+(hitoActivo?' ('+hitoLabel+')')+'</div>':'')
+        +'</div>';
+      })()
       // Hitos colapsable
       +'<div class="hitos-section '+(hitosOpen?'open':'')+'">'
         +'<div class="hitos-toggle" onclick="event.stopPropagation();toggleTrackHitosOpen('+p.id+','+t.id+')">'
@@ -2089,7 +2097,11 @@ function renderTrackCard(p, t){
   return '<div class="track-card '+cls+(t.expanded?' expanded':'')+'" data-track-id="'+t.id+'">'
     +'<div class="track-summary" onclick="event.stopPropagation();toggleTrackExpand('+p.id+','+t.id+')">'
       +'<span class="track-toggle"></span>'
-      +'<span class="track-broker">'+(t.broker||'<i style="color:#bbb;font-weight:400">sin nombre</i>')+'</span>'
+      +'<span class="track-broker">'+(
+        t.broker && t.compradorTarget ? t.broker+' → '+t.compradorTarget :
+        t.broker || t.compradorTarget ||
+        '<i style="color:#bbb;font-weight:400">sin nombre</i>'
+      )+'</span>'
       +'<span class="track-tipo">'+(t.tipo||'—')+'</span>'
       +'<select class="track-status-select s-'+cls+'" onclick="event.stopPropagation()" onchange="changeTrackEstado('+p.id+','+t.id+',this.value)">'
         + TRACK_ESTADOS.map(s=>'<option value="'+s+'"'+(t.estado===s?' selected':'')+'>'+s+'</option>').join('')
