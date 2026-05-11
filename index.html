@@ -2992,6 +2992,7 @@ function renderMobile() {
           <span class="mob-stats-active">${activos.length} <span class="mob-stats-lbl">activos</span></span>
         </div>
         <button class="mob-alta-toggle ${S.fPrio==='1'?'on':'off'}" onclick="S.fPrio=S.fPrio==='1'?'':'1';render()">🔴</button>
+        <button onclick="location.reload(true)" style="background:rgba(255,255,255,0.15);border:none;border-radius:20px;padding:4px 10px;color:white;font-size:16px;cursor:pointer;line-height:1" title="Recargar">↻</button>
       </div>
     </div>
     <div class="mob-filters">
