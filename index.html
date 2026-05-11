@@ -220,16 +220,16 @@
   .grupo-hechas.collapsed .grupo-hechas-content{display:none}
   .grupo-hechas.collapsed .grupo-arrow-tareas::before{content:"▸"}
   .grupo-hechas:not(.collapsed) .grupo-arrow-tareas::before{content:"▾"}
-  .tareas-list{display:flex;flex-direction:column;gap:5px}
-  .tarea-pers{background:#fff;border:1px solid var(--border);border-radius:6px;padding:10px 13px;display:flex;align-items:center;gap:11px;transition:all .15s}
-  .tarea-pers:hover{border-color:var(--border2);box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+  .tareas-list{display:flex;flex-direction:column;gap:6px;width:100%}
+  .tarea-pers{background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex!important;align-items:flex-start;gap:12px;transition:all .15s;width:100%;box-sizing:border-box;position:relative}
+  .tarea-pers:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,0.06)}
   .tarea-pers.prio-1{border-left:3px solid #a85c4a}
   .tarea-pers.prio-2{border-left:3px solid #d4a04a}
   .tarea-pers.prio-3{border-left:3px solid #b8c8d4}
-  .tarea-pers.done{opacity:.55;background:#fafaf8}
+  .tarea-pers.done{opacity:.5;background:#fafaf8}
   .tarea-pers.done .tarea-pers-titulo{text-decoration:line-through;color:#999}
-  .tarea-pers-check{accent-color:#3d7058;cursor:pointer;width:16px;height:16px;flex-shrink:0}
-  .tarea-pers-content{flex:1;min-width:0}
+  .tarea-pers-check{accent-color:#3d7058;cursor:pointer;width:15px;height:15px;flex-shrink:0;margin-top:2px}
+  .tarea-pers-content{flex:1;min-width:0;display:flex;flex-direction:column}
   .tarea-pers-titulo{font-size:13px;font-weight:500;color:var(--text);line-height:1.3}
   .tarea-pers-meta{display:flex;gap:10px;align-items:center;margin-top:3px;font-size:10.5px;color:#888;flex-wrap:wrap}
   .tarea-pers-fecha{display:inline-flex;align-items:center;gap:4px;font-weight:500}
@@ -1849,9 +1849,6 @@ function renderDetail() {
     +'<div class="d-item"><label>Broker / Agente</label><input class="d-input" value="'+(p.comprador||'')+'" placeholder="—" oninput="saveField('+p.id+',\'comprador\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"></div>'
     +'</div>'
-    +(['Pipeline','Desinversión'].includes(p.bloque)
-      ?'<div class="d-item d-full" onclick="event.stopPropagation()" style="margin-top:4px"><label>Notas de salida</label><textarea class="d-textarea" placeholder="Condiciones, precio orientativo, estructura…" oninput="saveField('+p.id+',\'notasSalida\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+(p.notasSalida||'')+'</textarea></div>'
-      :'')
 
     // ── Fase del proceso (Pipeline only, inline) ──────────────
     +(p.bloque==='Pipeline'||p.bloque==='Desinversión'
