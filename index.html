@@ -1886,8 +1886,26 @@ function renderDetail() {
     +'</div>'
     + (p.bloque==='Pipeline'||p.bloque==='Pipeline' ? renderUbicSection(p) : '')
     + ecoSec
+    + (['Pipeline','Desinversión'].includes(p.bloque) ? renderSalidaSection(p) : '')
     + renderTracksSection(p)
     +'</div>';
+}
+
+function renderSalidaSection(p){
+  const s = p.salida || {};
+  function salidaField(field, val){ return `saveField(${p.id},'salida',{...((projects.find(x=>x.id===${p.id})||{}).salida||{}),'${field}':this.value})`; }
+  const tipoVentaOpts = ['','Forward Purchase','Venta directa'].map(o=>`<option value="${o}"${s.tipoVenta===o?' selected':''}>${o||'—'}</option>`).join('');
+  const tipoProcesoOpts = ['','Off market','Proceso ordenado','Proceso interno','Otro'].map(o=>`<option value="${o}"${s.tipoProceso===o?' selected':''}>${o||'—'}</option>`).join('');
+  return '<div class="d-grupo" style="margin-top:14px" onclick="event.stopPropagation()">'
+    +'<div class="d-grupo-title">Salida</div>'
+    +'<div class="detail-grid">'
+    +'<div class="d-item"><label>Tipo de venta</label><select class="d-select" onchange="saveField('+p.id+',\'salida\',{...((projects.find(x=>x.id==='+p.id+')||{}).salida||{}),tipoVenta:this.value})" onclick="event.stopPropagation()">'+tipoVentaOpts+'</select></div>'
+    +'<div class="d-item"><label>Tipo de proceso</label><select class="d-select" onchange="saveField('+p.id+',\'salida\',{...((projects.find(x=>x.id==='+p.id+')||{}).salida||{}),tipoProceso:this.value})" onclick="event.stopPropagation()">'+tipoProcesoOpts+'</select></div>'
+    +'<div class="d-item"><label>Comercializador</label><input class="d-input" value="'+(s.comercializador||'')+'" oninput="saveField('+p.id+',\'salida\',{...((projects.find(x=>x.id==='+p.id+')||{}).salida||{}),comercializador:this.value})" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"><label>Comprador target</label><input class="d-input" value="'+(s.compradorTarget||'')+'" oninput="saveField('+p.id+',\'salida\',{...((projects.find(x=>x.id==='+p.id+')||{}).salida||{}),compradorTarget:this.value})" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item d-full"><label>Notas de salida</label><textarea class="d-textarea" oninput="saveField('+p.id+',\'salida\',{...((projects.find(x=>x.id==='+p.id+')||{}).salida||{}),notas:this.value});autoGrow(this)" onclick="event.stopPropagation()">'+( s.notas||'')+'</textarea></div>'
+    +'</div>'
+  +'</div>';
 }
 
 function renderTracksSection(p){
@@ -3163,11 +3181,12 @@ function renderMobileDetail(p, mfe, mfp, trackClsM){
     const ventaUdCalc = (!isNaN(ventaEurNum)&&!isNaN(nUdsNum)&&nUdsNum>0)?Math.round(ventaEurNum/nUdsNum):null;
 
     html += '<div class="mob-kpi-grid">';
-    if(eco.tirPct) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">TIR</div><div class="mob-kpi-value tir">${mfp(eco.tirPct)}</div></div>`;
-    if(eco.margenPct) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Margen</div><div class="mob-kpi-value">${mfp(eco.margenPct)}</div>${mgTotalCalc>0?`<div class="mob-kpi-sub">${fmtVal(mgTotalCalc)} total</div>`:''}</div>`;
-    if(eco.ventaEur) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Ventas</div><div class="mob-kpi-value">${mfe(eco.ventaEur)}</div>${eco.ventaEurM2||ventaUdCalc?`<div class="mob-kpi-sub">${eco.ventaEurM2?fmtMiles(parseInt(String(eco.ventaEurM2).replace(/\D/g,'')))+' €/m²':''}${eco.ventaEurM2&&ventaUdCalc?' · ':''}${ventaUdCalc?fmtVal(ventaUdCalc)+'/ud':''}</div>`:''}</div>`;
-    if(eco.sueloEur) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Suelo</div><div class="mob-kpi-value">${mfe(eco.sueloEur)}</div>${eco.sueloEurM2?`<div class="mob-kpi-sub">${fmtMiles(parseInt(String(eco.sueloEurM2).replace(/\D/g,'')))} €/m²</div>`:''}</div>`;
+    if(eco.tirPct)         html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">TIR</div><div class="mob-kpi-value tir">${mfp(eco.tirPct)}</div></div>`;
+    if(eco.margenPct)      html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Margen</div><div class="mob-kpi-value">${mfp(eco.margenPct)}</div>${mgTotalCalc>0?`<div class="mob-kpi-sub">${fmtVal(mgTotalCalc)} total</div>`:''}</div>`;
+    if(eco.sueloEur)       html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Suelo</div><div class="mob-kpi-value">${mfe(eco.sueloEur)}</div>${eco.sueloEurM2?`<div class="mob-kpi-sub">${fmtMiles(parseInt(String(eco.sueloEurM2).replace(/\D/g,'')))} €/m²</div>`:''}</div>`;
     if(eco.construccionEur) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Construcción</div><div class="mob-kpi-value">${mfe(eco.construccionEur)}</div>${eco.construccionEurM2?`<div class="mob-kpi-sub">${fmtMiles(parseInt(String(eco.construccionEurM2).replace(/\D/g,'')))} €/m²</div>`:''}</div>`;
+    if(eco.ventaEur)       html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Ventas</div><div class="mob-kpi-value">${mfe(eco.ventaEur)}</div>${eco.ventaEurM2||ventaUdCalc?`<div class="mob-kpi-sub">${eco.ventaEurM2?fmtMiles(parseInt(String(eco.ventaEurM2).replace(/\D/g,'')))+' €/m²':''}${eco.ventaEurM2&&ventaUdCalc?' · ':''}${ventaUdCalc?fmtVal(ventaUdCalc)+'/ud':''}</div>`:''}</div>`;
+    if(eco.fechaEntrega||eco.plazoMeses) html += `<div class="mob-kpi-cell"><div class="mob-kpi-label">Entrega</div><div class="mob-kpi-value" style="font-size:13px">${eco.fechaEntrega||'—'}</div>${eco.plazoMeses?`<div class="mob-kpi-sub">${eco.plazoMeses} meses obra</div>`:''}</div>`;
     html += '</div>';
   }
 
@@ -3180,6 +3199,21 @@ function renderMobileDetail(p, mfe, mfp, trackClsM){
     <div class="mob-det-row"><span class="mob-det-label">Ubicación</span><span class="mob-det-value">${[p.ciudad,p.ubicacion].filter(Boolean).join(', ')||'—'}${p.mapUrl?` <a href="${p.mapUrl.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-left:8px;padding:5px 12px;background:#e8f0eb;color:#1a3a2a;border-radius:14px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid #cfe6d5;vertical-align:middle">📍 Ver mapa</a>`:''}</span></div>
     ${p.delegacion?`<div class="mob-det-row"><span class="mob-det-label">Delegación</span><span class="mob-det-value">${p.delegacion}</span></div>`:''}
   </div>`;
+
+  // Salida (solo Pipeline y Desinversión)
+  if(['Pipeline','Desinversión'].includes(p.bloque)){
+    const sal = p.salida||{};
+    if(sal.tipoVenta||sal.tipoProceso||sal.comercializador||sal.compradorTarget||sal.notas){
+      html += `<div class="mob-det-section">
+        <div class="mob-det-section-title"><div class="mob-det-section-bar"></div>Salida</div>
+        ${sal.tipoVenta?`<div class="mob-det-row"><span class="mob-det-label">Tipo de venta</span><span class="mob-det-value">${sal.tipoVenta}</span></div>`:''}
+        ${sal.tipoProceso?`<div class="mob-det-row"><span class="mob-det-label">Tipo de proceso</span><span class="mob-det-value">${sal.tipoProceso}</span></div>`:''}
+        ${sal.comercializador?`<div class="mob-det-row"><span class="mob-det-label">Comercializador</span><span class="mob-det-value">${sal.comercializador}</span></div>`:''}
+        ${sal.compradorTarget?`<div class="mob-det-row"><span class="mob-det-label">Comprador target</span><span class="mob-det-value">${sal.compradorTarget}</span></div>`:''}
+        ${sal.notas?`<div class="mob-det-narrative" style="margin:8px 0">${sal.notas}</div>`:''}
+      </div>`;
+    }
+  }
 
   // Acciones
   if(Array.isArray(p.acciones) && p.acciones.length){
