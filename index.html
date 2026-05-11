@@ -1847,19 +1847,11 @@ function renderDetail() {
     +'<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4px 14px;margin-bottom:10px">'
     +'<div class="d-item"><label>'+contraparteLabel(p.bloque)+'</label><input class="d-input" value="'+(p.vendor||p.contraparte||'')+'" placeholder="—" oninput="saveField('+p.id+',\'vendor\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"><label>Broker / Agente</label><input class="d-input" value="'+(p.comprador||'')+'" placeholder="—" oninput="saveField('+p.id+',\'comprador\',this.value)" onclick="event.stopPropagation()"/></div>'
-    +(p.bloque==='Pipeline'
-      ?'<div class="d-item" onclick="event.stopPropagation()">'
-        +'<label>FPA</label>'
-        +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:3px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:4px 7px">'
-        +'<input type="checkbox" '+(p.fpa?'checked':'')+' style="accent-color:#1a3a2a;cursor:pointer;width:12px;height:12px" onchange="saveField('+p.id+',\'fpa\',this.checked);document.getElementById(\'fpa-buyer-'+p.id+'\').style.display=this.checked?\'block\':\'none\'"/>'
-        +'<span style="font-size:11px;font-weight:600;color:var(--text2)">Forward Purchase</span>'
-        +'</label>'
-        +'<div id="fpa-buyer-'+p.id+'" style="display:'+(p.fpa?'block':'none')+'">'
-        +'<input class="d-input" value="'+(p.fpaComprador||'')+'" placeholder="Comprador FPA…" oninput="saveField('+p.id+',\'fpaComprador\',this.value)" onclick="event.stopPropagation()"/>'
-        +'</div>'
-        +'</div>'
-      :'<div class="d-item"></div>')
+    +'<div class="d-item"></div>'
     +'</div>'
+    +(['Pipeline','Desinversión'].includes(p.bloque)
+      ?'<div class="d-item d-full" onclick="event.stopPropagation()" style="margin-top:4px"><label>Notas de salida</label><textarea class="d-textarea" placeholder="Condiciones, precio orientativo, estructura…" oninput="saveField('+p.id+',\'notasSalida\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+(p.notasSalida||'')+'</textarea></div>'
+      :'')
 
     // ── Fase del proceso (Pipeline only, inline) ──────────────
     +(p.bloque==='Pipeline'||p.bloque==='Desinversión'
@@ -1886,7 +1878,6 @@ function renderDetail() {
     +'</div>'
     + (p.bloque==='Pipeline'||p.bloque==='Pipeline' ? renderUbicSection(p) : '')
     + ecoSec
-    + (['Pipeline','Desinversión'].includes(p.bloque) ? renderSalidaSection(p) : '')
     + renderTracksSection(p)
     +'</div>';
 }
@@ -2014,10 +2005,20 @@ function renderTrackCard(p, t){
             +'<input class="detail-input" value="'+(t.broker||'').replace(/"/g,'&quot;')+'" placeholder="ej. JLL, CBRE…" onclick="event.stopPropagation()" oninput="updateTrackField('+p.id+','+t.id+',\'broker\',this.value)">'
           +'</div>'
           +'<div class="detail-field">'
-            +'<span class="detail-label">Tipo</span>'
+            +'<span class="detail-label">Tipo de proceso</span>'
             +'<select class="detail-select" onclick="event.stopPropagation()" onchange="updateTrackField('+p.id+','+t.id+',\'tipo\',this.value)">'
               + TRACK_TIPOS.map(tp=>'<option value="'+tp+'"'+(t.tipo===tp?' selected':'')+'>'+tp+'</option>').join('')
             +'</select>'
+          +'</div>'
+          +'<div class="detail-field">'
+            +'<span class="detail-label">Tipo de venta</span>'
+            +'<select class="detail-select" onclick="event.stopPropagation()" onchange="updateTrackField('+p.id+','+t.id+',\'tipoVenta\',this.value)">'
+              +['—','Forward Purchase','Venta directa'].map(tv=>'<option value="'+tv+'"'+(t.tipoVenta===tv?' selected':'')+'>'+tv+'</option>').join('')
+            +'</select>'
+          +'</div>'
+          +'<div class="detail-field">'
+            +'<span class="detail-label">Comprador target</span>'
+            +'<input class="detail-input" value="'+(t.compradorTarget||'').replace(/"/g,'&quot;')+'" placeholder="ej. Praemia, Greystar…" onclick="event.stopPropagation()" oninput="updateTrackField('+p.id+','+t.id+',\'compradorTarget\',this.value)">'
           +'</div>'
         +'</div>'
       +'</div>'
@@ -3201,18 +3202,11 @@ function renderMobileDetail(p, mfe, mfp, trackClsM){
   </div>`;
 
   // Salida (solo Pipeline y Desinversión)
-  if(['Pipeline','Desinversión'].includes(p.bloque)){
-    const sal = p.salida||{};
-    if(sal.tipoVenta||sal.tipoProceso||sal.comercializador||sal.compradorTarget||sal.notas){
-      html += `<div class="mob-det-section">
-        <div class="mob-det-section-title"><div class="mob-det-section-bar"></div>Salida</div>
-        ${sal.tipoVenta?`<div class="mob-det-row"><span class="mob-det-label">Tipo de venta</span><span class="mob-det-value">${sal.tipoVenta}</span></div>`:''}
-        ${sal.tipoProceso?`<div class="mob-det-row"><span class="mob-det-label">Tipo de proceso</span><span class="mob-det-value">${sal.tipoProceso}</span></div>`:''}
-        ${sal.comercializador?`<div class="mob-det-row"><span class="mob-det-label">Comercializador</span><span class="mob-det-value">${sal.comercializador}</span></div>`:''}
-        ${sal.compradorTarget?`<div class="mob-det-row"><span class="mob-det-label">Comprador target</span><span class="mob-det-value">${sal.compradorTarget}</span></div>`:''}
-        ${sal.notas?`<div class="mob-det-narrative" style="margin:8px 0">${sal.notas}</div>`:''}
-      </div>`;
-    }
+  if(['Pipeline','Desinversión'].includes(p.bloque) && p.notasSalida){
+    html += `<div class="mob-det-section">
+      <div class="mob-det-section-title"><div class="mob-det-section-bar"></div>Notas de salida</div>
+      <div class="mob-det-narrative">${p.notasSalida}</div>
+    </div>`;
   }
 
   // Acciones
