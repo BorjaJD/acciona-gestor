@@ -229,18 +229,18 @@
   .tarea-pers.done{opacity:.5;background:#fafaf8}
   .tarea-pers.done .tarea-pers-titulo{text-decoration:line-through;color:#999}
   .tarea-pers-check{accent-color:#3d7058;cursor:pointer;width:15px;height:15px;flex-shrink:0;margin-top:2px}
-  .tarea-pers-content{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-  .tarea-pers-titulo{font-size:13px;font-weight:500;color:var(--text);line-height:1.3}
+  .tarea-pers-content{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+  .tarea-pers-titulo{font-size:13px;font-weight:500;color:var(--text);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tarea-pers-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .tarea-pers-fecha{font-size:11px;font-weight:500;color:var(--text2)}
+  .tarea-pers-fecha{font-size:11px;font-weight:500;color:var(--text2);white-space:nowrap}
   .tarea-pers-fecha.urgente{color:#a85c4a;font-weight:700}
   .tarea-pers-fecha.hoy{color:#3d7058;font-weight:700}
-  .tarea-pers-prio{font-size:10px;font-weight:500;padding:1px 7px;border-radius:20px;letter-spacing:.01em}
+  .tarea-pers-prio{font-size:10px;font-weight:500;padding:1px 7px;border-radius:20px;letter-spacing:.01em;white-space:nowrap}
   .tarea-pers-prio.p-1{background:#fde8e3;color:#a85c4a}
   .tarea-pers-prio.p-2{background:#fdf3dc;color:#946818}
   .tarea-pers-prio.p-3{background:#eef2f5;color:#5a6a85}
-  .tarea-pers-proyecto{font-size:11px;color:var(--text3)}
-  .tarea-pers-notas-preview{font-size:11px;color:var(--text3);font-style:italic}
+  .tarea-pers-proyecto{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tarea-pers-notas-preview{font-size:11px;color:var(--text3);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
   .tarea-pers-actions{display:flex;gap:4px;flex-shrink:0}
   .tarea-pers-btn{font-size:11px;padding:3px 8px;border:0.5px solid var(--border);border-radius:var(--r);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font)}
   .tarea-pers-btn:hover{background:var(--surface2)}
