@@ -220,31 +220,31 @@
   .grupo-hechas.collapsed .grupo-hechas-content{display:none}
   .grupo-hechas.collapsed .grupo-arrow-tareas::before{content:"▸"}
   .grupo-hechas:not(.collapsed) .grupo-arrow-tareas::before{content:"▾"}
-  .tareas-list{display:flex;flex-direction:column;gap:6px;width:100%}
-  .tarea-pers{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:12px 14px;display:flex!important;align-items:flex-start;gap:12px;transition:all .15s;width:100%;box-sizing:border-box;position:relative}
-  .tarea-pers:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,0.05)}
-  .tarea-pers.prio-1{border-left:3px solid #a85c4a;border-radius:0 var(--rl) var(--rl) 0}
-  .tarea-pers.prio-2{border-left:3px solid #d4a04a;border-radius:0 var(--rl) var(--rl) 0}
-  .tarea-pers.prio-3{border-left:3px solid #b8c8d4;border-radius:0 var(--rl) var(--rl) 0}
-  .tarea-pers.done{opacity:.5;background:#fafaf8}
-  .tarea-pers.done .tarea-pers-titulo{text-decoration:line-through;color:#999}
-  .tarea-pers-check{accent-color:#3d7058;cursor:pointer;width:15px;height:15px;flex-shrink:0;margin-top:2px}
-  .tarea-pers-content{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;overflow:hidden}
-  .tarea-pers-titulo{font-size:13px;font-weight:500;color:var(--text);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .tarea-pers-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .tarea-pers-fecha{font-size:11px;font-weight:500;color:var(--text2);white-space:nowrap}
-  .tarea-pers-fecha.urgente{color:#a85c4a;font-weight:700}
-  .tarea-pers-fecha.hoy{color:#3d7058;font-weight:700}
-  .tarea-pers-prio{font-size:10px;font-weight:500;padding:1px 7px;border-radius:20px;letter-spacing:.01em;white-space:nowrap}
+  .tareas-list{display:flex;flex-direction:column;gap:8px}
+  .tarea-pers{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;display:flex;flex-direction:row;align-items:flex-start;gap:10px;box-sizing:border-box;width:100%;position:relative}
+  .tarea-pers:hover{border-color:var(--border2)}
+  .tarea-pers.prio-1{border-left:3px solid #a85c4a}
+  .tarea-pers.prio-2{border-left:3px solid #d4a04a}
+  .tarea-pers.prio-3{border-left:3px solid #b8c8d4}
+  .tarea-pers.done{opacity:.5}
+  .tarea-pers.done .tarea-pers-titulo{text-decoration:line-through;color:var(--text3)}
+  .tarea-pers-check{flex-shrink:0;margin-top:2px}
+  .tarea-pers-content{flex:1;min-width:0;display:block}
+  .tarea-pers-titulo{font-size:13px;font-weight:600;color:var(--text);line-height:1.4;margin:0 0 5px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+  .tarea-pers-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0}
+  .tarea-pers-fecha{font-size:11px;font-weight:500;color:var(--text2)}
+  .tarea-pers-fecha.urgente{color:#a85c4a}
+  .tarea-pers-fecha.hoy{color:#3d7058}
+  .tarea-pers-prio{font-size:10px;padding:1px 8px;border-radius:20px;display:inline-block}
   .tarea-pers-prio.p-1{background:#fde8e3;color:#a85c4a}
   .tarea-pers-prio.p-2{background:#fdf3dc;color:#946818}
   .tarea-pers-prio.p-3{background:#eef2f5;color:#5a6a85}
-  .tarea-pers-proyecto{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .tarea-pers-notas-preview{font-size:11px;color:var(--text3);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-  .tarea-pers-actions{display:flex;gap:4px;flex-shrink:0}
-  .tarea-pers-btn{font-size:11px;padding:3px 8px;border:0.5px solid var(--border);border-radius:var(--r);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font)}
+  .tarea-pers-proyecto{font-size:11px;color:var(--text3)}
+  .tarea-pers-notas-preview{font-size:11px;color:var(--text3);font-style:italic;margin:5px 0 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+  .tarea-pers-actions{display:flex;gap:4px;flex-shrink:0;margin-left:auto}
+  .tarea-pers-btn{font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--text2);cursor:pointer;font-family:var(--font)}
   .tarea-pers-btn:hover{background:var(--surface2)}
-  .tarea-pers-btn.delete{color:#c0392b;border-color:transparent}
+  .tarea-pers-btn.delete{border:none;color:#c0392b;font-size:13px;padding:2px 6px}
   .tarea-pers-btn.delete:hover{background:#fdf3f3}
   .tarea-pers.editing{border-color:#3d7058;background:#fafaf8;flex-direction:column;align-items:stretch;padding:14px}
   .tarea-pers.editing .tarea-pers-titulo,.tarea-pers.editing .tarea-pers-meta,.tarea-pers.editing .tarea-pers-notas-preview{display:none}
@@ -6230,70 +6230,56 @@ function clasificarTarea(t){
 }
 
 function renderTareas(){
-  const grupos = {hoy:[], semana:[], proximas:[], sinfecha:[], hechas:[]};
-  tareasPersonales.forEach(t=>{
-    const grupo = clasificarTarea(t);
-    if(grupo === 'hechas'){
-      const dias = diasHastaTarea(t.doneAt||t.fecha);
-      if(dias !== null && dias < -7) return;
-    }
-    grupos[grupo].push(t);
+  const urgentes = tareasPersonales.filter(t=>!t.done && t.urgente);
+  const resto = tareasPersonales.filter(t=>!t.done && !t.urgente);
+  const hechas = tareasPersonales.filter(t=>t.done).filter(t=>{
+    const dias = diasHastaTarea(t.doneAt||t.fecha);
+    return dias === null || dias >= -7;
   });
-  ['hoy','semana','proximas'].forEach(g=>{
-    grupos[g].sort((a,b)=>{
-      const da = a.fecha||'9999', db = b.fecha||'9999';
-      if(da !== db) return da.localeCompare(db);
-      return (a.prio||9)-(b.prio||9);
-    });
-  });
-  grupos.sinfecha.sort((a,b)=>(a.prio||9)-(b.prio||9));
-  grupos.hechas.sort((a,b)=>(b.doneAt||b.fecha||'').localeCompare(a.doneAt||a.fecha||''));
 
   const pendientes = tareasPersonales.filter(t=>!t.done);
   const kpiTotal = pendientes.length;
-  const kpiAlta = pendientes.filter(t=>t.prio===1).length;
-  const kpiHoy = grupos.hoy.length;
-  const kpiSemana = grupos.semana.length;
+  const kpiUrgente = urgentes.length;
+  const kpiHoy = pendientes.filter(t=>isHoyTarea(t.fecha)).length;
+  const restoConFecha = resto.filter(t=>t.fecha);
+  const restoSinFecha = resto.filter(t=>!t.fecha);
 
   let html = '<div class="view-panel">'
-    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">'
+    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">'
       + '<div class="kpi-card" style="cursor:default"><div class="kpi-card-label">Total pendientes</div><div class="kpi-card-value" style="color:#1a3a2a">'+kpiTotal+'</div></div>'
-      + '<div class="kpi-card" style="border-top:3px solid #a85c4a;cursor:default"><div class="kpi-card-label">Prioridad alta</div><div class="kpi-card-value" style="color:#a85c4a">'+kpiAlta+'</div></div>'
-      + '<div class="kpi-card" style="border-top:3px solid #3d7058;cursor:default"><div class="kpi-card-label">Para hoy</div><div class="kpi-card-value" style="color:#3d7058">'+kpiHoy+'</div></div>'
-      + '<div class="kpi-card" style="border-top:3px solid #7a9d8a;cursor:default"><div class="kpi-card-label">Esta semana</div><div class="kpi-card-value" style="color:#7a9d8a">'+kpiSemana+'</div></div>'
+      + '<div class="kpi-card" style="border-top:2px solid #a85c4a;cursor:default"><div class="kpi-card-label">Urgentes</div><div class="kpi-card-value" style="color:#a85c4a">'+kpiUrgente+'</div></div>'
+      + '<div class="kpi-card" style="border-top:2px solid #3d7058;cursor:default"><div class="kpi-card-label">Con fecha</div><div class="kpi-card-value" style="color:#3d7058">'+restoConFecha.length+'</div></div>'
+      + '<div class="kpi-card" style="border-top:2px solid #3d7058;cursor:default"><div class="kpi-card-label">Con fecha hoy</div><div class="kpi-card-value" style="color:#3d7058">'+kpiHoy+'</div></div>'
     + '</div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">'
       + '<div>'
-        + '<h2 style="font-size:16px;font-weight:800;margin:0">Mis tareas</h2>'
-        + '<div style="font-size:11px;color:#888;margin-top:2px">Bandeja personal · privada</div>'
+        + '<h2 style="font-size:16px;font-weight:700;margin:0;color:var(--text)">Mis tareas</h2>'
+        + '<div style="font-size:11px;color:var(--text3);margin-top:2px">Bandeja personal · privada</div>'
       + '</div>'
       + '<button onclick="addTareaPersonal()" style="font-size:12px;padding:7px 14px;border-radius:6px;border:none;background:#1a3a2a;color:#fff;cursor:pointer;font-family:var(--font);font-weight:600">＋ Nueva tarea</button>'
     + '</div>';
 
-  if(grupos.hoy.length) html += renderGrupoTareas('hoy','Hoy / Vencidas',grupos.hoy);
-  if(grupos.semana.length) html += renderGrupoTareas('semana','Esta semana',grupos.semana);
-  if(grupos.proximas.length) html += renderGrupoTareas('proximas','Próximas',grupos.proximas);
-  if(grupos.sinfecha.length) html += renderGrupoTareas('sinfecha','Sin fecha',grupos.sinfecha);
-
-  if(!grupos.hoy.length && !grupos.semana.length && !grupos.proximas.length && !grupos.sinfecha.length){
-    html += '<div style="text-align:center;padding:40px 20px;color:#aaa;font-size:13px">No tienes tareas pendientes. ¡Aprovecha! 🎉</div>';
-  }
-
-  if(grupos.hechas.length) html += renderGrupoTareasHechas(grupos.hechas);
+  if(urgentes.length) html += renderGrupoTareas('urgente','Urgente',urgentes);
+  if(restoConFecha.length) html += renderGrupoTareas('confecha','Con fecha límite',restoConFecha);
+  if(restoSinFecha.length) html += renderGrupoTareas('sinfecha','Sin fecha límite',restoSinFecha);
+  if(!urgentes.length && !resto.length) html += '<div style="text-align:center;padding:40px 20px;color:#aaa;font-size:13px">No tienes tareas pendientes 🎉</div>';
+  if(hechas.length) html += renderGrupoTareasHechas(hechas);
   html += '</div>';
   return html;
 }
 
 function renderGrupoTareas(g,label,items){
-  const barColors = {hoy:'#a85c4a', semana:'#3d7058', proximas:'#7a9d8a', sinfecha:'#aaa'};
+  const barColors = {urgente:'#a85c4a', confecha:'#d4a04a', sinfecha:'#aaa'};
+  const txtColors = {urgente:'#a85c4a', confecha:'#946818', sinfecha:'var(--text3)'};
   const bar = barColors[g]||'#aaa';
-  return '<div style="margin-bottom:20px">'
-    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
-      + '<div style="width:3px;height:12px;background:'+bar+';border-radius:2px;flex-shrink:0"></div>'
-      + '<span style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--text2)">'+label+'</span>'
+  const txt = txtColors[g]||'var(--text3)';
+  return '<div style="margin-bottom:24px">'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
+      + '<div style="width:3px;height:14px;background:'+bar+';border-radius:2px;flex-shrink:0"></div>'
+      + '<span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:'+txt+'">'+label+'</span>'
       + '<span style="font-size:11px;color:var(--text3)">· '+items.length+'</span>'
     + '</div>'
-    + '<div class="tareas-list">'+items.map(renderTareaItem).join('')+'</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">'+items.map(renderTareaItem).join('')+'</div>'
   + '</div>';
 }
 
@@ -6313,25 +6299,28 @@ function renderGrupoTareasHechas(items){
 function renderTareaItem(t){
   if(_editingTareaId === t.id) return renderTareaEdit(t);
   const fechaFmt = fmtFechaTarea(t.fecha);
-  const fechaCls = !t.fecha?'':isVencidaTarea(t.fecha)&&!t.done?'urgente':isHoyTarea(t.fecha)?'hoy':'';
-  const prioLabel = {1:'Alta',2:'Media',3:'Baja'}[t.prio]||'';
-  const titulo = (t.titulo||'').replace(/</g,'&lt;');
+  const fechaCls = !t.fecha?'':isVencidaTarea(t.fecha)&&!t.done?'#a85c4a':isHoyTarea(t.fecha)?'#3d7058':'#888';
+
+  const titulo = (t.titulo||'(sin título)').replace(/</g,'&lt;');
   const notas = (t.notas||'').replace(/</g,'&lt;');
   const proyecto = t.proyectoId ? (projects.find(p=>p.id===t.proyectoId)||{}).nombre||'' : '';
-  return '<div class="tarea-pers '+(t.done?'done':'')+(t.prio?' prio-'+t.prio:'')+'">'
-    + '<input type="checkbox" class="tarea-pers-check" '+(t.done?'checked':'')+' onclick="toggleTareaPersonal('+t.id+')">'
-    + '<div class="tarea-pers-content">'
-      + '<div class="tarea-pers-titulo">'+titulo+'</div>'
-      + '<div class="tarea-pers-meta">'
-        + (fechaFmt?'<span class="tarea-pers-fecha '+fechaCls+'">📅 '+fechaFmt+'</span>':'')
-        + (prioLabel?'<span class="tarea-pers-prio p-'+t.prio+'">'+prioLabel+'</span>':'')
-        + (proyecto?'<span class="tarea-pers-proyecto">· '+proyecto+'</span>':'')
+  const barColor = t.urgente ? '#a85c4a' : t.fecha ? '#d4a04a' : '#e0dfd8';
+  return '<div style="background:white;border-radius:8px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,0.07);border:1px solid #eee;display:flex;flex-direction:column;'+(t.done?'opacity:.5':'')+'\">'
+    + '<div style="height:3px;background:'+barColor+'"></div>'
+    + '<div style="padding:12px 14px;display:flex;flex-direction:column;gap:6px">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
+        + '<div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0">'
+          + '<input type="checkbox" '+(t.done?'checked':'')+' onclick="toggleTareaPersonal('+t.id+')" style="margin-top:2px;flex-shrink:0;accent-color:#3d7058;width:14px;height:14px">'
+          + '<div style="font-weight:600;font-size:13px;color:#1a1a18;line-height:1.3;'+(t.done?'text-decoration:line-through;color:#999':'')+'">'+titulo+'</div>'
+        + '</div>'
+        + '<button onclick="editTareaPersonal('+t.id+')" style="font-size:11px;padding:2px 8px;border:1px solid #e0dfd8;border-radius:4px;background:white;color:#888;cursor:pointer;flex-shrink:0;font-family:var(--font)">Editar</button>'
       + '</div>'
-      + (notas?'<div class="tarea-pers-notas-preview">'+notas+'</div>':'')
-    + '</div>'
-    + '<div class="tarea-pers-actions">'
-      + '<button class="tarea-pers-btn" onclick="editTareaPersonal('+t.id+')">Editar</button>'
-      + '<button class="tarea-pers-btn delete" onclick="deleteTareaPersonal('+t.id+')">✕</button>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;padding-left:22px">'
+        + (fechaFmt?'<span style="font-size:12px;font-weight:700;color:'+fechaCls+';background:'+(fechaCls==='#a85c4a'?'#fde8e3':fechaCls==='#3d7058'?'#e8f5e9':'#f5f4f0')+';padding:2px 8px;border-radius:20px">'+fechaFmt+'</span>':'')
+        + (proyecto?'<span style="font-size:11px;color:#aaa">· '+proyecto+'</span>':'')
+        + (t.createdAt?'<span style="font-size:10px;color:#ccc;margin-left:auto">'+new Date(t.createdAt+'T00:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'short'})+'</span>':'')
+      + '</div>'
+      + (notas?'<div style="font-size:11px;color:#aaa;font-style:italic;padding-left:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+notas+'</div>':'')
     + '</div>'
   + '</div>';
 }
@@ -6339,18 +6328,26 @@ function renderTareaItem(t){
 function renderTareaEdit(t){
   const titulo = (t.titulo||'').replace(/"/g,'&quot;');
   const notas = (t.notas||'').replace(/</g,'&lt;');
+  const tieneFechaLimite = !!t.fecha;
   return '<div class="tarea-pers editing">'
     + '<div class="edit-form-tarea">'
       + '<div><span class="edit-label-tarea">Título</span><input class="edit-input-tarea" id="ed-titulo-'+t.id+'" value="'+titulo+'" placeholder="¿Qué tienes que hacer?" autofocus></div>'
       + '<div class="edit-grid-tarea">'
-        + '<div><span class="edit-label-tarea">Fecha</span><input type="date" class="edit-input-tarea" id="ed-fecha-'+t.id+'" value="'+(t.fecha||'')+'"></div>'
-        + '<div><span class="edit-label-tarea">Prioridad</span>'
-          + '<select class="edit-input-tarea" id="ed-prio-'+t.id+'">'
-            + '<option value="">— sin prioridad —</option>'
-            + '<option value="1"'+(t.prio===1?' selected':'')+'>Alta</option>'
-            + '<option value="2"'+(t.prio===2?' selected':'')+'>Media</option>'
-            + '<option value="3"'+(t.prio===3?' selected':'')+'>Baja</option>'
-          + '</select>'
+        + '<div><span class="edit-label-tarea">Fecha de creación</span><input type="date" class="edit-input-tarea" id="ed-createdat-'+t.id+'" value="'+(t.createdAt||'')+'"></div>'
+
+      + '</div>'
+      + '<div style="display:flex;gap:16px;align-items:center">'
+        + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer">'
+          + '<input type="checkbox" id="ed-urgente-'+t.id+'" '+(t.urgente?'checked':'')+' style="accent-color:#a85c4a;width:14px;height:14px">'
+          + '<span class="edit-label-tarea" style="margin:0;color:#a85c4a">Urgente</span>'
+        + '</label>'
+        + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer">'
+          + '<input type="checkbox" id="ed-tiene-fecha-'+t.id+'" '+(tieneFechaLimite?'checked':'')+' onchange="document.getElementById(\'ed-fecha-wrap-'+t.id+'\').style.display=this.checked?\'block\':\'none\'" style="accent-color:#3d7058;width:14px;height:14px">'
+          + '<span class="edit-label-tarea" style="margin:0">Tiene fecha límite</span>'
+        + '</label>'
+      + '</div>'
+        + '<div id="ed-fecha-wrap-'+t.id+'" style="display:'+(tieneFechaLimite?'block':'none')+'">'
+          + '<input type="date" class="edit-input-tarea" id="ed-fecha-'+t.id+'" value="'+(t.fecha||'')+'">'
         + '</div>'
       + '</div>'
       + '<div><span class="edit-label-tarea">Notas</span><textarea class="edit-textarea-tarea" id="ed-notas-'+t.id+'" placeholder="Detalles, contexto, recordatorios…">'+notas+'</textarea></div>'
@@ -6365,7 +6362,7 @@ function renderTareaEdit(t){
 
 function addTareaPersonal(){
   const newId = (tareasPersonales.length>0 ? Math.max(...tareasPersonales.map(t=>t.id||0)) : 0)+1;
-  tareasPersonales.unshift({id:newId, titulo:'', fecha:offsetDateTareas(0), prio:null, notas:'', done:false});
+  tareasPersonales.unshift({id:newId, titulo:'', fecha:offsetDateTareas(0), prio:null, notas:'', done:false, createdAt:offsetDateTareas(0), urgente:false});
   _editingTareaId = newId;
   persistTareas();
   render();
@@ -6378,10 +6375,12 @@ function saveEditTarea(id){
   const t = tareasPersonales.find(x=>x.id===id);
   if(!t) return;
   t.titulo = document.getElementById('ed-titulo-'+id).value.trim();
-  t.fecha = document.getElementById('ed-fecha-'+id).value;
-  const prio = document.getElementById('ed-prio-'+id).value;
-  t.prio = prio?parseInt(prio):null;
+  t.urgente = document.getElementById('ed-urgente-'+id).checked;
+  const tieneFecha = document.getElementById('ed-tiene-fecha-'+id).checked;
+  t.fecha = tieneFecha ? (document.getElementById('ed-fecha-'+id).value||'') : '';
   t.notas = document.getElementById('ed-notas-'+id).value.trim();
+  const createdAt = document.getElementById('ed-createdat-'+id).value;
+  if(createdAt) t.createdAt = createdAt;
   if(!t.titulo){
     tareasPersonales = tareasPersonales.filter(x=>x.id!==id);
   }
