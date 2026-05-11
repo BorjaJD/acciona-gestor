@@ -1899,6 +1899,17 @@ function renderSalidaSection(p){
   +'</div>';
 }
 
+function saveTrackOferta(pid, tid, hitoKey, campo, valor){
+  const p=projects.find(x=>x.id===pid); if(!p) return;
+  const t=(p.tracks||[]).find(x=>x.id===tid); if(!t) return;
+  if(!t.hitos) t.hitos={};
+  if(!t.hitos[hitoKey]) t.hitos[hitoKey]={done:false,fecha:'',importe:0};
+  t.hitos[hitoKey][campo]=valor;
+  if(campo==='importe') t.ofertaImporte=valor;
+  if(campo==='fecha') t.ofertaFecha=valor;
+  persist();
+}
+
 function renderTracksSection(p){
   ensureTracks(p);
   // Toggle de activación
@@ -2053,14 +2064,14 @@ function renderTrackCard(p, t){
           +'<div class="detail-grid-2">'
             +'<div class="detail-field">'
               +'<span class="detail-label">Importe oferta (€)</span>'
-              +'<input type="number" class="detail-input" value="'+(hitoImporte||'')+'" placeholder="ej. 15500000" onclick="event.stopPropagation()" oninput="(function(v){var k=\''+( hitoActivo||'bo')+'\';updateTrackHito('+p.id+','+t.id+',k,\'importe\',Number(v));updateTrackField('+p.id+','+t.id+',\'ofertaImporte\',Number(v));})(this.value)">'
+              +'<input type="number" class="detail-input" value="'+(hitoImporte||'')+'" placeholder="ej. 15500000" onclick="event.stopPropagation()" oninput="saveTrackOferta('+p.id+','+t.id+',\''+( hitoActivo||'bo')+'\',\'importe\',Number(this.value))">'
             +'</div>'
             +'<div class="detail-field">'
               +'<span class="detail-label">Fecha oferta</span>'
-              +'<input type="date" class="detail-input" value="'+hitoFecha+'" onclick="event.stopPropagation()" onchange="(function(v){var k=\''+(hitoActivo||'bo')+'\';updateTrackHito('+p.id+','+t.id+',k,\'fecha\',v);updateTrackField('+p.id+','+t.id+',\'ofertaFecha\',v);})(this.value)">'
+              +'<input type="date" class="detail-input" value="'+hitoFecha+'" onclick="event.stopPropagation()" onchange="saveTrackOferta('+p.id+','+t.id+',\''+(hitoActivo||'bo')+'\',\'fecha\',this.value)">'
             +'</div>'
           +'</div>'
-          +(hitoImporte>0?'<div style="margin-top:6px;font-size:11px;color:#3d7058;font-weight:600">→ '+fmtMiles(hitoImporte)+' €'+(hitoActivo?' ('+hitoLabel+')')+'</div>':'')
+          +(hitoImporte>0?'<div style="margin-top:6px;font-size:11px;color:#3d7058;font-weight:600">→ '+fmtMiles(hitoImporte)+' € ('+hitoLabel+')</div>':'')
         +'</div>';
       })()
       // Hitos colapsable
@@ -3701,8 +3712,8 @@ function renderPipelineSummary() {
     // Empate (o sin fecha) → por estado
     return (ESTADO_ORDEN_PIP[a.estado]??99) - (ESTADO_ORDEN_PIP[b.estado]??99);
   });
-  const sortedMain = sorted.filter(p=>hasEcoData(p) && p.estado!=='Stand By');
-  const sortedSB   = sorted.filter(p=>p.estado==='Stand By');
+  const sortedMain = sorted.filter(p=>hasEcoData(p) && p.estado!=='Stand By').slice(0,9);
+  const sortedSB   = sorted.filter(p=>p.estado==='Stand By').slice(0,3);
   const sortedPend = sorted.filter(p=>!hasEcoData(p) && p.estado!=='Stand By');
   const tirVals=psActive.map(p=>parseFloat(p.eco?.tirPct||0)).filter(n=>n>0);
   const mgVals=psActive.map(p=>parseFloat(p.eco?.margenPct||0)).filter(n=>n>0);
@@ -3879,6 +3890,11 @@ function renderPipelineSummary() {
 
   // ── TABLE ROWS ────────────────────────────────────────────────
   // Cells helper to keep DRY between active rows and stand-by rows (different muted style)
+  const totalRows = sortedMain.length + (sortedSB.filter(p=>hasEcoData(p)).length);
+  const rowPad = totalRows > 7 ? '3px' : '4px';
+  const rowFontName = totalRows > 7 ? '9px' : '10px';
+  const rowFontVal = totalRows > 7 ? '8px' : '9px';
+
   function buildRow(p, i, isStandBy){
     const e=p.eco||{};
     const bgBase = isStandBy ? (i%2?'#f5f3ee':'#fafaf8') : (i%2?'#fafaf8':'white');
@@ -3892,12 +3908,12 @@ function renderPipelineSummary() {
     const ventaWeight = isStandBy ? '600' : '600';
     const ventaColor = isStandBy ? '#3a3a38' : '#1a1a18';
     return `<tr style="background:${bgBase};${muted}">
-      <td style="padding:4px 6px 4px 0;overflow:hidden;max-width:0">
-        <div style="font-weight:${isStandBy?'500':'600'};font-size:10px;color:${nameColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nombre}</div>
+      <td style="padding:${rowPad} 6px ${rowPad} 0;overflow:hidden;max-width:0">
+        <div style="font-weight:${isStandBy?'500':'600'};font-size:${rowFontName};color:${nameColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nombre}</div>
         <span style="font-size:7px;font-weight:700;padding:1px 4px;border-radius:5px;background:${EC[p.estado]||'#eee'};color:white">${p.estado}</span>
       </td>
-      <td style="padding:4px 4px;font-size:9px;color:#888;white-space:nowrap">${p.ubicacion||'—'}</td>
-      <td style="padding:4px 4px;text-align:right">
+      <td style="padding:${rowPad} 4px;font-size:${rowFontVal};color:#888;white-space:nowrap">${p.ubicacion||'—'}</td>
+      <td style="padding:${rowPad} 4px;text-align:right">
         <div style="font-size:9.5px;color:${valueColor}">${fm(e.sueloEur)}</div>
         ${fm2(e.sueloEurM2)?`<div style="font-size:7px;color:#ccc">${fm2(e.sueloEurM2)}</div>`:''}
       </td>
