@@ -21,6 +21,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Aptos:wght@400;500;600;700&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{background:#0d1f15;height:-webkit-fill-available}
   html.app-ready{background:var(--bg)}
@@ -30,7 +31,6 @@
     /* el body beige cubre todo el contenido scrollable */
     body.app-ready { background: #f5f4f0 }
   }
-  @import url('https://fonts.googleapis.com/css2?family=Aptos:wght@400;500;600;700&display=swap');
   :root{
     --sat: env(safe-area-inset-top, 0px);
     --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;
@@ -3404,7 +3404,17 @@ function render() {
       catch(e) { m.innerHTML='<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error en Deal Sheet:</strong><br><pre>'+e.message+'\n'+e.stack+'</pre></div>'; console.error(e); }
     }
     else if(S.view==='tareas') m.innerHTML=renderTareas();
-    else if(S.view==='mapa'){ m.style.overflow='hidden'; m.innerHTML=renderMapaHTML(); initMapa(); }
+    else if(S.view==='mapa'){
+      m.style.overflow='hidden';
+      m.innerHTML=renderMapaHTML();
+      if(window.L){ initMapa(); }
+      else{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+        s.onload=()=>initMapa();
+        document.head.appendChild(s);
+      }
+    }
     else if(S.view==='noticias'){ m.style.overflow='hidden'; m.innerHTML=renderNoticiasHTML(); initNoticias(); }
   });
 }
