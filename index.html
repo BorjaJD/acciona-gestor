@@ -1832,7 +1832,7 @@ function renderDetail() {
         +'</select></div>'
       : '<div></div>')
     +'</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-bottom:10px">'
+    +'<div style="display:grid;grid-template-columns:180px 180px;gap:4px 14px;margin-bottom:10px">'
     +'<div class="d-item"><label style="display:flex;align-items:center;gap:4px">Latitud <span style="font-size:9px;color:var(--text3);font-weight:400">(ej. 40.4168)</span></label><input class="d-input" type="text" inputmode="decimal" value="'+(p.lat||'')+'" placeholder="40.4168" onblur="saveField('+p.id+',\'lat\',parseFloat(this.value.replace(\',\',\'.\'))||null)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"><label style="display:flex;align-items:center;gap:4px">Longitud <span style="font-size:9px;color:var(--text3);font-weight:400">(ej. -3.7038)</span></label><input class="d-input" type="text" inputmode="decimal" value="'+(p.lon||'')+'" placeholder="-3.7038" onblur="saveField('+p.id+',\'lon\',parseFloat(this.value.replace(\',\',\'.\'))||null)" onclick="event.stopPropagation()"/></div>'
     +'</div>'
@@ -3404,8 +3404,8 @@ function render() {
       catch(e) { m.innerHTML='<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error en Deal Sheet:</strong><br><pre>'+e.message+'\n'+e.stack+'</pre></div>'; console.error(e); }
     }
     else if(S.view==='tareas') m.innerHTML=renderTareas();
-    else if(S.view==='mapa'){ m.innerHTML=renderMapaHTML(); initMapa(); }
-    else if(S.view==='noticias'){ m.innerHTML=renderNoticiasHTML(); initNoticias(); }
+    else if(S.view==='mapa'){ m.style.overflow='hidden'; m.innerHTML=renderMapaHTML(); initMapa(); }
+    else if(S.view==='noticias'){ m.style.overflow='hidden'; m.innerHTML=renderNoticiasHTML(); initNoticias(); }
   });
 }
 
@@ -6273,7 +6273,7 @@ function renderMapaHTML(){
       </div>
       <span id="mapa-count" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
     </div>
-    <div id="mapa-leaflet" style="flex:1;z-index:1"></div>
+    <div id="mapa-leaflet" style="flex:1;z-index:1;min-height:400px"></div>
   </div>`;
 }
 
@@ -6352,7 +6352,7 @@ function initMapa(){
   updateMapaMarkers();
 
   // Fix leaflet size
-  setTimeout(()=>{ if(_mapaInstance) _mapaInstance.invalidateSize(); },100);
+  setTimeout(()=>{ if(_mapaInstance) _mapaInstance.invalidateSize(); },300);
 }
 
 // ── NOTICIAS ─────────────────────────────────────────────────────
