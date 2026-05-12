@@ -6339,20 +6339,10 @@ function initMapa(){
   if(!el) return;
 
   _mapaInstance = L.map('mapa-leaflet',{zoomControl:true}).setView([40.4,-3.7],6);
-  // Intentar múltiples proveedores de tiles
-  const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-  const tileLayer = L.tileLayer(tileUrl,{
-    attribution:'© OpenStreetMap',maxZoom:19,
-    subdomains:['a','b','c']
-  });
-  tileLayer.addTo(_mapaInstance);
-  tileLayer.on('tileerror', function(){
-    // Fallback a CartoDB
-    _mapaInstance.eachLayer(l=>_mapaInstance.removeLayer(l));
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
-      attribution:'© CartoDB',maxZoom:19
-    }).addTo(_mapaInstance);
-  });
+  L.tileLayer('https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=Zp1JzwLHyN2WX7sJpjQF',{
+    attribution:'© <a href="https://www.maptiler.com">MapTiler</a> © <a href="https://www.openstreetmap.org">OpenStreetMap</a>',
+    maxZoom:19,tileSize:512,zoomOffset:-1
+  }).addTo(_mapaInstance);
 
   _mapaMarkers = [];
   const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
