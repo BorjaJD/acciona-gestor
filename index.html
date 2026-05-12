@@ -2373,7 +2373,9 @@ function setSortCol(col, shiftKey) {
 }
 function selectProject(id) {
   S.selId = S.selId === id ? null : id;
-  // Update detail panel and table rows without full re-render
+  // Quitar todos los detail-panels existentes por si hay duplicados
+  document.querySelectorAll('.detail-panel').forEach((dp,i)=>{ if(i>0) dp.remove(); });
+  // Update detail panel
   const dp = document.querySelector('.detail-panel');
   if(dp) dp.outerHTML = renderDetail();
   // Update selected row highlight
