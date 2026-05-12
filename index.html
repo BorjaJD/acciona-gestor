@@ -2377,21 +2377,8 @@ function setSortCol(col, shiftKey) {
 }
 function selectProject(id) {
   S.selId = S.selId === id ? null : id;
-  // Quitar todos los detail-panels existentes por si hay duplicados
-  document.querySelectorAll('.detail-panel').forEach((dp,i)=>{ if(i>0) dp.remove(); });
-  // Update detail panel
-  const dp = document.querySelector('.detail-panel');
-  if(dp) dp.outerHTML = renderDetail();
-  // Update selected row highlight
-  document.querySelectorAll('tbody tr[data-id]').forEach(tr => {
-    tr.classList.toggle('selected', parseInt(tr.dataset.id) === S.selId);
-  });
-  // Update bar title if minimised
-  const barTitle = document.querySelector('.detail-bar-title');
-  if(barTitle && S.selId) {
-    const p = projects.find(x=>x.id===S.selId);
-    if(p && S.detailMin) barTitle.textContent = p.nombre;
-  }
+  S.detailMin = false;
+  render();
 }
 function toggleGroup(b) {
   if(S.collapsedGroups.has(b)) S.collapsedGroups.delete(b);
