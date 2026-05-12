@@ -1735,7 +1735,11 @@ function toggleDetailMin() {
   S.detailMin = !S.detailMin;
   const panel = document.querySelector('.detail-panel');
   const bar = document.querySelector('.detail-panel-bar');
-  if(panel) panel.classList.toggle('minimised', S.detailMin);
+  if(panel){
+    // Ocultar/mostrar el contenido del panel directamente
+    panel.style.display = S.detailMin ? 'none' : '';
+    panel.classList.toggle('minimised', S.detailMin);
+  }
   if(bar) {
     const btn = bar.querySelector('.detail-min-btn');
     const title = bar.querySelector('.detail-bar-title');
@@ -6369,8 +6373,9 @@ function initMapa(){
         <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:${color}22;color:${color}">${p.estado}</span>
         <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:#f0efe9;color:#666">${p.bloque}</span>
       </div>${tirStr}
-      <button onclick="window._mapaGoTo(${pid})" style="margin-top:10px;width:100%;padding:7px;border-radius:6px;background:#1a3a2a;color:white;border:none;cursor:pointer;font-size:11px;font-weight:600">Ver ficha →</button>
+      <div style="margin-top:8px;font-size:10px;color:#aaa;font-style:italic">Doble clic para ver ficha</div>
     </div>`,{maxWidth:240});
+    marker.on('dblclick', function(){ navigateTo('tabla',{id:pid}); });
     marker.addTo(_mapaInstance);
     _mapaMarkers.push(marker);
   });
