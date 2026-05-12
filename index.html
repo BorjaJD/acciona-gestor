@@ -757,8 +757,7 @@
   .eco-card-footer { padding:8px 14px; background:var(--surface2); border-top:1px solid var(--border); display:flex; align-items:center; gap:6px; }
   .eco-edit-btn { font-size:11px; color:var(--accent); cursor:pointer; text-decoration:underline; background:none; border:none; font-family:var(--font); padding:0; }
   .eco-edit-btn:hover { opacity:.7; }
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </style>
 </head>
@@ -3406,20 +3405,20 @@ function render() {
     else if(S.view==='tareas') m.innerHTML=renderTareas();
     else if(S.view==='mapa'){
       m.style.overflow='hidden';
-      m.style.display='flex';
-      m.style.flexDirection='column';
       m.innerHTML=renderMapaHTML();
-      requestAnimationFrame(()=>{
-        requestAnimationFrame(()=>{
-          if(window.L){ initMapa(); }
-          else{
-            const s=document.createElement('script');
-            s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-            s.onload=()=>initMapa();
-            document.head.appendChild(s);
-          }
-        });
-      });
+      function doInitMapa(){
+        if(window.d3 && window.topojson){ initMapa(); }
+        else{
+          const s1=document.createElement('script'); s1.src='https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';
+          s1.onload=()=>{
+            const s2=document.createElement('script'); s2.src='https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js';
+            s2.onload=()=>setTimeout(initMapa,100);
+            document.head.appendChild(s2);
+          };
+          document.head.appendChild(s1);
+        }
+      }
+      setTimeout(doInitMapa,50);
     }
     else if(S.view==='noticias'){ m.style.overflow='hidden'; m.innerHTML=renderNoticiasHTML(); initNoticias(); }
   });
@@ -6269,155 +6268,213 @@ function clasificarTarea(t){
 }
 
 // ── MAPA ────────────────────────────────────────────────────────
-let _mapaInstance = null;
-
-function renderMapaHTML(){
-  return `<div style="position:relative;height:100%;width:100%;overflow:hidden">
-    <div style="position:absolute;top:0;left:0;right:0;background:white;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;z-index:1000" id="mapa-toolbar">
-      <span style="font-size:13px;font-weight:700;color:var(--text)">Mapa de proyectos</span>
-      <div style="display:flex;gap:5px;flex-wrap:wrap" id="mapa-filters">
-        <button class="mapa-filter active" onclick="mapaFilter('todo',this)">Todo</button>
-        <button class="mapa-filter" onclick="mapaFilter('Pipeline',this)">Pipeline</button>
-        <button class="mapa-filter" onclick="mapaFilter('Desinversión',this)">Desinversión</button>
-        <button class="mapa-filter" onclick="mapaFilter('Clientes / Gestión',this)">Clientes</button>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center;margin-left:8px;flex-wrap:wrap">
-        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:50%;background:#3d7058;display:inline-block;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>WIP / DD</span>
-        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:50%;background:#d4a04a;display:inline-block;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>En análisis</span>
-        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:50%;background:#7a9d8a;display:inline-block;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>Recibido</span>
-        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:50%;background:#aaa;display:inline-block;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>Stand By</span>
-      </div>
-      <span id="mapa-count" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
-    </div>
-    <div id="mapa-leaflet" style="position:absolute;top:0;left:0;right:0;bottom:0"></div>
-  </div>`;
-}
+let _mapaFilter = 'todo';
 
 function mapaEstadoColor(estado){
   if(['WIP','Due diligence'].includes(estado)) return '#3d7058';
-  if(['En análisis','Recibido en análisis'].includes(estado)) return '#d4a04a';
+  if(estado==='En análisis') return '#d4a04a';
   if(estado==='Recibido') return '#7a9d8a';
   return '#aaa';
 }
-
-let _mapaFilter = 'todo';
-let _mapaMarkers = [];
 
 function mapaFilter(f, btn){
   _mapaFilter = f;
   document.querySelectorAll('.mapa-filter').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  updateMapaMarkers();
+  // Actualizar opacidad de puntos
+  document.querySelectorAll('.mapa-dot').forEach(el=>{
+    const bloque = el.getAttribute('data-bloque');
+    el.style.opacity = (f==='todo'||bloque===f) ? '1' : '0.15';
+  });
+  const visible = projects.filter(p=>p.lat&&p.lon&&(f==='todo'||p.bloque===f)&&!['Descartado','Cerrado'].includes(p.estado));
+  const cnt = document.getElementById('mapa-count');
+  if(cnt) cnt.textContent = visible.length+' proyecto'+(visible.length!==1?'s':'');
 }
 
-function updateMapaMarkers(){
-  const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
-  const filtered = _mapaFilter==='todo' ? active : active.filter(p=>p.bloque===_mapaFilter);
-  document.getElementById('mapa-count').textContent = filtered.length+' proyecto'+(filtered.length!==1?'s':'');
-  _mapaMarkers.forEach(m=>{ try{ m.setOpacity(_mapaFilter==='todo'||m._proj.bloque===_mapaFilter?1:0.2); }catch(e){} });
+function renderMapaHTML(){
+  if(!document.getElementById('mapa-filter-css')){
+    const s=document.createElement('style');
+    s.id='mapa-filter-css';
+    s.textContent='.mapa-filter{font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:var(--font)}.mapa-filter.active{background:#1a3a2a;color:white;border-color:#1a3a2a}';
+    document.head.appendChild(s);
+  }
+  return `<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+    <div style="background:white;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
+      <span style="font-size:13px;font-weight:700;color:var(--text)">Mapa de proyectos</span>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="mapa-filter active" onclick="mapaFilter('todo',this)">Todo</button>
+        <button class="mapa-filter" onclick="mapaFilter('Pipeline',this)">Pipeline</button>
+        <button class="mapa-filter" onclick="mapaFilter('Desinversión',this)">Desinversión</button>
+        <button class="mapa-filter" onclick="mapaFilter('Clientes / Gestión',this)">Clientes</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-left:8px;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#3d7058;display:inline-block"></span>WIP/DD</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#d4a04a;display:inline-block"></span>En análisis</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#7a9d8a;display:inline-block"></span>Recibido</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#aaa;display:inline-block"></span>Stand By</span>
+      </div>
+      <span id="mapa-count" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
+    </div>
+    <div id="mapa-svg-wrap" style="flex:1;position:relative;background:#dce8dc;overflow:hidden">
+      <svg id="mapa-svg" style="width:100%;height:100%;display:block"></svg>
+      <div id="mapa-tooltip" style="display:none;position:absolute;background:white;border:1px solid #e0e0d8;border-radius:8px;padding:10px 13px;font-size:11px;pointer-events:none;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,0.12);min-width:190px"></div>
+    </div>
+  </div>`;
 }
 
 function initMapa(){
-  if(!window.L) return;
-  if(_mapaInstance){ try{_mapaInstance.remove();}catch(e){} _mapaInstance=null; }
-  const el = document.getElementById('mapa-leaflet');
-  if(!el) return;
+  if(!window.d3||!window.topojson) return;
+  const wrap = document.getElementById('mapa-svg-wrap');
+  const svg = document.getElementById('mapa-svg');
+  const tooltip = document.getElementById('mapa-tooltip');
+  if(!wrap||!svg) return;
 
-  // Con position:absolute el toolbar flota encima — ajustar padding-top del mapa
-  const toolbar = document.getElementById('mapa-toolbar');
-  const tbH = toolbar ? toolbar.offsetHeight : 48;
-  el.style.paddingTop = tbH + 'px';
+  const W = wrap.offsetWidth||800;
+  const H = wrap.offsetHeight||500;
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
 
-  _mapaInstance = L.map('mapa-leaflet',{zoomControl:true}).setView([40.4,-3.7],6);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    attribution:'© OpenStreetMap',maxZoom:18
-  }).addTo(_mapaInstance);
+  const projection = d3.geoMercator().center([-3.5,40.2]).scale(W*3.5).translate([W/2,H/2]);
+  const path = d3.geoPath(projection);
+  const svgEl = d3.select('#mapa-svg');
+  svgEl.selectAll('*').remove();
 
-  _mapaMarkers = [];
-  const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
+  // Contenedor zoomable
+  const g = svgEl.append('g').attr('id','mapa-g');
 
-  active.forEach(p=>{
-    const color = mapaEstadoColor(p.estado);
-    const icon = L.divIcon({
-      html:`<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>`,
-      className:'',iconSize:[14,14],iconAnchor:[7,7]
+  // Zoom
+  const zoom = d3.zoom()
+    .scaleExtent([0.5, 20])
+    .on('zoom', (event)=>{ g.attr('transform', event.transform); });
+  svgEl.call(zoom);
+
+  // Botones de zoom
+  const wrap2 = document.getElementById('mapa-svg-wrap');
+  if(wrap2 && !document.getElementById('mapa-zoom-btns')){
+    const zbtns = document.createElement('div');
+    zbtns.id = 'mapa-zoom-btns';
+    zbtns.style.cssText = 'position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;gap:4px;z-index:10';
+    zbtns.innerHTML = `
+      <button onclick="document.getElementById('mapa-svg').__zoom_in()" style="width:32px;height:32px;border-radius:6px;border:1px solid #ccc;background:white;font-size:18px;cursor:pointer;line-height:1">+</button>
+      <button onclick="document.getElementById('mapa-svg').__zoom_out()" style="width:32px;height:32px;border-radius:6px;border:1px solid #ccc;background:white;font-size:18px;cursor:pointer;line-height:1">−</button>
+      <button onclick="document.getElementById('mapa-svg').__zoom_reset()" style="width:32px;height:32px;border-radius:6px;border:1px solid #ccc;background:white;font-size:12px;cursor:pointer;line-height:1">⌂</button>
+    `;
+    wrap2.appendChild(zbtns);
+  }
+  // Exponer funciones de zoom
+  const svgNode = document.getElementById('mapa-svg');
+  svgNode.__zoom_in = ()=> svgEl.transition().duration(300).call(zoom.scaleBy, 1.5);
+  svgNode.__zoom_out = ()=> svgEl.transition().duration(300).call(zoom.scaleBy, 0.67);
+  svgNode.__zoom_reset = ()=> svgEl.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
+
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(world=>{
+    const countries = topojson.feature(world, world.objects.countries);
+    // Filtrar solo España (110) y Portugal (620) y Marruecos (504) y Francia (250)
+    const iberia = {type:'FeatureCollection', features: countries.features.filter(f=>['724','620','504','250','056','380','276','724'].includes(f.id+'') || true)};
+    
+    g.selectAll('path')
+      .data(countries.features)
+      .join('path')
+      .attr('d', path)
+      .attr('fill', d => ['724','620'].includes(String(d.id)) ? '#c8dcc4' : '#e8ede8')
+      .attr('stroke','#9abc94')
+      .attr('stroke-width','0.5');
+
+    // Puntos de proyectos
+    const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
+    const cnt = document.getElementById('mapa-count');
+    if(cnt) cnt.textContent = active.length+' proyecto'+(active.length!==1?'s':'');
+
+    active.forEach(p=>{
+      const [px,py] = projection([p.lon, p.lat]);
+      if(px<0||py<0||px>W||py>H) return;
+      const color = mapaEstadoColor(p.estado);
+      const eco = p.eco||{};
+
+      const dot = g.append('g')
+        .attr('class','mapa-dot')
+        .attr('data-bloque', p.bloque)
+        .style('cursor','pointer');
+
+      dot.append('circle')
+        .attr('cx',px).attr('cy',py).attr('r',9)
+        .attr('fill',color).attr('stroke','white').attr('stroke-width',2)
+        .style('filter','drop-shadow(0 2px 5px rgba(0,0,0,0.25))');
+
+      dot.on('mouseenter', function(){
+        d3.select(this).select('circle').attr('r',13);
+        const tirStr = eco.tirPct ? `<div style="font-size:14px;font-weight:800;color:#1a3a2a;margin-top:6px">TIR ${eco.tirPct}%</div>` : '';
+        tooltip.innerHTML = `
+          <div style="font-weight:700;font-size:13px;color:#1a1a18;margin-bottom:3px">${p.nombre}</div>
+          <div style="font-size:11px;color:#aaa;margin-bottom:6px">📍 ${p.ubicacion||p.ciudad||'—'}</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">
+            <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:${color}22;color:${color}">${p.estado}</span>
+            <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:#f0efe9;color:#666">${p.bloque}</span>
+          </div>${tirStr}
+          <div style="margin-top:8px;font-size:10px;color:#aaa;font-style:italic">Clic para ver ficha →</div>`;
+        const left = Math.min(px+14, W-210);
+        tooltip.style.cssText = `display:block;position:absolute;left:${left}px;top:${Math.max(py-40,4)}px;background:white;border:1px solid #e0e0d8;border-radius:8px;padding:10px 13px;font-size:11px;pointer-events:none;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,0.12);min-width:190px`;
+      })
+      .on('mouseleave', function(){
+        d3.select(this).select('circle').attr('r',9);
+        tooltip.style.display='none';
+      })
+      .on('click', function(){ navigateTo('tabla',{id:p.id}); });
     });
-    const marker = L.marker([p.lat,p.lon],{icon});
-    marker._proj = p;
-
-    const eco = p.eco||{};
-    const tirStr = eco.tirPct ? `<div style="font-size:14px;font-weight:800;color:#1a3a2a;margin-top:6px">TIR ${eco.tirPct}%</div>` : '';
-    const ventaStr = eco.ventaEur ? `<div style="font-size:11px;color:#666">Ventas ${eco.ventaEur} M€</div>` : '';
-    marker.bindPopup(`
-      <div style="min-width:180px;font-family:'Segoe UI',sans-serif">
-        <div style="font-size:13px;font-weight:700;color:#1a1a18;margin-bottom:3px">${p.nombre}</div>
-        <div style="font-size:11px;color:#aaa;margin-bottom:8px">📍 ${p.ubicacion||'—'}</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
-          <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:${color}22;color:${color}">${p.estado}</span>
-          <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:#f0efe9;color:#666">${p.bloque}</span>
-        </div>
-        ${tirStr}${ventaStr}
-        <button onclick="navigateTo('tabla',{id:${p.id}})" style="margin-top:10px;width:100%;padding:7px;border-radius:6px;background:#1a3a2a;color:white;border:none;cursor:pointer;font-size:11px;font-weight:600">Ver ficha completa →</button>
-      </div>
-    `,{maxWidth:240});
-
-    marker.addTo(_mapaInstance);
-    _mapaMarkers.push(marker);
+  }).catch(e=>{ 
+    g.append('text').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle').attr('fill','#888').attr('font-size',13).text('Error cargando mapa');
   });
-
-  // CSS para filtros
-  const style = document.createElement('style');
-  style.textContent = '.mapa-filter{font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:var(--font)}.mapa-filter.active{background:#1a3a2a;color:white;border-color:#1a3a2a}';
-  document.head.appendChild(style);
-
-  updateMapaMarkers();
-
-  // Fix leaflet size - multiple attempts
-  [100,300,600].forEach(t=>setTimeout(()=>{ if(_mapaInstance) _mapaInstance.invalidateSize(); },t));
 }
 
 // ── NOTICIAS ─────────────────────────────────────────────────────
-const NOTICIAS_SOURCES = [
-  {name:'Inmobiliario España', color:'#1a3a2a', url:'https://news.google.com/rss/search?q=inmobiliario+España&hl=es&gl=ES&ceid=ES:es'},
-  {name:'Inversión Inmobiliaria', color:'#2d6a4f', url:'https://news.google.com/rss/search?q=inversión+inmobiliaria+España&hl=es&gl=ES&ceid=ES:es'},
-  {name:'Residencial',           color:'#52b788', url:'https://news.google.com/rss/search?q=vivienda+nueva+precio+España&hl=es&gl=ES&ceid=ES:es'},
-  {name:'Oficinas & Logístico',  color:'#74c69d', url:'https://news.google.com/rss/search?q=oficinas+logístico+inmobiliario+España&hl=es&gl=ES&ceid=ES:es'},
-  {name:'Socimis & Fondos',      color:'#95d5b2', url:'https://news.google.com/rss/search?q=socimi+fondo+inmobiliario+España&hl=es&gl=ES&ceid=ES:es'},
-  {name:'Hoteles',               color:'#d4a04a', url:'https://news.google.com/rss/search?q=inversión+hotelera+España&hl=es&gl=ES&ceid=ES:es'},
-  {name:'Suelo & Promoción',     color:'#a85c4a', url:'https://news.google.com/rss/search?q=suelo+promoción+inmobiliaria+España&hl=es&gl=ES&ceid=ES:es'},
-  {name:'Brainsre',              color:'#7a9d8a', url:'https://news.google.com/rss/search?q=site:brainsre.news&hl=es&gl=ES&ceid=ES:es'},
-  {name:'Ejeprime',              color:'#b7e4c7', url:'https://news.google.com/rss/search?q=site:ejeprime.com&hl=es&gl=ES&ceid=ES:es'},
-];
 
-const NOTICIAS_CATS = ['Todo','Inversión','Residencial','Oficinas','Logístico','Hoteles','Suelo'];
-let _noticiasFeed = [];
-let _noticiasFilter = 'Todo';
-let _noticiasSourceFilter = 'Todo';
-let _noticiasLoading = false;
 
 function renderNoticiasHTML(){
-  return `<div class="view-panel" style="padding:0;display:flex;flex-direction:column;height:100%;overflow:hidden">
+  return `<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
     <div style="background:white;border-bottom:1px solid var(--border);padding:12px 20px;flex-shrink:0">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <div>
           <div style="font-size:15px;font-weight:700;color:var(--text)">Noticias del sector</div>
-          <div id="not-subtitle" style="font-size:11px;color:var(--text3);margin-top:1px">Cargando fuentes...</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px">Fuente: Google News · Inmobiliario España</div>
         </div>
-        <button onclick="initNoticias(true)" style="font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;color:var(--text2);font-family:var(--font)">↻ Actualizar</button>
-      </div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px" id="not-cats">
-        ${NOTICIAS_CATS.map(c=>`<button onclick="notCatFilter('${c}',this)" class="not-filter${c==='Todo'?' active':''}">${c}</button>`).join('')}
-      </div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
-        <span style="font-size:10px;color:var(--text3)">Fuentes:</span>
-        <button onclick="notSrcFilter('Todo',this)" class="not-src-filter active">Todas</button>
-        ${NOTICIAS_SOURCES.map(s=>`<button onclick="notSrcFilter('${s.name}',this)" class="not-src-filter" style="--sc:${s.color}"><span style="width:6px;height:6px;border-radius:50%;background:${s.color};display:inline-block"></span>${s.name}</button>`).join('')}
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="not-cats">
+          ${['Inmobiliario','Inversión','Residencial','Oficinas','Logístico','Hoteles','Suelo'].map((c,i)=>`<button onclick="notCatFilter('${c}',this)" class="not-filter${i===0?' active':''}">${c}</button>`).join('')}
+        </div>
       </div>
     </div>
-    <div id="not-grid" style="flex:1;overflow-y:auto;padding:16px 20px">
-      <div style="text-align:center;padding:60px 20px;color:var(--text3);font-size:13px">⏳ Cargando noticias...</div>
+    <div id="not-frame-wrap" style="flex:1;overflow:hidden;position:relative">
+      <iframe id="not-iframe"
+        src="https://news.google.com/search?q=inmobiliario+España&hl=es-ES&gl=ES&ceid=ES:es"
+        style="width:100%;height:100%;border:none;display:block"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-forms">
+      </iframe>
     </div>
   </div>`;
+}
+
+function notCatFilter(cat, btn){
+  document.querySelectorAll('.not-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const queries = {
+    'Inmobiliario':'inmobiliario España',
+    'Inversión':'inversión inmobiliaria España',
+    'Residencial':'vivienda nueva precio España',
+    'Oficinas':'oficinas inmobiliario España',
+    'Logístico':'logístico naves España',
+    'Hoteles':'inversión hotelera España',
+    'Suelo':'suelo promoción inmobiliaria España'
+  };
+  const q = encodeURIComponent(queries[cat]||cat+' inmobiliario España');
+  const iframe = document.getElementById('not-iframe');
+  if(iframe) iframe.src = `https://news.google.com/search?q=${q}&hl=es-ES&gl=ES&ceid=ES:es`;
+}
+
+function initNoticias(){
+  if(!document.getElementById('not-css')){
+    const s=document.createElement('style');
+    s.id='not-css';
+    s.textContent=`.not-filter{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-family:var(--font)}.not-filter.active{background:#1a3a2a;color:white;border-color:#1a3a2a}`;
+    document.head.appendChild(s);
+  }
 }
 
 function notCatFilter(cat, btn){
@@ -6427,66 +6484,9 @@ function notCatFilter(cat, btn){
   renderNoticiasGrid();
 }
 
-function notSrcFilter(src, btn){
-  _noticiasSourceFilter = src;
-  document.querySelectorAll('.not-src-filter').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderNoticiasGrid();
-}
 
-function noticiaCat(title, desc){
-  const txt = (title+' '+desc).toLowerCase();
-  if(/oficin|office|coworking/.test(txt)) return 'Oficinas';
-  if(/logísti|logistic|nave|almacén|warehouse/.test(txt)) return 'Logístico';
-  if(/hotel|hostel|alojamiento|vacacional/.test(txt)) return 'Hoteles';
-  if(/residen|vivienda|housing|alquiler|rental|piso|apartamento/.test(txt)) return 'Residencial';
-  if(/suelo|solar|terreno|land/.test(txt)) return 'Suelo';
-  if(/invers|fund|socimi|reit|capital|transacci/.test(txt)) return 'Inversión';
-  return 'Inversión';
-}
 
-function timeAgo(dateStr){
-  const d = new Date(dateStr);
-  const now = new Date();
-  const mins = Math.floor((now-d)/60000);
-  if(mins<60) return 'Hace '+mins+' min';
-  if(mins<1440) return 'Hace '+Math.floor(mins/60)+'h';
-  return 'Hace '+Math.floor(mins/1440)+' días';
-}
 
-function renderNoticiasGrid(){
-  const grid = document.getElementById('not-grid');
-  if(!grid) return;
-  let items = _noticiasFeed;
-  if(_noticiasSourceFilter!=='Todo') items = items.filter(i=>i.source===_noticiasSourceFilter);
-  if(_noticiasFilter!=='Todo') items = items.filter(i=>i.cat===_noticiasFilter);
-
-  if(!items.length){
-    grid.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);font-size:13px">Sin noticias para esta categoría</div>';
-    return;
-  }
-
-  const catColors = {Inversión:'#1a3a2a',Residencial:'#2d6a4f',Oficinas:'#d4a04a',Logístico:'#7a9d8a',Hoteles:'#a85c4a',Suelo:'#95d5b2'};
-  grid.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
-    ${items.map(item=>{
-      const src = NOTICIAS_SOURCES.find(s=>s.name===item.source)||{color:'#aaa'};
-      const catColor = catColors[item.cat]||'#aaa';
-      return `<div onclick="window.open('${item.link}','_blank')" style="background:white;border-radius:10px;border:1px solid var(--border);overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
-        <div style="height:4px;background:${src.color}"></div>
-        <div style="padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:6px">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="width:6px;height:6px;border-radius:50%;background:${src.color};flex-shrink:0;display:inline-block"></span>
-            <span style="font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em">${item.source}</span>
-            <span style="font-size:10px;color:#bbb;margin-left:auto">${timeAgo(item.pubDate)}</span>
-          </div>
-          <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4">${item.title}</div>
-          <div style="font-size:11px;color:var(--text3);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${item.desc}</div>
-          <span style="font-size:9px;padding:2px 8px;border-radius:20px;background:${catColor}18;color:${catColor};font-weight:600;width:fit-content;margin-top:auto">${item.cat}</span>
-        </div>
-      </div>`;
-    }).join('')}
-  </div>`;
-}
 
 async function initNoticias(force=false){
   if(_noticiasLoading && !force) return;
