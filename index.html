@@ -3408,19 +3408,23 @@ function render() {
     else if(S.view==='mapa'){
       m.style.overflow='hidden';
       m.innerHTML=renderMapaHTML();
-      function doInitMapa(){
-        if(window.d3 && window.topojson){ initMapa(); }
-        else{
-          const s1=document.createElement('script'); s1.src='https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';
-          s1.onload=()=>{
-            const s2=document.createElement('script'); s2.src='https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js';
-            s2.onload=()=>setTimeout(initMapa,100);
-            document.head.appendChild(s2);
-          };
-          document.head.appendChild(s1);
+      setTimeout(function(){
+        // Calcular altura disponible y asignarla al contenedor
+        const toolbar = document.getElementById('mapa-toolbar');
+        const tbH = toolbar ? toolbar.offsetHeight : 50;
+        const el = document.getElementById('mapa-leaflet');
+        if(el){
+          el.style.height = (m.offsetHeight - tbH) + 'px';
+          el.style.width = m.offsetWidth + 'px';
         }
-      }
-      setTimeout(doInitMapa,50);
+        if(window.L){ initMapa(); }
+        else{
+          const s=document.createElement('script');
+          s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+          s.onload=()=>setTimeout(initMapa,200);
+          document.head.appendChild(s);
+        }
+      },100);
     }
     else if(S.view==='noticias'){ m.style.overflow='hidden'; m.innerHTML=renderNoticiasHTML(); initNoticias(); }
   });
@@ -6301,7 +6305,7 @@ function renderMapaHTML(){
     document.head.appendChild(s);
   }
   return `<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
-    <div style="background:white;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
+    <div id="mapa-toolbar" style="background:white;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
       <span style="font-size:13px;font-weight:700;color:var(--text)">Mapa de proyectos</span>
       <div style="display:flex;gap:5px;flex-wrap:wrap">
         <button class="mapa-filter active" onclick="mapaFilter('todo',this)">Todo</button>
@@ -6309,7 +6313,7 @@ function renderMapaHTML(){
         <button class="mapa-filter" onclick="mapaFilter('Desinversión',this)">Desinversión</button>
         <button class="mapa-filter" onclick="mapaFilter('Clientes / Gestión',this)">Clientes</button>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;margin-left:8px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#3d7058;display:inline-block"></span>WIP/DD</span>
         <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#d4a04a;display:inline-block"></span>En análisis</span>
         <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#7a9d8a;display:inline-block"></span>Recibido</span>
@@ -6317,166 +6321,210 @@ function renderMapaHTML(){
       </div>
       <span id="mapa-count" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
     </div>
-    <div id="mapa-svg-wrap" style="flex:1;position:relative;background:#dce8dc;overflow:hidden">
-      <svg id="mapa-svg" style="width:100%;height:100%;display:block"></svg>
-      <div id="mapa-tooltip" style="display:none;position:absolute;background:white;border:1px solid #e0e0d8;border-radius:8px;padding:10px 13px;font-size:11px;pointer-events:none;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,0.12);min-width:190px"></div>
-    </div>
+    <div id="mapa-leaflet" style="flex:1;min-height:0"></div>
   </div>`;
 }
 
 function initMapa(){
-  if(!window.d3||!window.topojson) return;
-  const wrap = document.getElementById('mapa-svg-wrap');
-  const svg = document.getElementById('mapa-svg');
-  const tooltip = document.getElementById('mapa-tooltip');
-  if(!wrap||!svg) return;
-
-  const W = wrap.offsetWidth||800;
-  const H = wrap.offsetHeight||500;
-  svg.setAttribute('viewBox','0 0 '+W+' '+H);
-
-  const projection = d3.geoMercator().center([-3.5,40.2]).scale(W*3.5).translate([W/2,H/2]);
-  const path = d3.geoPath(projection);
-  const svgEl = d3.select('#mapa-svg');
-  svgEl.selectAll('*').remove();
-
-  // Contenedor zoomable
-  const g = svgEl.append('g').attr('id','mapa-g');
-
-  // Zoom
-  const zoom = d3.zoom()
-    .scaleExtent([0.5, 20])
-    .on('zoom', (event)=>{ g.attr('transform', event.transform); });
-  svgEl.call(zoom);
-
-  // Botones de zoom
-  const wrap2 = document.getElementById('mapa-svg-wrap');
-  if(wrap2 && !document.getElementById('mapa-zoom-btns')){
-    const zbtns = document.createElement('div');
-    zbtns.id = 'mapa-zoom-btns';
-    zbtns.style.cssText = 'position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;gap:4px;z-index:10';
-    zbtns.innerHTML = `
-      <button onclick="document.getElementById('mapa-svg').__zoom_in()" style="width:32px;height:32px;border-radius:6px;border:1px solid #ccc;background:white;font-size:18px;cursor:pointer;line-height:1">+</button>
-      <button onclick="document.getElementById('mapa-svg').__zoom_out()" style="width:32px;height:32px;border-radius:6px;border:1px solid #ccc;background:white;font-size:18px;cursor:pointer;line-height:1">−</button>
-      <button onclick="document.getElementById('mapa-svg').__zoom_reset()" style="width:32px;height:32px;border-radius:6px;border:1px solid #ccc;background:white;font-size:12px;cursor:pointer;line-height:1">⌂</button>
-    `;
-    wrap2.appendChild(zbtns);
+  // CSS mínimo de Leaflet inline
+  if(!document.getElementById('leaflet-inline-css')){
+    const s=document.createElement('style');
+    s.id='leaflet-inline-css';
+    s.textContent=`.leaflet-container{background:#ddd;outline:0}.leaflet-map-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden}.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}.leaflet-tile::selection{background:transparent}.leaflet-safari .leaflet-tile{image-rendering:crisp-edges}.leaflet-tile-container{pointer-events:none}.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}.leaflet-map-pane canvas{z-index:100}.leaflet-map-pane svg{z-index:200}.leaflet-vml-shape{width:1px;height:1px}.lvml{behavior:url(#default#VML);display:inline-block;position:absolute}.leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto}.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-control{float:left;clear:both}.leaflet-right .leaflet-control{float:right}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}.leaflet-fade-anim .leaflet-popup{opacity:0;-webkit-transition:opacity .2s linear;-moz-transition:opacity .2s linear;transition:opacity .2s linear}.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}.leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}.leaflet-zoom-anim .leaflet-zoom-animated{will-change:transform}.leaflet-zoom-anim .leaflet-zoom-animated{-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-zoom-anim .leaflet-tile,.leaflet-pan-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}.leaflet-zoom-anim .leaflet-zoom-animated.leaflet-zoom-hide{visibility:hidden}.leaflet-interactive{cursor:pointer}.leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}.leaflet-crosshair,.leaflet-crosshair .leaflet-interactive{cursor:crosshair}.leaflet-popup-pane,.leaflet-control{cursor:auto}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-image-layer,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}.leaflet-marker-icon.leaflet-interactive,.leaflet-image-layer.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive,svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}.leaflet-container{-webkit-tap-highlight-color:transparent}.leaflet-container a{-webkit-tap-highlight-color:rgba(51,181,229,.4)}.leaflet-tile{filter:inherit;visibility:hidden}.leaflet-tile-loaded{visibility:inherit}.leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}.leaflet-overlay-pane svg{-moz-user-select:none}.leaflet-container{font-size:12px;font-size:.75rem}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:bold 18px 'Lucida Console',Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in{font-size:22px}.leaflet-touch .leaflet-control-zoom-out{font-size:20px}.leaflet-bar{box-shadow:0 1px 5px rgba(0,0,0,.65);border-radius:4px}.leaflet-bar a,.leaflet-bar a:hover{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:black}.leaflet-bar a{background-position:50% 50%;background-repeat:no-repeat;display:block}.leaflet-bar a:hover{background-color:#f4f4f4}.leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}.leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}.leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}.leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}.leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:bold 18px 'Lucida Console',Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in{font-size:22px}.leaflet-touch .leaflet-control-zoom-out{font-size:20px}.leaflet-control-attribution{background:#fff;background:rgba(255,255,255,.7);margin:0}.leaflet-control-attribution,.leaflet-control-scale-line{padding:0 5px;color:#333}.leaflet-control-attribution a{text-decoration:none}.leaflet-control-attribution a:hover{text-decoration:underline}.leaflet-container .leaflet-control-attribution,.leaflet-container .leaflet-control-scale{font-size:11px}.leaflet-left .leaflet-control-scale{margin-left:5px}.leaflet-bottom .leaflet-control-scale{margin-bottom:5px}.leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;font-size:11px;white-space:nowrap;overflow:hidden;-moz-box-sizing:border-box;box-sizing:border-box;background:#fff;background:rgba(255,255,255,.5)}.leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}.leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}.leaflet-touch .leaflet-control-attribution,.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{box-shadow:none}.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px}.leaflet-popup-content{margin:13px 19px;line-height:1.4}.leaflet-popup-content p{margin:18px 0}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:white;color:#333;box-shadow:0 3px 14px rgba(0,0,0,.4)}.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;padding:4px 4px 0 0;border:none;text-align:center;width:18px;height:14px;font:16px/14px Tahoma,Verdana,sans-serif;color:#c3c3c3;text-decoration:none;font-weight:bold;background:transparent}.leaflet-container a.leaflet-popup-close-button:hover{color:#999}.leaflet-popup-scrolled{overflow:auto;border-bottom:1px solid #ddd;border-top:1px solid #ddd}.leaflet-oldie .leaflet-popup-content-wrapper{zoom:1}.leaflet-oldie .leaflet-popup-tip{width:24px;margin:0 auto}.leaflet-oldie .leaflet-popup-tip-container{margin-top:-1px}.leaflet-oldie .leaflet-control-zoom,.leaflet-oldie .leaflet-control-layers,.leaflet-oldie .leaflet-popup-content-wrapper{border:1px solid #999}.leaflet-div-icon{background:#fff;border:1px solid #666}`;
+    document.head.appendChild(s);
   }
-  // Exponer funciones de zoom
-  const svgNode = document.getElementById('mapa-svg');
-  svgNode.__zoom_in = ()=> svgEl.transition().duration(300).call(zoom.scaleBy, 1.5);
-  svgNode.__zoom_out = ()=> svgEl.transition().duration(300).call(zoom.scaleBy, 0.67);
-  svgNode.__zoom_reset = ()=> svgEl.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
 
-  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(world=>{
-    const countries = topojson.feature(world, world.objects.countries);
-    // Filtrar solo España (110) y Portugal (620) y Marruecos (504) y Francia (250)
-    const iberia = {type:'FeatureCollection', features: countries.features.filter(f=>['724','620','504','250','056','380','276','724'].includes(f.id+'') || true)};
-    
-    g.selectAll('path')
-      .data(countries.features)
-      .join('path')
-      .attr('d', path)
-      .attr('fill', d => ['724','620'].includes(String(d.id)) ? '#c8dcc4' : '#e8ede8')
-      .attr('stroke','#9abc94')
-      .attr('stroke-width','0.5');
+  if(_mapaInstance){ try{_mapaInstance.remove();}catch(e){} _mapaInstance=null; }
+  const el = document.getElementById('mapa-leaflet');
+  if(!el) return;
 
-    // Puntos de proyectos
-    const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
-    const cnt = document.getElementById('mapa-count');
-    if(cnt) cnt.textContent = active.length+' proyecto'+(active.length!==1?'s':'');
-
-    active.forEach(p=>{
-      const [px,py] = projection([p.lon, p.lat]);
-      if(px<0||py<0||px>W||py>H) return;
-      const color = mapaEstadoColor(p.estado);
-      const eco = p.eco||{};
-
-      const dot = g.append('g')
-        .attr('class','mapa-dot')
-        .attr('data-bloque', p.bloque)
-        .style('cursor','pointer');
-
-      dot.append('circle')
-        .attr('cx',px).attr('cy',py).attr('r',9)
-        .attr('fill',color).attr('stroke','white').attr('stroke-width',2)
-        .style('filter','drop-shadow(0 2px 5px rgba(0,0,0,0.25))');
-
-      dot.on('mouseenter', function(){
-        d3.select(this).select('circle').attr('r',13);
-        const tirStr = eco.tirPct ? `<div style="font-size:14px;font-weight:800;color:#1a3a2a;margin-top:6px">TIR ${eco.tirPct}%</div>` : '';
-        tooltip.innerHTML = `
-          <div style="font-weight:700;font-size:13px;color:#1a1a18;margin-bottom:3px">${p.nombre}</div>
-          <div style="font-size:11px;color:#aaa;margin-bottom:6px">📍 ${p.ubicacion||p.ciudad||'—'}</div>
-          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">
-            <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:${color}22;color:${color}">${p.estado}</span>
-            <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:#f0efe9;color:#666">${p.bloque}</span>
-          </div>${tirStr}
-          <div style="margin-top:8px;font-size:10px;color:#aaa;font-style:italic">Clic para ver ficha →</div>`;
-        const left = Math.min(px+14, W-210);
-        tooltip.style.cssText = `display:block;position:absolute;left:${left}px;top:${Math.max(py-40,4)}px;background:white;border:1px solid #e0e0d8;border-radius:8px;padding:10px 13px;font-size:11px;pointer-events:none;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,0.12);min-width:190px`;
-      })
-      .on('mouseleave', function(){
-        d3.select(this).select('circle').attr('r',9);
-        tooltip.style.display='none';
-      })
-      .on('click', function(){ navigateTo('tabla',{id:p.id}); });
-    });
-  }).catch(e=>{ 
-    g.append('text').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle').attr('fill','#888').attr('font-size',13).text('Error cargando mapa');
+  _mapaInstance = L.map('mapa-leaflet',{zoomControl:true}).setView([40.4,-3.7],6);
+  // Intentar múltiples proveedores de tiles
+  const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const tileLayer = L.tileLayer(tileUrl,{
+    attribution:'© OpenStreetMap',maxZoom:19,
+    subdomains:['a','b','c']
   });
+  tileLayer.addTo(_mapaInstance);
+  tileLayer.on('tileerror', function(){
+    // Fallback a CartoDB
+    _mapaInstance.eachLayer(l=>_mapaInstance.removeLayer(l));
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+      attribution:'© CartoDB',maxZoom:19
+    }).addTo(_mapaInstance);
+  });
+
+  _mapaMarkers = [];
+  const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
+  const cnt = document.getElementById('mapa-count');
+  if(cnt) cnt.textContent = active.length+' proyecto'+(active.length!==1?'s':'');
+
+  active.forEach(p=>{
+    const color = mapaEstadoColor(p.estado);
+    const icon = L.divIcon({
+      html:`<div style="width:16px;height:16px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35)"></div>`,
+      className:'',iconSize:[16,16],iconAnchor:[8,8]
+    });
+    const marker = L.marker([p.lat,p.lon],{icon});
+    marker._proj = p;
+    const eco = p.eco||{};
+    const tirStr = eco.tirPct?`<div style="font-size:14px;font-weight:800;color:#1a3a2a;margin-top:6px">TIR ${eco.tirPct}%</div>`:'';
+    marker.bindPopup(`<div style="min-width:180px;font-family:'Segoe UI',sans-serif">
+      <div style="font-size:13px;font-weight:700;color:#1a1a18;margin-bottom:3px">${p.nombre}</div>
+      <div style="font-size:11px;color:#aaa;margin-bottom:8px">📍 ${p.ubicacion||p.ciudad||'—'}</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
+        <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:${color}22;color:${color}">${p.estado}</span>
+        <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:#f0efe9;color:#666">${p.bloque}</span>
+      </div>${tirStr}
+      <button onclick="navigateTo('tabla',{id:${p.id}})" style="margin-top:10px;width:100%;padding:7px;border-radius:6px;background:#1a3a2a;color:white;border:none;cursor:pointer;font-size:11px;font-weight:600">Ver ficha →</button>
+    </div>`,{maxWidth:240});
+    marker.addTo(_mapaInstance);
+    _mapaMarkers.push(marker);
+  });
+
+  if(!document.getElementById('mapa-filter-css')){
+    const s=document.createElement('style');
+    s.id='mapa-filter-css';
+    s.textContent='.mapa-filter{font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:var(--font)}.mapa-filter.active{background:#1a3a2a;color:white;border-color:#1a3a2a}';
+    document.head.appendChild(s);
+  }
+
+  updateMapaMarkers();
+  [200,500,1000].forEach(t=>setTimeout(()=>{ if(_mapaInstance) _mapaInstance.invalidateSize(); },t));
 }
 
 // ── NOTICIAS ─────────────────────────────────────────────────────
 
 
+const NOTICIAS_SOURCES = [
+  {name:'Brainsre',          color:'#1a3a2a', url:'https://brainsre.news/feed/'},
+  {name:'Inmodiario',        color:'#2d6a4f', url:'https://www.inmodiario.com/feed/'},
+  {name:'Inmobiliare',       color:'#52b788', url:'https://inmobiliare.com/feed/'},
+  {name:'El Economista',     color:'#74c69d', url:'https://www.eleconomista.es/rss/rss-seleccion-inmobiliario.php'},
+  {name:'Observatorio Inm.', color:'#95d5b2', url:'https://observatorioinmobiliario.es/feed/'},
+  {name:'Fotocasa Pro',      color:'#d4a04a', url:'https://www.fotocasa.es/fotocasa-life/rss/'},
+  {name:'Idealista News',    color:'#a85c4a', url:'https://www.idealista.com/news/feed'},
+  {name:'Pisos.com',         color:'#7a9d8a', url:'https://www.pisos.com/alquiler/rss/'},
+];
+
+let _noticiasFeed = [];
+let _noticiasFilter = 'Todo';
+let _noticiasLoading = false;
+
+function noticiaCat(title, desc){
+  const txt = (title+' '+desc).toLowerCase();
+  if(/oficin|office|coworking/.test(txt)) return 'Oficinas';
+  if(/logísti|logistic|nave|almacén|warehouse/.test(txt)) return 'Logístico';
+  if(/hotel|hostel|vacacional/.test(txt)) return 'Hoteles';
+  if(/residen|vivienda|housing|alquiler|rental|piso|apartamento/.test(txt)) return 'Residencial';
+  if(/suelo|solar|terreno/.test(txt)) return 'Suelo';
+  return 'Inversión';
+}
+
+function timeAgo(dateStr){
+  const d=new Date(dateStr), now=new Date(), mins=Math.floor((now-d)/60000);
+  if(mins<60) return 'Hace '+mins+' min';
+  if(mins<1440) return 'Hace '+Math.floor(mins/60)+'h';
+  return 'Hace '+Math.floor(mins/1440)+' días';
+}
+
 function renderNoticiasHTML(){
-  return `<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
-    <div style="background:white;border-bottom:1px solid var(--border);padding:12px 20px;flex-shrink:0">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-        <div>
-          <div style="font-size:15px;font-weight:700;color:var(--text)">Noticias del sector</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:1px">Fuente: Google News · Inmobiliario España</div>
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap" id="not-cats">
-          ${['Inmobiliario','Inversión','Residencial','Oficinas','Logístico','Hoteles','Suelo'].map((c,i)=>`<button onclick="notCatFilter('${c}',this)" class="not-filter${i===0?' active':''}">${c}</button>`).join('')}
-        </div>
-      </div>
-    </div>
-    <div id="not-frame-wrap" style="flex:1;overflow:hidden;position:relative">
-      <iframe id="not-iframe"
-        src="https://news.google.com/search?q=inmobiliario+España&hl=es-ES&gl=ES&ceid=ES:es"
-        style="width:100%;height:100%;border:none;display:block"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-forms">
-      </iframe>
-    </div>
-  </div>`;
-}
-
-function notCatFilter(cat, btn){
-  document.querySelectorAll('.not-filter').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  const queries = {
-    'Inmobiliario':'inmobiliario España',
-    'Inversión':'inversión inmobiliaria España',
-    'Residencial':'vivienda nueva precio España',
-    'Oficinas':'oficinas inmobiliario España',
-    'Logístico':'logístico naves España',
-    'Hoteles':'inversión hotelera España',
-    'Suelo':'suelo promoción inmobiliaria España'
-  };
-  const q = encodeURIComponent(queries[cat]||cat+' inmobiliario España');
-  const iframe = document.getElementById('not-iframe');
-  if(iframe) iframe.src = `https://news.google.com/search?q=${q}&hl=es-ES&gl=ES&ceid=ES:es`;
-}
-
-function initNoticias(){
   if(!document.getElementById('not-css')){
     const s=document.createElement('style');
     s.id='not-css';
     s.textContent=`.not-filter{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-family:var(--font)}.not-filter.active{background:#1a3a2a;color:white;border-color:#1a3a2a}`;
     document.head.appendChild(s);
   }
+  return `<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+    <div style="background:white;border-bottom:1px solid var(--border);padding:12px 20px;flex-shrink:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--text)">Noticias del sector</div>
+          <div id="not-subtitle" style="font-size:11px;color:var(--text3);margin-top:1px">Cargando...</div>
+        </div>
+        <button onclick="initNoticias(true)" style="font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;color:var(--text2);font-family:var(--font)">↻ Actualizar</button>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        ${['Todo','Inversión','Residencial','Oficinas','Logístico','Hoteles','Suelo'].map((c,i)=>`<button onclick="notCatFilter('${c}',this)" class="not-filter${i===0?' active':''}">${c}</button>`).join('')}
+      </div>
+    </div>
+    <div id="not-grid" style="flex:1;overflow-y:auto;padding:16px 20px">
+      <div style="text-align:center;padding:60px;color:var(--text3)">⏳ Cargando noticias...</div>
+    </div>
+  </div>`;
+}
+
+function notCatFilter(cat, btn){
+  _noticiasFilter = cat;
+  document.querySelectorAll('.not-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNoticiasGrid();
+}
+
+function renderNoticiasGrid(){
+  const grid = document.getElementById('not-grid');
+  if(!grid) return;
+  let items = _noticiasFilter==='Todo' ? _noticiasFeed : _noticiasFeed.filter(i=>i.cat===_noticiasFilter);
+  if(!items.length){ grid.innerHTML='<div style="text-align:center;padding:60px;color:var(--text3);font-size:13px">Sin noticias para esta categoría</div>'; return; }
+  const srcColors = {};
+  NOTICIAS_SOURCES.forEach(s=>srcColors[s.name]=s.color);
+  grid.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+    ${items.map(item=>{
+      const c = srcColors[item.source]||'#aaa';
+      const catColors={Inversión:'#1a3a2a',Residencial:'#2d6a4f',Oficinas:'#d4a04a',Logístico:'#7a9d8a',Hoteles:'#a85c4a',Suelo:'#95d5b2'};
+      const cc = catColors[item.cat]||'#aaa';
+      return `<div onclick="window.open('${item.link}','_blank')" style="background:white;border-radius:10px;border:1px solid var(--border);overflow:hidden;cursor:pointer;display:flex;flex-direction:column" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+        <div style="height:3px;background:${c}"></div>
+        <div style="padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="width:6px;height:6px;border-radius:50%;background:${c};flex-shrink:0;display:inline-block"></span>
+            <span style="font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em">${item.source}</span>
+            <span style="font-size:10px;color:#bbb;margin-left:auto">${timeAgo(item.pubDate)}</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4">${item.title}</div>
+          <div style="font-size:11px;color:var(--text3);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${item.desc}</div>
+          <span style="font-size:9px;padding:2px 8px;border-radius:20px;background:${cc}18;color:${cc};font-weight:600;width:fit-content;margin-top:auto">${item.cat}</span>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+async function initNoticias(force=false){
+  if(_noticiasLoading && !force) return;
+  _noticiasLoading = true;
+  if(force) _noticiasFeed = [];
+
+  const PROXY = 'https://api.allorigins.win/get?url=';
+  const allItems = [];
+
+  for(const src of NOTICIAS_SOURCES){
+    try{
+      const r = await fetch(PROXY+encodeURIComponent(src.url));
+      const d = await r.json();
+      const xml = new DOMParser().parseFromString(d.contents||'','text/xml');
+      const items = [...xml.querySelectorAll('item')].slice(0,12);
+      items.forEach(el=>{
+        const title = (el.querySelector('title')?.textContent||'').trim();
+        const desc = (el.querySelector('description')?.textContent||'').replace(/<[^>]+>/g,'').trim().substring(0,200);
+        const link = (el.querySelector('link')?.textContent||el.querySelector('link')?.getAttribute('href')||'').trim();
+        const pubDate = el.querySelector('pubDate')?.textContent||new Date().toISOString();
+        if(title) allItems.push({source:src.name,title,desc,link,pubDate,cat:noticiaCat(title,desc)});
+      });
+      // Mostrar parcialmente mientras carga
+      _noticiasFeed = [...allItems].sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
+      const sub = document.getElementById('not-subtitle');
+      if(sub) sub.textContent = `${_noticiasFeed.length} artículos cargados...`;
+      renderNoticiasGrid();
+    }catch(e){}
+    await new Promise(r=>setTimeout(r,150));
+  }
+
+  _noticiasFeed = allItems.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
+  const sub = document.getElementById('not-subtitle');
+  if(sub) sub.textContent = `${_noticiasFeed.length} artículos · Actualizado ahora`;
+  _noticiasLoading = false;
+  renderNoticiasGrid();
 }
 
 function notCatFilter(cat, btn){
