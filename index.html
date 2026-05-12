@@ -6272,8 +6272,8 @@ function clasificarTarea(t){
 let _mapaInstance = null;
 
 function renderMapaHTML(){
-  return `<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
-    <div style="background:white;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap">
+  return `<div style="position:relative;height:100%;width:100%;overflow:hidden">
+    <div style="position:absolute;top:0;left:0;right:0;background:white;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;z-index:1000" id="mapa-toolbar">
       <span style="font-size:13px;font-weight:700;color:var(--text)">Mapa de proyectos</span>
       <div style="display:flex;gap:5px;flex-wrap:wrap" id="mapa-filters">
         <button class="mapa-filter active" onclick="mapaFilter('todo',this)">Todo</button>
@@ -6289,7 +6289,7 @@ function renderMapaHTML(){
       </div>
       <span id="mapa-count" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
     </div>
-    <div id="mapa-leaflet" style="flex:1;width:100%;min-height:0"></div>
+    <div id="mapa-leaflet" style="position:absolute;top:0;left:0;right:0;bottom:0"></div>
   </div>`;
 }
 
@@ -6319,9 +6319,14 @@ function updateMapaMarkers(){
 
 function initMapa(){
   if(!window.L) return;
-  if(_mapaInstance){ _mapaInstance.remove(); _mapaInstance=null; }
+  if(_mapaInstance){ try{_mapaInstance.remove();}catch(e){} _mapaInstance=null; }
   const el = document.getElementById('mapa-leaflet');
   if(!el) return;
+
+  // Con position:absolute el toolbar flota encima — ajustar padding-top del mapa
+  const toolbar = document.getElementById('mapa-toolbar');
+  const tbH = toolbar ? toolbar.offsetHeight : 48;
+  el.style.paddingTop = tbH + 'px';
 
   _mapaInstance = L.map('mapa-leaflet',{zoomControl:true}).setView([40.4,-3.7],6);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
@@ -6498,12 +6503,14 @@ async function initNoticias(force=false){
   const grid = document.getElementById('not-grid');
   if(grid) grid.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);font-size:13px">⏳ Cargando noticias...</div>';
 
-  const PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
+  const PROXY1 = 'https://api.rss2json.com/v1/api.json?rss_url=';
+  const PROXY2 = 'https://api.allorigins.win/get?url=';
   const allItems = [];
 
   async function fetchFeed(src){
+    // Intento 1: rss2json
     try{
-      const r = await fetch(PROXY+encodeURIComponent(src.url)+'&count=15');
+      const r = await fetch(PROXY1+encodeURIComponent(src.url)+'&count=15');
       const data = await r.json();
       if(data.status==='ok' && data.items && data.items.length){
         return data.items.map(item=>({
@@ -6515,6 +6522,21 @@ async function initNoticias(force=false){
           cat: noticiaCat(item.title||'', item.description||'')
         }));
       }
+    }catch(e){}
+    // Intento 2: allorigins + parse XML
+    try{
+      const r2 = await fetch(PROXY2+encodeURIComponent(src.url));
+      const d2 = await r2.json();
+      const xml = new DOMParser().parseFromString(d2.contents||'','text/xml');
+      const items = [...xml.querySelectorAll('item')];
+      if(items.length) return items.slice(0,15).map(el=>({
+        source: src.name,
+        title: (el.querySelector('title')?.textContent||'').trim(),
+        desc: (el.querySelector('description')?.textContent||'').replace(/<[^>]+>/g,'').trim().substring(0,200),
+        link: (el.querySelector('link')?.textContent||'').trim()||'#',
+        pubDate: el.querySelector('pubDate')?.textContent||new Date().toISOString(),
+        cat: noticiaCat(el.querySelector('title')?.textContent||'', el.querySelector('description')?.textContent||'')
+      }));
     }catch(e){}
     return [];
   }
