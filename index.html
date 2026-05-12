@@ -1823,16 +1823,19 @@ function renderDetail() {
 
     // ── Sección: Ubicación ────────────────────────────────────
     +'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Ubicación</div>'
-    +'<div style="display:grid;grid-template-columns:'+(p.bloque==='Pipeline'?'1fr 1fr 1fr':'1.2fr 1fr 1fr')+';gap:4px 14px;margin-bottom:10px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 14px;margin-bottom:10px">'
     +'<div class="d-item"><label>Provincia</label><select class="d-select" onchange="saveField('+p.id+',\'ubicacion\',this.value)" onclick="event.stopPropagation()">'+UBICACIONES_OPTS.map(u=>'<option value="'+u+'"'+(u===(p.ubicacion||'')?'  selected':'')+'>'+u+'</option>').join('')+'</select></div>'
     +'<div class="d-item"><label>Ciudad</label><input class="d-input" value="'+(p.ciudad||'')+'" placeholder="ej. Madrid" oninput="saveField('+p.id+',\'ciudad\',this.value)" onclick="event.stopPropagation()"/></div>'
-    +'<div class="d-item"><label>Lat</label><input class="d-input" type="number" step="0.0001" value="'+(p.lat||'')+'" placeholder="40.4168" oninput="saveField('+p.id+',\'lat\',parseFloat(this.value)||null)" onclick="event.stopPropagation()"/></div>'
-    +'<div class="d-item"><label>Lon</label><input class="d-input" type="number" step="0.0001" value="'+(p.lon||'')+'" placeholder="-3.7038" oninput="saveField('+p.id+',\'lon\',parseFloat(this.value)||null)" onclick="event.stopPropagation()"/></div>'
     +(p.bloque==='Pipeline'
       ? '<div class="d-item"><label>Delegación</label><select class="d-select" onchange="saveField('+p.id+',\'delegacion\',this.value)" onclick="event.stopPropagation()">'
           +['','Centro','Este','Norte','Sur','Internacional'].map(d=>'<option value="'+d+'"'+(d===(p.delegacion||'')?' selected':'')+'>'+(d||'—')+'</option>').join('')
         +'</select></div>'
-      : '')
+      : '<div></div>')
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-bottom:10px">'
+    +'<div class="d-item"><label style="display:flex;align-items:center;gap:4px">Latitud <span style="font-size:9px;color:var(--text3);font-weight:400">(ej. 40.4168)</span></label><input class="d-input" type="text" inputmode="decimal" value="'+(p.lat||'')+'" placeholder="40.4168" onblur="saveField('+p.id+',\'lat\',parseFloat(this.value.replace(\',\',\'.\'))||null)" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"><label style="display:flex;align-items:center;gap:4px">Longitud <span style="font-size:9px;color:var(--text3);font-weight:400">(ej. -3.7038)</span></label><input class="d-input" type="text" inputmode="decimal" value="'+(p.lon||'')+'" placeholder="-3.7038" onblur="saveField('+p.id+',\'lon\',parseFloat(this.value.replace(\',\',\'.\'))||null)" onclick="event.stopPropagation()"/></div>'
+    +'</div>'
     +(p.bloque!=='Pipeline'
       ? '<div class="d-item" onclick="event.stopPropagation()">'
         +'<label>Google Maps</label>'
@@ -6354,15 +6357,15 @@ function initMapa(){
 
 // ── NOTICIAS ─────────────────────────────────────────────────────
 const NOTICIAS_SOURCES = [
-  {name:'Brainsre',      color:'#1a3a2a', url:'https://brainsre.news/feed/'},
-  {name:'Ejeprime',      color:'#2d6a4f', url:'https://www.ejeprime.com/feed'},
-  {name:'El Confidencial',color:'#52b788',url:'https://www.elconfidencial.com/rss/tags/inmobiliario.xml'},
-  {name:'Expansión',     color:'#74c69d', url:'https://e00-expansion.uecdn.es/rss/mercados.xml'},
-  {name:'Idealista News',color:'#95d5b2', url:'https://www.idealista.com/news/feed'},
-  {name:'Cinco Días',    color:'#b7e4c7', url:'https://cincodias.elpais.com/rss/section/?s=inmobiliario'},
-  {name:'Inmobiliare',   color:'#d4a04a', url:'https://inmobiliare.com/feed/'},
-  {name:'Obs. Inmobiliario',color:'#a85c4a',url:'https://observatorioinmobiliario.es/feed/'},
-  {name:'Property EU',   color:'#7a9d8a', url:'https://www.propertyeu.info/feed/'},
+  {name:'Brainsre',        color:'#1a3a2a', url:'https://brainsre.news/feed/'},
+  {name:'Ejeprime',        color:'#2d6a4f', url:'https://www.ejeprime.com/rss.xml'},
+  {name:'Idealista News',  color:'#52b788', url:'https://www.idealista.com/news/feed'},
+  {name:'Expansión',       color:'#74c69d', url:'https://www.expansion.com/rss/mercados/inmobiliario.xml'},
+  {name:'El Economista',   color:'#95d5b2', url:'https://www.eleconomista.es/rss/rss-seleccion-inmobiliario.php'},
+  {name:'Cinco Días',      color:'#b7e4c7', url:'https://cincodias.elpais.com/seccion/rss/inmobiliario/'},
+  {name:'Inmobiliare',     color:'#d4a04a', url:'https://inmobiliare.com/feed/'},
+  {name:'Inmodiario',      color:'#a85c4a', url:'https://www.inmodiario.com/feed/'},
+  {name:'Property EU',     color:'#7a9d8a', url:'https://www.propertyeu.info/feed/'},
 ];
 
 const NOTICIAS_CATS = ['Todo','Inversión','Residencial','Oficinas','Logístico','Hoteles','Suelo'];
@@ -6481,23 +6484,29 @@ async function initNoticias(force=false){
   if(grid) grid.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);font-size:13px">⏳ Cargando noticias...</div>';
 
   const API = 'https://api.rss2json.com/v1/api.json?rss_url=';
-  const results = await Promise.allSettled(
-    NOTICIAS_SOURCES.map(src=>
-      fetch(API+encodeURIComponent(src.url)+'&count=10')
-        .then(r=>r.json())
-        .then(data=>(data.items||[]).map(item=>({
-          source: src.name,
-          title: item.title||'',
-          desc: (item.description||item.content||'').replace(/<[^>]+>/g,'').substring(0,200),
-          link: item.link||'#',
-          pubDate: item.pubDate||new Date().toISOString(),
-          cat: noticiaCat(item.title||'', item.description||'')
-        })))
-    )
-  );
+  const allItems = [];
 
-  _noticiasFeed = [];
-  results.forEach(r=>{ if(r.status==='fulfilled') _noticiasFeed.push(...r.value); });
+  // Cargamos de 3 en 3 para no saturar la API
+  for(let i=0; i<NOTICIAS_SOURCES.length; i+=3){
+    const batch = NOTICIAS_SOURCES.slice(i, i+3);
+    const results = await Promise.allSettled(
+      batch.map(src=>
+        fetch(API+encodeURIComponent(src.url)+'&count=12')
+          .then(r=>r.json())
+          .then(data=>(data.items||[]).map(item=>({
+            source: src.name,
+            title: item.title||'',
+            desc: (item.description||item.content||'').replace(/<[^>]+>/g,'').substring(0,200),
+            link: item.link||'#',
+            pubDate: item.pubDate||new Date().toISOString(),
+            cat: noticiaCat(item.title||'', item.description||'')
+          })))
+      )
+    );
+    results.forEach(r=>{ if(r.status==='fulfilled') allItems.push(...r.value); });
+    if(i+3 < NOTICIAS_SOURCES.length) await new Promise(r=>setTimeout(r,300));
+  }
+  _noticiasFeed = allItems;
   _noticiasFeed.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
 
   const sub = document.getElementById('not-subtitle');
