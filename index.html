@@ -6354,13 +6354,14 @@ function initMapa(){
   active.forEach(p=>{
     const color = mapaEstadoColor(p.estado);
     const icon = L.divIcon({
-      html:`<div style="width:16px;height:16px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35)"></div>`,
-      className:'',iconSize:[16,16],iconAnchor:[8,8]
+      html:`<div style="width:22px;height:22px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer"></div>`,
+      className:'',iconSize:[22,22],iconAnchor:[11,11]
     });
     const marker = L.marker([p.lat,p.lon],{icon});
     marker._proj = p;
     const eco = p.eco||{};
     const tirStr = eco.tirPct?`<div style="font-size:14px;font-weight:800;color:#1a3a2a;margin-top:6px">TIR ${eco.tirPct}%</div>`:'';
+    const pid = p.id;
     marker.bindPopup(`<div style="min-width:180px;font-family:'Segoe UI',sans-serif">
       <div style="font-size:13px;font-weight:700;color:#1a1a18;margin-bottom:3px">${p.nombre}</div>
       <div style="font-size:11px;color:#aaa;margin-bottom:8px">📍 ${p.ubicacion||p.ciudad||'—'}</div>
@@ -6368,7 +6369,7 @@ function initMapa(){
         <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:${color}22;color:${color}">${p.estado}</span>
         <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:#f0efe9;color:#666">${p.bloque}</span>
       </div>${tirStr}
-      <button onclick="navigateTo('tabla',{id:${p.id}})" style="margin-top:10px;width:100%;padding:7px;border-radius:6px;background:#1a3a2a;color:white;border:none;cursor:pointer;font-size:11px;font-weight:600">Ver ficha →</button>
+      <button onclick="window._mapaGoTo(${pid})" style="margin-top:10px;width:100%;padding:7px;border-radius:6px;background:#1a3a2a;color:white;border:none;cursor:pointer;font-size:11px;font-weight:600">Ver ficha →</button>
     </div>`,{maxWidth:240});
     marker.addTo(_mapaInstance);
     _mapaMarkers.push(marker);
@@ -6382,6 +6383,7 @@ function initMapa(){
   }
 
   updateMapaMarkers();
+  window._mapaGoTo = function(id){ navigateTo('tabla',{id:id}); };
   [200,500,1000].forEach(t=>setTimeout(()=>{ if(_mapaInstance) _mapaInstance.invalidateSize(); },t));
 }
 
