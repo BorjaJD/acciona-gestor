@@ -757,6 +757,8 @@
   .eco-card-footer { padding:8px 14px; background:var(--surface2); border-top:1px solid var(--border); display:flex; align-items:center; gap:6px; }
   .eco-edit-btn { font-size:11px; color:var(--accent); cursor:pointer; text-decoration:underline; background:none; border:none; font-family:var(--font); padding:0; }
   .eco-edit-btn:hover { opacity:.7; }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </style>
 </head>
@@ -798,6 +800,8 @@
     <div class="nav-tab" data-view="economico" style="border-left:1px solid rgba(255,255,255,0.12)">📊 UW | Modelo</div>
     <div class="nav-tab" data-view="dealsheet" style="border-left:1px solid rgba(255,255,255,0.12)">📄 Deal Sheet</div>
     <div class="nav-tab" data-view="tareas" style="border-left:1px solid rgba(255,255,255,0.12)">✓ Mis tareas</div>
+    <div class="nav-tab" data-view="mapa" style="border-left:1px solid rgba(255,255,255,0.12)">🗺 Mapa</div>
+    <div class="nav-tab" data-view="noticias" style="border-left:1px solid rgba(255,255,255,0.12)">📰 Noticias</div>
   </nav>
   <div class="topbar-right">
     <span id="sb-indicator" onclick="forceSave()" title="Click para forzar guardado (Ctrl+S)" style="font-size:11px;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 8px;border-radius:var(--r);transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">☁ Conectando...</span>
@@ -1822,6 +1826,8 @@ function renderDetail() {
     +'<div style="display:grid;grid-template-columns:'+(p.bloque==='Pipeline'?'1fr 1fr 1fr':'1.2fr 1fr 1fr')+';gap:4px 14px;margin-bottom:10px">'
     +'<div class="d-item"><label>Provincia</label><select class="d-select" onchange="saveField('+p.id+',\'ubicacion\',this.value)" onclick="event.stopPropagation()">'+UBICACIONES_OPTS.map(u=>'<option value="'+u+'"'+(u===(p.ubicacion||'')?'  selected':'')+'>'+u+'</option>').join('')+'</select></div>'
     +'<div class="d-item"><label>Ciudad</label><input class="d-input" value="'+(p.ciudad||'')+'" placeholder="ej. Madrid" oninput="saveField('+p.id+',\'ciudad\',this.value)" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"><label>Lat</label><input class="d-input" type="number" step="0.0001" value="'+(p.lat||'')+'" placeholder="40.4168" oninput="saveField('+p.id+',\'lat\',parseFloat(this.value)||null)" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"><label>Lon</label><input class="d-input" type="number" step="0.0001" value="'+(p.lon||'')+'" placeholder="-3.7038" oninput="saveField('+p.id+',\'lon\',parseFloat(this.value)||null)" onclick="event.stopPropagation()"/></div>'
     +(p.bloque==='Pipeline'
       ? '<div class="d-item"><label>Delegación</label><select class="d-select" onchange="saveField('+p.id+',\'delegacion\',this.value)" onclick="event.stopPropagation()">'
           +['','Centro','Este','Norte','Sur','Internacional'].map(d=>'<option value="'+d+'"'+(d===(p.delegacion||'')?' selected':'')+'>'+(d||'—')+'</option>').join('')
@@ -3256,10 +3262,22 @@ function renderMobileDetail(p, mfe, mfp, trackClsM){
     </div>`;
     p.tracks.forEach(t=>{
       const cls = trackClsM(t.estado);
+      const nombreTrack = t.broker && t.compradorTarget ? `${t.broker} → ${t.compradorTarget}` : t.broker || t.compradorTarget || '—';
+      const tipoVentaTag = t.tipoVenta && t.tipoVenta!=='—' ? `<span style="font-size:9px;background:#e8f0eb;color:#3d7058;padding:1px 6px;border-radius:10px;font-weight:600">${t.tipoVenta}</span>` : '';
+      const importeTag = t.ofertaImporte ? `<span style="font-size:13px;font-weight:700;color:#1a3a2a">${mfe(t.ofertaImporte)}</span>` : '';
       html += `<div class="mob-track-card s-${cls}">
         <div class="mob-track-head">
-          <div class="mob-track-broker">${t.broker||'—'} <span class="mob-track-tipo">· ${t.tipo||'—'}</span></div>
-          <div class="mob-track-status-pill s-${cls}">${t.estado||'—'}</div>
+          <div style="flex:1;min-width:0">
+            <div class="mob-track-broker">${nombreTrack}</div>
+            <div style="display:flex;gap:5px;align-items:center;margin-top:3px;flex-wrap:wrap">
+              <span class="mob-track-tipo">${t.tipo||'—'}</span>
+              ${tipoVentaTag}
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <div class="mob-track-status-pill s-${cls}">${t.estado||'—'}</div>
+            ${importeTag}
+          </div>
         </div>
         <div class="mob-track-body">`;
       if(t.contactoNombre) html += `<div class="mob-track-row"><span class="mob-track-row-label">Contacto</span><span class="mob-track-row-value">${t.contactoNombre}</span></div>`;
@@ -3383,6 +3401,8 @@ function render() {
       catch(e) { m.innerHTML='<div style="padding:20px;color:#991b1b;font-size:13px"><strong>Error en Deal Sheet:</strong><br><pre>'+e.message+'\n'+e.stack+'</pre></div>'; console.error(e); }
     }
     else if(S.view==='tareas') m.innerHTML=renderTareas();
+    else if(S.view==='mapa'){ m.innerHTML=renderMapaHTML(); initMapa(); }
+    else if(S.view==='noticias'){ m.innerHTML=renderNoticiasHTML(); initNoticias(); }
   });
 }
 
@@ -6227,6 +6247,263 @@ function clasificarTarea(t){
   if(dias <= 0) return 'hoy';
   if(dias <= 7) return 'semana';
   return 'proximas';
+}
+
+// ── MAPA ────────────────────────────────────────────────────────
+let _mapaInstance = null;
+
+function renderMapaHTML(){
+  return `<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+    <div style="background:white;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap">
+      <span style="font-size:13px;font-weight:700;color:var(--text)">Mapa de proyectos</span>
+      <div style="display:flex;gap:5px;flex-wrap:wrap" id="mapa-filters">
+        <button class="mapa-filter active" onclick="mapaFilter('todo',this)">Todo</button>
+        <button class="mapa-filter" onclick="mapaFilter('Pipeline',this)">Pipeline</button>
+        <button class="mapa-filter" onclick="mapaFilter('Desinversión',this)">Desinversión</button>
+        <button class="mapa-filter" onclick="mapaFilter('Clientes / Gestión',this)">Clientes</button>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;margin-left:8px;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:50%;background:#3d7058;display:inline-block;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>WIP / DD</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:50%;background:#d4a04a;display:inline-block;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>En análisis</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:50%;background:#7a9d8a;display:inline-block;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>Recibido</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:50%;background:#aaa;display:inline-block;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>Stand By</span>
+      </div>
+      <span id="mapa-count" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
+    </div>
+    <div id="mapa-leaflet" style="flex:1;z-index:1"></div>
+  </div>`;
+}
+
+function mapaEstadoColor(estado){
+  if(['WIP','Due diligence'].includes(estado)) return '#3d7058';
+  if(['En análisis','Recibido en análisis'].includes(estado)) return '#d4a04a';
+  if(estado==='Recibido') return '#7a9d8a';
+  return '#aaa';
+}
+
+let _mapaFilter = 'todo';
+let _mapaMarkers = [];
+
+function mapaFilter(f, btn){
+  _mapaFilter = f;
+  document.querySelectorAll('.mapa-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  updateMapaMarkers();
+}
+
+function updateMapaMarkers(){
+  const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
+  const filtered = _mapaFilter==='todo' ? active : active.filter(p=>p.bloque===_mapaFilter);
+  document.getElementById('mapa-count').textContent = filtered.length+' proyecto'+(filtered.length!==1?'s':'');
+  _mapaMarkers.forEach(m=>{ try{ m.setOpacity(_mapaFilter==='todo'||m._proj.bloque===_mapaFilter?1:0.2); }catch(e){} });
+}
+
+function initMapa(){
+  if(!window.L) return;
+  if(_mapaInstance){ _mapaInstance.remove(); _mapaInstance=null; }
+  const el = document.getElementById('mapa-leaflet');
+  if(!el) return;
+
+  _mapaInstance = L.map('mapa-leaflet',{zoomControl:true}).setView([40.4,-3.7],6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap',maxZoom:18
+  }).addTo(_mapaInstance);
+
+  _mapaMarkers = [];
+  const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
+
+  active.forEach(p=>{
+    const color = mapaEstadoColor(p.estado);
+    const icon = L.divIcon({
+      html:`<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>`,
+      className:'',iconSize:[14,14],iconAnchor:[7,7]
+    });
+    const marker = L.marker([p.lat,p.lon],{icon});
+    marker._proj = p;
+
+    const eco = p.eco||{};
+    const tirStr = eco.tirPct ? `<div style="font-size:14px;font-weight:800;color:#1a3a2a;margin-top:6px">TIR ${eco.tirPct}%</div>` : '';
+    const ventaStr = eco.ventaEur ? `<div style="font-size:11px;color:#666">Ventas ${eco.ventaEur} M€</div>` : '';
+    marker.bindPopup(`
+      <div style="min-width:180px;font-family:'Segoe UI',sans-serif">
+        <div style="font-size:13px;font-weight:700;color:#1a1a18;margin-bottom:3px">${p.nombre}</div>
+        <div style="font-size:11px;color:#aaa;margin-bottom:8px">📍 ${p.ubicacion||'—'}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
+          <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:${color}22;color:${color}">${p.estado}</span>
+          <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:#f0efe9;color:#666">${p.bloque}</span>
+        </div>
+        ${tirStr}${ventaStr}
+        <button onclick="navigateTo('tabla',{id:${p.id}})" style="margin-top:10px;width:100%;padding:7px;border-radius:6px;background:#1a3a2a;color:white;border:none;cursor:pointer;font-size:11px;font-weight:600">Ver ficha completa →</button>
+      </div>
+    `,{maxWidth:240});
+
+    marker.addTo(_mapaInstance);
+    _mapaMarkers.push(marker);
+  });
+
+  // CSS para filtros
+  const style = document.createElement('style');
+  style.textContent = '.mapa-filter{font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:var(--font)}.mapa-filter.active{background:#1a3a2a;color:white;border-color:#1a3a2a}';
+  document.head.appendChild(style);
+
+  updateMapaMarkers();
+
+  // Fix leaflet size
+  setTimeout(()=>{ if(_mapaInstance) _mapaInstance.invalidateSize(); },100);
+}
+
+// ── NOTICIAS ─────────────────────────────────────────────────────
+const NOTICIAS_SOURCES = [
+  {name:'Brainsre',      color:'#1a3a2a', url:'https://brainsre.news/feed/'},
+  {name:'Ejeprime',      color:'#2d6a4f', url:'https://www.ejeprime.com/feed'},
+  {name:'El Confidencial',color:'#52b788',url:'https://www.elconfidencial.com/rss/tags/inmobiliario.xml'},
+  {name:'Expansión',     color:'#74c69d', url:'https://e00-expansion.uecdn.es/rss/mercados.xml'},
+  {name:'Idealista News',color:'#95d5b2', url:'https://www.idealista.com/news/feed'},
+  {name:'Cinco Días',    color:'#b7e4c7', url:'https://cincodias.elpais.com/rss/section/?s=inmobiliario'},
+  {name:'Inmobiliare',   color:'#d4a04a', url:'https://inmobiliare.com/feed/'},
+  {name:'Obs. Inmobiliario',color:'#a85c4a',url:'https://observatorioinmobiliario.es/feed/'},
+  {name:'Property EU',   color:'#7a9d8a', url:'https://www.propertyeu.info/feed/'},
+];
+
+const NOTICIAS_CATS = ['Todo','Inversión','Residencial','Oficinas','Logístico','Hoteles','Suelo'];
+let _noticiasFeed = [];
+let _noticiasFilter = 'Todo';
+let _noticiasSourceFilter = 'Todo';
+let _noticiasLoading = false;
+
+function renderNoticiasHTML(){
+  return `<div class="view-panel" style="padding:0;display:flex;flex-direction:column;height:100%;overflow:hidden">
+    <div style="background:white;border-bottom:1px solid var(--border);padding:12px 20px;flex-shrink:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--text)">Noticias del sector</div>
+          <div id="not-subtitle" style="font-size:11px;color:var(--text3);margin-top:1px">Cargando fuentes...</div>
+        </div>
+        <button onclick="initNoticias(true)" style="font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;color:var(--text2);font-family:var(--font)">↻ Actualizar</button>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px" id="not-cats">
+        ${NOTICIAS_CATS.map(c=>`<button onclick="notCatFilter('${c}',this)" class="not-filter${c==='Todo'?' active':''}">${c}</button>`).join('')}
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+        <span style="font-size:10px;color:var(--text3)">Fuentes:</span>
+        <button onclick="notSrcFilter('Todo',this)" class="not-src-filter active">Todas</button>
+        ${NOTICIAS_SOURCES.map(s=>`<button onclick="notSrcFilter('${s.name}',this)" class="not-src-filter" style="--sc:${s.color}"><span style="width:6px;height:6px;border-radius:50%;background:${s.color};display:inline-block"></span>${s.name}</button>`).join('')}
+      </div>
+    </div>
+    <div id="not-grid" style="flex:1;overflow-y:auto;padding:16px 20px">
+      <div style="text-align:center;padding:60px 20px;color:var(--text3);font-size:13px">⏳ Cargando noticias...</div>
+    </div>
+  </div>`;
+}
+
+function notCatFilter(cat, btn){
+  _noticiasFilter = cat;
+  document.querySelectorAll('.not-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNoticiasGrid();
+}
+
+function notSrcFilter(src, btn){
+  _noticiasSourceFilter = src;
+  document.querySelectorAll('.not-src-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNoticiasGrid();
+}
+
+function noticiaCat(title, desc){
+  const txt = (title+' '+desc).toLowerCase();
+  if(/oficin|office|coworking/.test(txt)) return 'Oficinas';
+  if(/logísti|logistic|nave|almacén|warehouse/.test(txt)) return 'Logístico';
+  if(/hotel|hostel|alojamiento|vacacional/.test(txt)) return 'Hoteles';
+  if(/residen|vivienda|housing|alquiler|rental|piso|apartamento/.test(txt)) return 'Residencial';
+  if(/suelo|solar|terreno|land/.test(txt)) return 'Suelo';
+  if(/invers|fund|socimi|reit|capital|transacci/.test(txt)) return 'Inversión';
+  return 'Inversión';
+}
+
+function timeAgo(dateStr){
+  const d = new Date(dateStr);
+  const now = new Date();
+  const mins = Math.floor((now-d)/60000);
+  if(mins<60) return 'Hace '+mins+' min';
+  if(mins<1440) return 'Hace '+Math.floor(mins/60)+'h';
+  return 'Hace '+Math.floor(mins/1440)+' días';
+}
+
+function renderNoticiasGrid(){
+  const grid = document.getElementById('not-grid');
+  if(!grid) return;
+  let items = _noticiasFeed;
+  if(_noticiasSourceFilter!=='Todo') items = items.filter(i=>i.source===_noticiasSourceFilter);
+  if(_noticiasFilter!=='Todo') items = items.filter(i=>i.cat===_noticiasFilter);
+
+  if(!items.length){
+    grid.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);font-size:13px">Sin noticias para esta categoría</div>';
+    return;
+  }
+
+  const catColors = {Inversión:'#1a3a2a',Residencial:'#2d6a4f',Oficinas:'#d4a04a',Logístico:'#7a9d8a',Hoteles:'#a85c4a',Suelo:'#95d5b2'};
+  grid.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+    ${items.map(item=>{
+      const src = NOTICIAS_SOURCES.find(s=>s.name===item.source)||{color:'#aaa'};
+      const catColor = catColors[item.cat]||'#aaa';
+      return `<div onclick="window.open('${item.link}','_blank')" style="background:white;border-radius:10px;border:1px solid var(--border);overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+        <div style="height:4px;background:${src.color}"></div>
+        <div style="padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="width:6px;height:6px;border-radius:50%;background:${src.color};flex-shrink:0;display:inline-block"></span>
+            <span style="font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em">${item.source}</span>
+            <span style="font-size:10px;color:#bbb;margin-left:auto">${timeAgo(item.pubDate)}</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4">${item.title}</div>
+          <div style="font-size:11px;color:var(--text3);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${item.desc}</div>
+          <span style="font-size:9px;padding:2px 8px;border-radius:20px;background:${catColor}18;color:${catColor};font-weight:600;width:fit-content;margin-top:auto">${item.cat}</span>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+async function initNoticias(force=false){
+  if(_noticiasLoading && !force) return;
+  _noticiasLoading = true;
+
+  // Añadir CSS de filtros si no existe
+  if(!document.getElementById('not-css')){
+    const s = document.createElement('style');
+    s.id='not-css';
+    s.textContent=`.not-filter,.not-src-filter{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:4px}.not-filter.active{background:#1a3a2a;color:white;border-color:#1a3a2a}.not-src-filter.active{background:var(--sc,#1a3a2a);color:white;border-color:var(--sc,#1a3a2a)}`;
+    document.head.appendChild(s);
+  }
+
+  if(force) _noticiasFeed = [];
+  const grid = document.getElementById('not-grid');
+  if(grid) grid.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);font-size:13px">⏳ Cargando noticias...</div>';
+
+  const API = 'https://api.rss2json.com/v1/api.json?rss_url=';
+  const results = await Promise.allSettled(
+    NOTICIAS_SOURCES.map(src=>
+      fetch(API+encodeURIComponent(src.url)+'&count=10')
+        .then(r=>r.json())
+        .then(data=>(data.items||[]).map(item=>({
+          source: src.name,
+          title: item.title||'',
+          desc: (item.description||item.content||'').replace(/<[^>]+>/g,'').substring(0,200),
+          link: item.link||'#',
+          pubDate: item.pubDate||new Date().toISOString(),
+          cat: noticiaCat(item.title||'', item.description||'')
+        })))
+    )
+  );
+
+  _noticiasFeed = [];
+  results.forEach(r=>{ if(r.status==='fulfilled') _noticiasFeed.push(...r.value); });
+  _noticiasFeed.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
+
+  const sub = document.getElementById('not-subtitle');
+  if(sub) sub.textContent = `${_noticiasFeed.length} artículos · Actualizado ahora`;
+  _noticiasLoading = false;
+  renderNoticiasGrid();
 }
 
 function renderTareas(){
