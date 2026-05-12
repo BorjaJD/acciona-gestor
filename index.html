@@ -3406,14 +3406,20 @@ function render() {
     else if(S.view==='tareas') m.innerHTML=renderTareas();
     else if(S.view==='mapa'){
       m.style.overflow='hidden';
+      m.style.display='flex';
+      m.style.flexDirection='column';
       m.innerHTML=renderMapaHTML();
-      if(window.L){ initMapa(); }
-      else{
-        const s=document.createElement('script');
-        s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-        s.onload=()=>initMapa();
-        document.head.appendChild(s);
-      }
+      requestAnimationFrame(()=>{
+        requestAnimationFrame(()=>{
+          if(window.L){ initMapa(); }
+          else{
+            const s=document.createElement('script');
+            s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+            s.onload=()=>initMapa();
+            document.head.appendChild(s);
+          }
+        });
+      });
     }
     else if(S.view==='noticias'){ m.style.overflow='hidden'; m.innerHTML=renderNoticiasHTML(); initNoticias(); }
   });
@@ -6283,7 +6289,7 @@ function renderMapaHTML(){
       </div>
       <span id="mapa-count" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
     </div>
-    <div id="mapa-leaflet" style="flex:1;z-index:1;min-height:400px"></div>
+    <div id="mapa-leaflet" style="flex:1;width:100%;min-height:0"></div>
   </div>`;
 }
 
@@ -6361,8 +6367,8 @@ function initMapa(){
 
   updateMapaMarkers();
 
-  // Fix leaflet size
-  setTimeout(()=>{ if(_mapaInstance) _mapaInstance.invalidateSize(); },300);
+  // Fix leaflet size - multiple attempts
+  [100,300,600].forEach(t=>setTimeout(()=>{ if(_mapaInstance) _mapaInstance.invalidateSize(); },t));
 }
 
 // ── NOTICIAS ─────────────────────────────────────────────────────
@@ -6481,7 +6487,6 @@ async function initNoticias(force=false){
   if(_noticiasLoading && !force) return;
   _noticiasLoading = true;
 
-  // Añadir CSS de filtros si no existe
   if(!document.getElementById('not-css')){
     const s = document.createElement('style');
     s.id='not-css';
@@ -6493,32 +6498,42 @@ async function initNoticias(force=false){
   const grid = document.getElementById('not-grid');
   if(grid) grid.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);font-size:13px">⏳ Cargando noticias...</div>';
 
-  const API = 'https://api.rss2json.com/v1/api.json?rss_url=';
+  const PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
   const allItems = [];
 
-  // Cargamos de 3 en 3 para no saturar la API
-  for(let i=0; i<NOTICIAS_SOURCES.length; i+=3){
-    const batch = NOTICIAS_SOURCES.slice(i, i+3);
-    const results = await Promise.allSettled(
-      batch.map(src=>
-        fetch(API+encodeURIComponent(src.url)+'&count=12')
-          .then(r=>r.json())
-          .then(data=>(data.items||[]).map(item=>({
-            source: src.name,
-            title: item.title||'',
-            desc: (item.description||item.content||'').replace(/<[^>]+>/g,'').substring(0,200),
-            link: item.link||'#',
-            pubDate: item.pubDate||new Date().toISOString(),
-            cat: noticiaCat(item.title||'', item.description||'')
-          })))
-      )
-    );
-    results.forEach(r=>{ if(r.status==='fulfilled') allItems.push(...r.value); });
-    if(i+3 < NOTICIAS_SOURCES.length) await new Promise(r=>setTimeout(r,300));
+  async function fetchFeed(src){
+    try{
+      const r = await fetch(PROXY+encodeURIComponent(src.url)+'&count=15');
+      const data = await r.json();
+      if(data.status==='ok' && data.items && data.items.length){
+        return data.items.map(item=>({
+          source: src.name,
+          title: (item.title||'').replace(/<[^>]+>/g,'').trim(),
+          desc: (item.description||item.content||'').replace(/<[^>]+>/g,'').trim().substring(0,200),
+          link: item.link||'#',
+          pubDate: item.pubDate||new Date().toISOString(),
+          cat: noticiaCat(item.title||'', item.description||'')
+        }));
+      }
+    }catch(e){}
+    return [];
   }
-  _noticiasFeed = allItems;
-  _noticiasFeed.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
 
+  // Cargamos una a una con pequeño delay para no saturar
+  for(const src of NOTICIAS_SOURCES){
+    const items = await fetchFeed(src);
+    allItems.push(...items);
+    // Mostrar parcialmente mientras carga
+    if(allItems.length > 0){
+      _noticiasFeed = [...allItems].sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
+      const sub = document.getElementById('not-subtitle');
+      if(sub) sub.textContent = `${_noticiasFeed.length} artículos cargados...`;
+      renderNoticiasGrid();
+    }
+    await new Promise(r=>setTimeout(r,200));
+  }
+
+  _noticiasFeed = allItems.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
   const sub = document.getElementById('not-subtitle');
   if(sub) sub.textContent = `${_noticiasFeed.length} artículos · Actualizado ahora`;
   _noticiasLoading = false;
