@@ -1733,21 +1733,18 @@ function toggleSidebar() {
 
 function toggleDetailMin() {
   S.detailMin = !S.detailMin;
-  const panel = document.querySelector('.detail-panel');
-  const bar = document.querySelector('.detail-panel-bar');
-  if(panel){
-    panel.style.display = S.detailMin ? 'none' : '';
-    panel.style.minHeight = '';
-    panel.style.maxHeight = '';
+  const container = document.getElementById('detail-container');
+  const btn = document.querySelector('.detail-min-btn');
+  const title = document.querySelector('.detail-bar-title');
+  if(container){
+    // Ocultar el panel pero mantener la barra visible
+    const panel = container.querySelector('.detail-panel');
+    if(panel) panel.style.display = S.detailMin ? 'none' : '';
   }
-  if(bar){
-    const btn = bar.querySelector('.detail-min-btn');
-    const title = bar.querySelector('.detail-bar-title');
-    if(btn) btn.textContent = S.detailMin ? '▲ Expandir' : '▼ Minimizar';
-    if(title && S.selId){
-      const p = projects.find(x=>x.id===S.selId);
-      if(p) title.textContent = S.detailMin ? p.nombre : 'Detalle del proyecto';
-    }
+  if(btn) btn.textContent = S.detailMin ? '▲ Expandir' : '▼ Minimizar';
+  if(title && S.selId){
+    const p = projects.find(x=>x.id===S.selId);
+    if(p) title.textContent = S.detailMin ? p.nombre : 'Detalle del proyecto';
   }
 }
 
@@ -2588,11 +2585,13 @@ function renderTabla() {
     
     +'<button class="btn-add" onclick="openModal()">＋ Nuevo</button>'
     +'</div>'
+    +'<div id="detail-container">'
     +'<div class="detail-panel-bar" onclick="toggleDetailMin()">'
     +'<span class="detail-bar-title">'+(S.selId&&S.detailMin ? (projects.find(x=>x.id===S.selId)||{}).nombre||'Detalle del proyecto' : 'Detalle del proyecto')+'</span>'
     +'<button class="detail-min-btn" onclick="event.stopPropagation();toggleDetailMin()">'+(S.detailMin?'▲ Expandir':'▼ Minimizar')+'</button>'
     +'</div>'
     +renderDetail()
+    +'</div>'
     +'<div class="table-wrap"><table style="table-layout:fixed;width:100%">'
     +'<colgroup>'
     +'<col style="width:22%">'  /* Proyecto */
@@ -6503,15 +6502,8 @@ function initMapa(){
     // Icono con número o inicial
     const inicial = (p.nombre||'?')[0].toUpperCase();
     const icon = L.divIcon({
-      html:`<div style="
-        width:32px;height:32px;border-radius:50%;
-        background:${color};border:3px solid white;
-        box-shadow:0 3px 10px rgba(0,0,0,0.35);
-        cursor:pointer;display:flex;align-items:center;justify-content:center;
-        font-size:12px;font-weight:700;color:white;font-family:'Segoe UI',sans-serif;
-        transition:transform .15s
-      ">${inicial}</div>`,
-      className:'',iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-16]
+      html:`<div style="width:32px;height:32px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;font-family:'Segoe UI',sans-serif;pointer-events:none">${inicial}</div>`,
+      className:'leaflet-marker-icon',iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-18]
     });
     const marker = L.marker([p.lat,p.lon],{icon});
     marker._proj = p;
