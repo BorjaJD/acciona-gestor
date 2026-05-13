@@ -6496,6 +6496,19 @@ function renderMapaHTML(){
   </div>`;
 }
 
+function updateMapaMarkers(){
+  const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
+  const cnt = document.getElementById('mapa-count');
+  if(cnt){
+    const filtered = _mapaFilter==='todo' ? active : active.filter(p=>p.bloque===_mapaFilter);
+    cnt.textContent = filtered.length+' proyecto'+(filtered.length!==1?'s':'');
+  }
+  _mapaMarkers.forEach(m=>{
+    const visible = _mapaFilter==='todo' || m._proj.bloque===_mapaFilter;
+    if(m._icon) m._icon.style.opacity = visible ? '1' : '0.2';
+  });
+}
+
 function initMapa(){
   // CSS mínimo de Leaflet inline
   if(!document.getElementById('leaflet-inline-css')){
