@@ -291,7 +291,7 @@
   .estado-wrap.s-Cerrado{background:#1a1a1a} .estado-wrap.s-Cerrado .estado-select{color:#fff}
   /* DETAIL PANEL */
   .detail-panel{border-bottom:1px solid var(--border);padding:14px 16px;background:var(--surface);flex-shrink:0;min-height:120px;max-height:55vh;overflow-y:auto;overflow-x:hidden;transition:max-height .2s,min-height .2s,padding .2s}
-  .detail-panel.minimised{min-height:0;max-height:0;padding:0;overflow:hidden}
+  .detail-panel.minimised{display:none!important}
   .detail-panel.empty{display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;font-style:italic}
   .detail-panel-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2);flex-shrink:0;cursor:pointer;user-select:none}
   .detail-panel-bar:hover{background:#e8e7e2}
@@ -1363,7 +1363,7 @@ function toggleFase(id, fase, checked) {
   else { p.fases = p.fases.filter(f=>f!==fase); }
   persist();
   const dp = document.querySelector('.detail-panel');
-  if(dp) dp.outerHTML = renderDetail();
+  if(dp){ dp.outerHTML = renderDetail(); if(S.detailMin){ const np=document.querySelector('.detail-panel'); if(np) np.classList.add('minimised'); } }
 }
 
 function hasUW(p){const e=(p&&p.eco)||{};return !!(e.tirPct||e.margenPct||e.ventaEur||e.sueloEur);}
@@ -1601,7 +1601,7 @@ function renderDetailOnly(){
     if(!panel) return;
     const tmp = document.createElement('div');
     tmp.innerHTML = renderDetail();
-    if(tmp.firstChild) panel.outerHTML = tmp.firstChild.outerHTML;
+    if(tmp.firstChild){ panel.outerHTML = tmp.firstChild.outerHTML; if(S.detailMin){ const np=document.querySelector('.detail-panel'); if(np) np.classList.add('minimised'); } }
   });
 }
 
@@ -1673,7 +1673,7 @@ function addAccion(id) {
   p.acciones.push({t:'', d:false}); persist();
   // Re-render detail only
   const dp = document.querySelector('.detail-panel');
-  if(dp) dp.outerHTML = renderDetail();
+  if(dp){ dp.outerHTML = renderDetail(); if(S.detailMin){ const np=document.querySelector('.detail-panel'); if(np) np.classList.add('minimised'); } }
   // Focus new input
   setTimeout(()=>{
     const inputs = document.querySelectorAll('.accion-txt');
@@ -1688,7 +1688,7 @@ function delAccion(id, idx) {
   p.proxima = p.acciones.filter(a=>!a.d).map(a=>a.t).join('. ');
   persist();
   const dp = document.querySelector('.detail-panel');
-  if(dp) dp.outerHTML = renderDetail();
+  if(dp){ dp.outerHTML = renderDetail(); if(S.detailMin){ const np=document.querySelector('.detail-panel'); if(np) np.classList.add('minimised'); } }
 }
 
 function toggleAccion(id, idx) {
@@ -1738,19 +1738,23 @@ function toggleSidebar() {
 
 function toggleDetailMin() {
   S.detailMin = !S.detailMin;
-  const container = document.getElementById('detail-container');
+  // Eliminar duplicados
+  const panels = document.querySelectorAll('.detail-panel');
+  panels.forEach((p,i) => { if(i > 0) p.remove(); });
+  const panel = document.querySelector('.detail-panel');
   const btn = document.querySelector('.detail-min-btn');
   const title = document.querySelector('.detail-bar-title');
-  if(container){
-    // Ocultar el panel pero mantener la barra visible
-    const panel = container.querySelector('.detail-panel');
-    if(panel) panel.style.display = S.detailMin ? 'none' : '';
+  if(panel){
+    panel.classList.toggle('minimised', S.detailMin);
+    panel.style.display = S.detailMin ? 'none' : '';
   }
   if(btn) btn.textContent = S.detailMin ? '▲ Expandir' : '▼ Minimizar';
   if(title && S.selId){
     const p = projects.find(x=>x.id===S.selId);
     if(p) title.textContent = S.detailMin ? p.nombre : 'Detalle del proyecto';
   }
+  // Log para debug
+  console.log('detailMin:', S.detailMin, 'panels found:', document.querySelectorAll('.detail-panel').length, 'display:', document.querySelector('.detail-panel')?.style.display);
 }
 
 function renderDetail() {
@@ -1804,7 +1808,7 @@ function renderDetail() {
       +'</label>';
   };
 
-  return '<div class="detail-panel'+(S.detailMin?' minimised':'')+'">'
+  return '<div class="detail-panel'+(S.detailMin?' minimised':'')+'" style="'+(S.detailMin?'display:none!important':'')+'">'
 
     // ── Descripción (Pipeline only, top) ─────────────────────
     
