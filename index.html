@@ -290,7 +290,7 @@
   .estado-wrap.s-Descartado{background:#3a3a3a} .estado-wrap.s-Descartado .estado-select{color:#fff}
   .estado-wrap.s-Cerrado{background:#1a1a1a} .estado-wrap.s-Cerrado .estado-select{color:#fff}
   /* DETAIL PANEL */
-  .detail-panel{border-bottom:1px solid var(--border);padding:14px 16px;background:var(--surface);flex-shrink:0;min-height:120px;max-height:55vh;overflow-y:auto;overflow-x:hidden;transition:max-height .2s,min-height .2s,padding .2s}
+  .detail-panel{border-bottom:1px solid var(--border);padding:14px 16px;background:var(--surface);flex-shrink:0;max-height:55vh;overflow-y:auto;overflow-x:hidden}
   .detail-panel.minimised{display:none!important}
   .detail-panel.empty{display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;font-style:italic}
   .detail-panel-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2);flex-shrink:0;cursor:pointer;user-select:none}
@@ -1365,12 +1365,10 @@ function toggleFase(id, fase, checked) {
   (function(){
   const cont=document.getElementById('detail-container');
   if(!cont) return;
-  const existing=cont.querySelector('.detail-panel');
-  const tmp=document.createElement('div');
-  tmp.innerHTML=renderDetail();
-  if(existing&&tmp.firstChild) existing.outerHTML=tmp.firstChild.outerHTML;
-  else if(!existing&&tmp.firstChild) cont.appendChild(tmp.firstChild);
-  if(S.detailMin){const np=cont.querySelector('.detail-panel');if(np){np.classList.add('minimised');np.style.display='none';}}
+  const bar=cont.querySelector('.detail-panel-bar');
+  const barHTML=bar?bar.outerHTML:'';
+  cont.innerHTML=barHTML+renderDetail();
+  if(S.detailMin){const np=cont.querySelector('.detail-panel');if(np){np.style.display='none';np.classList.add('minimised');}}
 })();
 }
 
@@ -1600,21 +1598,15 @@ function getBestOffer(p){
 // Re-render detalle Input sin perder otros estados
 function renderDetailOnly(){
   preserveScroll(() => {
-    cleanDetailContainer();
     const container = document.getElementById('detail-container');
     if(!container) return;
-    // Reemplazar solo el detail-panel dentro del container
-    const panel = container.querySelector('.detail-panel');
-    const tmp = document.createElement('div');
-    tmp.innerHTML = renderDetail();
-    if(panel && tmp.firstChild){
-      panel.outerHTML = tmp.firstChild.outerHTML;
-    } else if(!panel && tmp.firstChild){
-      container.appendChild(tmp.firstChild);
-    }
+    // Regenerar solo el panel dentro del container, manteniendo la barra
+    const bar = container.querySelector('.detail-panel-bar');
+    const barHTML = bar ? bar.outerHTML : '';
+    container.innerHTML = barHTML + renderDetail();
     if(S.detailMin){
       const np = container.querySelector('.detail-panel');
-      if(np){ np.classList.add('minimised'); np.style.display='none'; }
+      if(np){ np.style.display='none'; np.classList.add('minimised'); }
     }
   });
 }
@@ -1690,12 +1682,10 @@ function addAccion(id) {
   (function(){
   const cont=document.getElementById('detail-container');
   if(!cont) return;
-  const existing=cont.querySelector('.detail-panel');
-  const tmp=document.createElement('div');
-  tmp.innerHTML=renderDetail();
-  if(existing&&tmp.firstChild) existing.outerHTML=tmp.firstChild.outerHTML;
-  else if(!existing&&tmp.firstChild) cont.appendChild(tmp.firstChild);
-  if(S.detailMin){const np=cont.querySelector('.detail-panel');if(np){np.classList.add('minimised');np.style.display='none';}}
+  const bar=cont.querySelector('.detail-panel-bar');
+  const barHTML=bar?bar.outerHTML:'';
+  cont.innerHTML=barHTML+renderDetail();
+  if(S.detailMin){const np=cont.querySelector('.detail-panel');if(np){np.style.display='none';np.classList.add('minimised');}}
 })();
   // Focus new input
   setTimeout(()=>{
@@ -1713,12 +1703,10 @@ function delAccion(id, idx) {
   (function(){
   const cont=document.getElementById('detail-container');
   if(!cont) return;
-  const existing=cont.querySelector('.detail-panel');
-  const tmp=document.createElement('div');
-  tmp.innerHTML=renderDetail();
-  if(existing&&tmp.firstChild) existing.outerHTML=tmp.firstChild.outerHTML;
-  else if(!existing&&tmp.firstChild) cont.appendChild(tmp.firstChild);
-  if(S.detailMin){const np=cont.querySelector('.detail-panel');if(np){np.classList.add('minimised');np.style.display='none';}}
+  const bar=cont.querySelector('.detail-panel-bar');
+  const barHTML=bar?bar.outerHTML:'';
+  cont.innerHTML=barHTML+renderDetail();
+  if(S.detailMin){const np=cont.querySelector('.detail-panel');if(np){np.style.display='none';np.classList.add('minimised');}}
 })();
 }
 
@@ -1770,34 +1758,20 @@ function toggleSidebar() {
 function cleanDetailContainer(){
   const cont = document.getElementById('detail-container');
   if(!cont) return;
-  // Eliminar todo excepto la barra y el panel
+  // Eliminar TODOS los hijos excepto la barra y UN solo panel
+  const toRemove = [];
+  let panelFound = false;
   Array.from(cont.children).forEach(el=>{
-    if(!el.classList.contains('detail-panel-bar') && !el.classList.contains('detail-panel')){
-      el.remove();
-    }
+    if(el.classList.contains('detail-panel-bar')) return; // keep
+    if(el.classList.contains('detail-panel') && !panelFound){ panelFound=true; return; } // keep first panel only
+    toRemove.push(el); // remove everything else
   });
+  toRemove.forEach(el=>el.remove());
 }
 
 function toggleDetailMin() {
   S.detailMin = !S.detailMin;
-  cleanDetailContainer();
-  // Eliminar duplicados
-  const panels = document.querySelectorAll('.detail-panel');
-  panels.forEach((p,i) => { if(i > 0) p.remove(); });
-  const panel = document.querySelector('.detail-panel');
-  const btn = document.querySelector('.detail-min-btn');
-  const title = document.querySelector('.detail-bar-title');
-  if(panel){
-    panel.classList.toggle('minimised', S.detailMin);
-    panel.style.display = S.detailMin ? 'none' : '';
-  }
-  if(btn) btn.textContent = S.detailMin ? '▲ Expandir' : '▼ Minimizar';
-  if(title && S.selId){
-    const p = projects.find(x=>x.id===S.selId);
-    if(p) title.textContent = S.detailMin ? p.nombre : 'Detalle del proyecto';
-  }
-  // Log para debug
-  console.log('detailMin:', S.detailMin, 'panels found:', document.querySelectorAll('.detail-panel').length, 'display:', document.querySelector('.detail-panel')?.style.display);
+  render();
 }
 
 function renderDetail() {
@@ -2427,6 +2401,7 @@ function setSortCol(col, shiftKey) {
 function selectProject(id) {
   S.selId = S.selId === id ? null : id;
   S.detailMin = false;
+  cleanDetailContainer();
   render();
 }
 function toggleGroup(b) {
@@ -2639,10 +2614,10 @@ function renderTabla() {
     +'</div>'
     +'<div id="detail-container">'
     +'<div class="detail-panel-bar" onclick="toggleDetailMin()">'
-    +'<span class="detail-bar-title">'+(S.selId&&S.detailMin ? (projects.find(x=>x.id===S.selId)||{}).nombre||'Detalle del proyecto' : 'Detalle del proyecto')+'</span>'
+    +'<span class="detail-bar-title">'+(S.selId ? (projects.find(x=>x.id===S.selId)||{}).nombre||'Detalle del proyecto' : 'Detalle del proyecto')+'</span>'
     +'<button class="detail-min-btn" onclick="event.stopPropagation();toggleDetailMin()">'+(S.detailMin?'▲ Expandir':'▼ Minimizar')+'</button>'
     +'</div>'
-    +renderDetail()
+    +(S.detailMin ? '' : renderDetail())
     +'</div>'
     +'<div class="table-wrap"><table style="table-layout:fixed;width:100%">'
     +'<colgroup>'
@@ -3625,6 +3600,7 @@ function render() {
 
 function renderTablaOnly() {
   preserveScroll(() => {
+    cleanDetailContainer();
     // Re-render only kpis + filters + table, leave detail panel untouched
     const m = document.getElementById('main');
     const f = getFiltered();
@@ -6554,7 +6530,7 @@ function initMapa(){
     // Icono con número o inicial
     const inicial = (p.nombre||'?')[0].toUpperCase();
     const icon = L.divIcon({
-      html:`<div style="width:32px;height:32px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;font-family:'Segoe UI',sans-serif;cursor:pointer">${inicial}</div>`,
+      html:`<div style="width:32px;height:32px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;font-family:'Segoe UI',sans-serif;cursor:pointer;pointer-events:all">${inicial}</div>`,
       className:'mapa-marker-div',iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-18]
     });
     const marker = L.marker([p.lat,p.lon],{icon});
