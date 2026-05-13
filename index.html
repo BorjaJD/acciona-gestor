@@ -1363,7 +1363,16 @@ function toggleFase(id, fase, checked) {
   else { p.fases = p.fases.filter(f=>f!==fase); }
   persist();
   const dp = document.querySelector('.detail-panel');
-  if(dp){ dp.outerHTML = renderDetail(); if(S.detailMin){ const np=document.querySelector('.detail-panel'); if(np) np.classList.add('minimised'); } }
+  (function(){
+  const cont=document.getElementById('detail-container');
+  if(!cont) return;
+  const existing=cont.querySelector('.detail-panel');
+  const tmp=document.createElement('div');
+  tmp.innerHTML=renderDetail();
+  if(existing&&tmp.firstChild) existing.outerHTML=tmp.firstChild.outerHTML;
+  else if(!existing&&tmp.firstChild) cont.appendChild(tmp.firstChild);
+  if(S.detailMin){const np=cont.querySelector('.detail-panel');if(np){np.classList.add('minimised');np.style.display='none';}}
+})();
 }
 
 function hasUW(p){const e=(p&&p.eco)||{};return !!(e.tirPct||e.margenPct||e.ventaEur||e.sueloEur);}
@@ -1592,16 +1601,21 @@ function getBestOffer(p){
 // Re-render detalle Input sin perder otros estados
 function renderDetailOnly(){
   preserveScroll(() => {
-    // Eliminar todos los detail-panels duplicados
-    const panels = document.querySelectorAll('.detail-panel');
-    if(!panels.length) return;
-    // Mantener solo el primero y reemplazarlo
-    for(let i=1;i<panels.length;i++) panels[i].remove();
-    const panel = document.querySelector('.detail-panel');
-    if(!panel) return;
+    const container = document.getElementById('detail-container');
+    if(!container) return;
+    // Reemplazar solo el detail-panel dentro del container
+    const panel = container.querySelector('.detail-panel');
     const tmp = document.createElement('div');
     tmp.innerHTML = renderDetail();
-    if(tmp.firstChild){ panel.outerHTML = tmp.firstChild.outerHTML; if(S.detailMin){ const np=document.querySelector('.detail-panel'); if(np) np.classList.add('minimised'); } }
+    if(panel && tmp.firstChild){
+      panel.outerHTML = tmp.firstChild.outerHTML;
+    } else if(!panel && tmp.firstChild){
+      container.appendChild(tmp.firstChild);
+    }
+    if(S.detailMin){
+      const np = container.querySelector('.detail-panel');
+      if(np){ np.classList.add('minimised'); np.style.display='none'; }
+    }
   });
 }
 
@@ -1673,7 +1687,16 @@ function addAccion(id) {
   p.acciones.push({t:'', d:false}); persist();
   // Re-render detail only
   const dp = document.querySelector('.detail-panel');
-  if(dp){ dp.outerHTML = renderDetail(); if(S.detailMin){ const np=document.querySelector('.detail-panel'); if(np) np.classList.add('minimised'); } }
+  (function(){
+  const cont=document.getElementById('detail-container');
+  if(!cont) return;
+  const existing=cont.querySelector('.detail-panel');
+  const tmp=document.createElement('div');
+  tmp.innerHTML=renderDetail();
+  if(existing&&tmp.firstChild) existing.outerHTML=tmp.firstChild.outerHTML;
+  else if(!existing&&tmp.firstChild) cont.appendChild(tmp.firstChild);
+  if(S.detailMin){const np=cont.querySelector('.detail-panel');if(np){np.classList.add('minimised');np.style.display='none';}}
+})();
   // Focus new input
   setTimeout(()=>{
     const inputs = document.querySelectorAll('.accion-txt');
@@ -1688,7 +1711,16 @@ function delAccion(id, idx) {
   p.proxima = p.acciones.filter(a=>!a.d).map(a=>a.t).join('. ');
   persist();
   const dp = document.querySelector('.detail-panel');
-  if(dp){ dp.outerHTML = renderDetail(); if(S.detailMin){ const np=document.querySelector('.detail-panel'); if(np) np.classList.add('minimised'); } }
+  (function(){
+  const cont=document.getElementById('detail-container');
+  if(!cont) return;
+  const existing=cont.querySelector('.detail-panel');
+  const tmp=document.createElement('div');
+  tmp.innerHTML=renderDetail();
+  if(existing&&tmp.firstChild) existing.outerHTML=tmp.firstChild.outerHTML;
+  else if(!existing&&tmp.firstChild) cont.appendChild(tmp.firstChild);
+  if(S.detailMin){const np=cont.querySelector('.detail-panel');if(np){np.classList.add('minimised');np.style.display='none';}}
+})();
 }
 
 function toggleAccion(id, idx) {
