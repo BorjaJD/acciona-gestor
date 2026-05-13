@@ -1362,7 +1362,6 @@ function toggleFase(id, fase, checked) {
   if(checked) { if(!p.fases.includes(fase)) p.fases.push(fase); }
   else { p.fases = p.fases.filter(f=>f!==fase); }
   persist();
-  const dp = document.querySelector('.detail-panel');
   (function(){
   const cont=document.getElementById('detail-container');
   if(!cont) return;
@@ -1601,6 +1600,7 @@ function getBestOffer(p){
 // Re-render detalle Input sin perder otros estados
 function renderDetailOnly(){
   preserveScroll(() => {
+    cleanDetailContainer();
     const container = document.getElementById('detail-container');
     if(!container) return;
     // Reemplazar solo el detail-panel dentro del container
@@ -1710,7 +1710,6 @@ function delAccion(id, idx) {
   p.acciones.splice(idx,1);
   p.proxima = p.acciones.filter(a=>!a.d).map(a=>a.t).join('. ');
   persist();
-  const dp = document.querySelector('.detail-panel');
   (function(){
   const cont=document.getElementById('detail-container');
   if(!cont) return;
@@ -1768,8 +1767,20 @@ function toggleSidebar() {
   if(btn) btn.textContent = collapsed ? '▶' : '◀';
 }
 
+function cleanDetailContainer(){
+  const cont = document.getElementById('detail-container');
+  if(!cont) return;
+  // Eliminar todo excepto la barra y el panel
+  Array.from(cont.children).forEach(el=>{
+    if(!el.classList.contains('detail-panel-bar') && !el.classList.contains('detail-panel')){
+      el.remove();
+    }
+  });
+}
+
 function toggleDetailMin() {
   S.detailMin = !S.detailMin;
+  cleanDetailContainer();
   // Eliminar duplicados
   const panels = document.querySelectorAll('.detail-panel');
   panels.forEach((p,i) => { if(i > 0) p.remove(); });
