@@ -6571,8 +6571,17 @@ function initMapa(){
       navigateTo('tabla',{id:pid});
     });
     marker.addTo(_mapaInstance);
-    _mapaMarkers.push(marker);
-    marker.addTo(_mapaInstance);
+    marker.on('add', function(){
+      const el = marker.getElement();
+      if(el){
+        el.style.pointerEvents = 'all';
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', function(e){
+          e.stopPropagation();
+          marker.openPopup();
+        });
+      }
+    });
     _mapaMarkers.push(marker);
   });
 
