@@ -6529,8 +6529,8 @@ function initMapa(){
   }).addTo(_mapaInstance);
 
   _mapaMarkers = [];
+  const fmtM = v=>{ if(!v) return '—'; const n=parseFloat(String(v).replace(/[^0-9.-]/g,'')); if(isNaN(n)) return v; if(n>=1000000) return (n/1000000).toFixed(1).replace('.0','')+' M€'; if(n>=1000) return Math.round(n/1000)+' k€'; return n+' €'; };
   const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
-  console.log('initMapa active projects:', active.length);
   const cnt = document.getElementById('mapa-count');
   if(cnt) cnt.textContent = active.length+' proyecto'+(active.length!==1?'s':'');
 
@@ -6565,8 +6565,8 @@ function initMapa(){
           ${p.delegacion?`<div style="font-size:10px;color:#aaa;margin-bottom:8px">Delegación: ${p.delegacion}</div>`:''}
           ${eco.tirPct?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">TIR</span><span style="font-size:16px;font-weight:800;color:#1a3a2a">${eco.tirPct}%</span></div>`:''}
           ${eco.margenPct?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Margen</span><span style="font-size:13px;font-weight:700;color:#1a1a18">${eco.margenPct}%</span></div>`:''}
-          ${eco.ventaEur?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Ventas</span><span style="font-size:13px;font-weight:600;color:#1a1a18">${mfe(eco.ventaEur)}</span></div>`:''}
-          ${eco.sueloEur?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Suelo</span><span style="font-size:13px;font-weight:600;color:#1a1a18">${mfe(eco.sueloEur)}</span></div>`:''}
+          ${eco.ventaEur?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Ventas</span><span style="font-size:13px;font-weight:600;color:#1a1a18">${fmtM(eco.ventaEur)}</span></div>`:''}
+          ${eco.sueloEur?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Suelo</span><span style="font-size:13px;font-weight:600;color:#1a1a18">${fmtM(eco.sueloEur)}</span></div>`:''}
           ${p.avance?`<div style="margin-top:8px;font-size:11px;color:#666;font-style:italic;border-top:1px solid #f0efe9;padding-top:8px;line-height:1.4">${p.avance.substring(0,80)}${p.avance.length>80?'…':''}</div>`:''}
           <div style="margin-top:8px;font-size:10px;color:#bbb;text-align:center;border-top:1px solid #f0efe9;padding-top:8px">Doble clic → ficha completa</div>
         </div>
