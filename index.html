@@ -6563,13 +6563,38 @@ function initMapa(){
             ${p.tipo?`<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:#f0efe9;color:#666">${p.tipo}</span>`:''}
           </div>
           ${p.delegacion?`<div style="font-size:10px;color:#aaa;margin-bottom:8px">Delegación: ${p.delegacion}</div>`:''}
-          ${eco.tirPct?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">TIR</span><span style="font-size:16px;font-weight:800;color:#1a3a2a">${eco.tirPct}%</span></div>`:''}
-          ${eco.margenPct?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Margen</span><span style="font-size:13px;font-weight:700;color:#1a1a18">${eco.margenPct}%</span></div>`:''}
-          ${eco.ventaEur?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Ventas</span><span style="font-size:13px;font-weight:600;color:#1a1a18">${fmtM(eco.ventaEur)}</span></div>`:''}
-          ${eco.sueloEur?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Suelo</span><span style="font-size:13px;font-weight:600;color:#1a1a18">${fmtM(eco.sueloEur)}</span></div>`:''}
-          ${eco.construccionEur?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Construcción</span><span style="font-size:13px;font-weight:600;color:#1a1a18">${fmtM(eco.construccionEur)}</span></div>`:''}
-          ${eco.margenEur?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Margen €</span><span style="font-size:13px;font-weight:600;color:#1a3a2a">${fmtM(eco.margenEur)}</span></div>`:''}
-          ${eco.margenPct?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Margen %</span><span style="font-size:13px;font-weight:700;color:#1a1a18">${eco.margenPct}%</span></div>`:''}
+          ${eco.tirPct?`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-top:1px solid #f0efe9"><span style="font-size:10px;color:#aaa">TIR</span><span style="font-size:14px;font-weight:800;color:#1a3a2a">${eco.tirPct}%</span></div>`:''}
+          ${(eco.margenPct||eco.margenEur)?`<div style="padding:4px 0;border-top:1px solid #f0efe9">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#aaa">Margen</span>
+              <span style="font-size:12px;font-weight:700;color:#1a1a18">${eco.margenPct?eco.margenPct+'%':''}</span>
+            </div>
+            ${eco.margenEur?`<div style="display:flex;justify-content:flex-end"><span style="font-size:10px;color:#888">${fmtM(eco.margenEur)}</span></div>`:''}
+          </div>`:''}
+          ${(eco.sueloEur||eco.sueloEurM2)?`<div style="padding:4px 0;border-top:1px solid #f0efe9">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#aaa">Suelo</span>
+              <span style="font-size:12px;font-weight:600;color:#1a1a18">${eco.sueloEur?fmtM(eco.sueloEur):''}</span>
+            </div>
+            ${eco.sueloEurM2?`<div style="display:flex;justify-content:flex-end"><span style="font-size:10px;color:#888">${Number(eco.sueloEurM2).toLocaleString('es-ES')} €/m²</span></div>`:''}
+          </div>`:''}
+          ${(eco.construccionEur)?`<div style="padding:4px 0;border-top:1px solid #f0efe9">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#aaa">Construcción</span>
+              <span style="font-size:12px;font-weight:600;color:#1a1a18">${fmtM(eco.construccionEur)}</span>
+            </div>
+            ${eco.construccionEurM2?`<div style="display:flex;justify-content:flex-end"><span style="font-size:10px;color:#888">${Number(eco.construccionEurM2).toLocaleString('es-ES')} €/m²</span></div>`:''}
+          </div>`:''}
+          ${(eco.ventaEur)?`<div style="padding:4px 0;border-top:1px solid #f0efe9">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#aaa">Ventas</span>
+              <span style="font-size:12px;font-weight:600;color:#1a1a18">${fmtM(eco.ventaEur)}</span>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px">
+              ${eco.ventaPorUnidad?`<span style="font-size:10px;color:#888">${Number(eco.ventaPorUnidad).toLocaleString('es-ES')} €/ud</span>`:''}
+              ${eco.ventaEurM2?`<span style="font-size:10px;color:#888">${Number(eco.ventaEurM2).toLocaleString('es-ES')} €/m²</span>`:''}
+            </div>
+          </div>`:''}
           ${p.avance?`<div style="margin-top:8px;font-size:11px;color:#666;font-style:italic;border-top:1px solid #f0efe9;padding-top:8px;line-height:1.4">${p.avance.substring(0,80)}${p.avance.length>80?'…':''}</div>`:''}
           <div style="margin-top:8px;font-size:10px;color:#bbb;text-align:center;border-top:1px solid #f0efe9;padding-top:8px">Doble clic → ficha completa</div>
         </div>
