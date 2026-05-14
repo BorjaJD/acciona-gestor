@@ -6530,6 +6530,7 @@ function initMapa(){
 
   _mapaMarkers = [];
   const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
+  console.log('initMapa active projects:', active.length);
   const cnt = document.getElementById('mapa-count');
   if(cnt) cnt.textContent = active.length+' proyecto'+(active.length!==1?'s':'');
 
