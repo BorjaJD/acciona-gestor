@@ -6446,6 +6446,7 @@ function clasificarTarea(t){
 let _mapaInstance = null;
 let _mapaMarkers = [];
 let _mapaFilter = 'todo';
+let _mapaEstadoFilter = 'todo';
 
 function mapaEstadoColor(estado){
   if(['WIP','Due diligence'].includes(estado)) return '#3d7058';
@@ -6456,39 +6457,40 @@ function mapaEstadoColor(estado){
 
 function mapaFilter(f, btn){
   _mapaFilter = f;
-  document.querySelectorAll('.mapa-filter').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  // Actualizar opacidad de puntos
-  document.querySelectorAll('.mapa-dot').forEach(el=>{
-    const bloque = el.getAttribute('data-bloque');
-    el.style.opacity = (f==='todo'||bloque===f) ? '1' : '0.15';
-  });
-  const visible = projects.filter(p=>p.lat&&p.lon&&(f==='todo'||p.bloque===f)&&!['Descartado','Cerrado'].includes(p.estado));
-  const cnt = document.getElementById('mapa-count');
-  if(cnt) cnt.textContent = visible.length+' proyecto'+(visible.length!==1?'s':'');
+  document.querySelectorAll('.mapa-filter-bloque').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  updateMapaMarkers();
+}
+
+function mapaEstadoFilt(f, btn){
+  _mapaEstadoFilter = f;
+  document.querySelectorAll('.mapa-filter-estado').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  updateMapaMarkers();
 }
 
 function renderMapaHTML(){
   if(!document.getElementById('mapa-filter-css')){
     const s=document.createElement('style');
     s.id='mapa-filter-css';
-    s.textContent='.mapa-filter{font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:var(--font)}.mapa-filter.active{background:#1a3a2a;color:white;border-color:#1a3a2a}';
+    s.textContent='.mapa-filter{font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:var(--font)}.mapa-filter-bloque.active{background:#1a3a2a;color:white;border-color:#1a3a2a}.mapa-filter-estado.active{background:var(--ac,#1a3a2a);color:white;border-color:var(--ac,#1a3a2a)}';
     document.head.appendChild(s);
   }
   return `<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
     <div id="mapa-toolbar" style="background:white;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
       <span style="font-size:13px;font-weight:700;color:var(--text)">Mapa de proyectos</span>
-      <div style="display:flex;gap:5px;flex-wrap:wrap">
-        <button class="mapa-filter active" onclick="mapaFilter('todo',this)">Todo</button>
-        <button class="mapa-filter" onclick="mapaFilter('Pipeline',this)">Pipeline</button>
-        <button class="mapa-filter" onclick="mapaFilter('Desinversión',this)">Desinversión</button>
-        <button class="mapa-filter" onclick="mapaFilter('Clientes / Gestión',this)">Clientes</button>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="mapa-filter mapa-filter-bloque active" onclick="mapaFilter('todo',this)">Todo</button>
+        <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Pipeline',this)">Pipeline</button>
+        <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Desinversión',this)">Desinv.</button>
+        <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Clientes / Gestión',this)">Clientes</button>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#3d7058;display:inline-block"></span>WIP/DD</span>
-        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#d4a04a;display:inline-block"></span>En análisis</span>
-        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#7a9d8a;display:inline-block"></span>Recibido</span>
-        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#aaa;display:inline-block"></span>Stand By</span>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;border-left:1px solid var(--border);padding-left:8px">
+        <button class="mapa-filter mapa-filter-estado active" onclick="mapaEstadoFilt('todo',this)" style="--ac:#1a3a2a">Todos</button>
+        <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('wip',this)" style="--ac:#3d7058">WIP/DD</button>
+        <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('analisis',this)" style="--ac:#d4a04a">En análisis</button>
+        <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('recibido',this)" style="--ac:#7a9d8a">Recibido</button>
+        <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('standby',this)" style="--ac:#aaa">Stand By</button>
       </div>
       <span id="mapa-count" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
     </div>
@@ -6497,16 +6499,27 @@ function renderMapaHTML(){
 }
 
 function updateMapaMarkers(){
-  const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
-  const cnt = document.getElementById('mapa-count');
-  if(cnt){
-    const filtered = _mapaFilter==='todo' ? active : active.filter(p=>p.bloque===_mapaFilter);
-    cnt.textContent = filtered.length+' proyecto'+(filtered.length!==1?'s':'');
-  }
+  const estadoMap = {
+    'wip':['WIP','Due diligence'],
+    'analisis':['En análisis','Recibido en análisis'],
+    'recibido':['Recibido'],
+    'standby':['Stand By']
+  };
   _mapaMarkers.forEach(m=>{
-    const visible = _mapaFilter==='todo' || m._proj.bloque===_mapaFilter;
-    if(m._icon) m._icon.style.opacity = visible ? '1' : '0.2';
+    const p = m._proj;
+    const bloqueOk = _mapaFilter==='todo' || p.bloque===_mapaFilter;
+    const estadoOk = _mapaEstadoFilter==='todo' || (estadoMap[_mapaEstadoFilter]||[]).includes(p.estado);
+    const visible = bloqueOk && estadoOk;
+    if(m._icon) m._icon.style.opacity = visible ? '1' : '0.1';
   });
+  const active = _mapaMarkers.filter(m=>{
+    const p=m._proj;
+    const bloqueOk=_mapaFilter==='todo'||p.bloque===_mapaFilter;
+    const estadoOk=_mapaEstadoFilter==='todo'||(estadoMap[_mapaEstadoFilter]||[]).includes(p.estado);
+    return bloqueOk&&estadoOk;
+  });
+  const cnt = document.getElementById('mapa-count');
+  if(cnt) cnt.textContent = active.length+' proyecto'+(active.length!==1?'s':'');
 }
 
 function initMapa(){
@@ -6529,7 +6542,7 @@ function initMapa(){
   }).addTo(_mapaInstance);
 
   _mapaMarkers = [];
-  const fmtM = v=>{ if(!v) return '—'; const n=parseFloat(String(v).replace(/[^0-9.-]/g,'')); if(isNaN(n)) return v; if(n>=1000000) return (n/1000000).toFixed(1).replace('.0','')+' M€'; if(n>=1000) return Math.round(n/1000)+' k€'; return n+' €'; };
+  const fmtM = v=>{ if(!v) return '—'; const n=parseFloat(String(v).replace(/[^0-9.-]/g,'')); if(isNaN(n)) return v; const fmt=x=>x.toLocaleString('es-ES'); if(n>=1000000) return (n/1000000).toFixed(1).replace('.',',').replace(',0','')+' M€'; if(n>=1000) return fmt(Math.round(n/1000))+' k€'; return fmt(n)+' €'; };
   const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
   const cnt = document.getElementById('mapa-count');
   if(cnt) cnt.textContent = active.length+' proyecto'+(active.length!==1?'s':'');
