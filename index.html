@@ -6549,23 +6549,28 @@ function initMapa(){
     const marker = L.marker([p.lat,p.lon],{icon});
     marker._proj = p;
     marker.bindPopup(`
-      <div style="min-width:220px;font-family:'Segoe UI',sans-serif;margin:-1px">
-        ${p.imgData?`<img src="${p.imgData}" style="width:100%;height:80px;object-fit:cover;display:block;border-radius:0">`:``}
-        <div style="background:${color};padding:12px 14px;${p.imgData?'':'margin:-13px -19px 10px'}">
-          <div style="font-size:14px;font-weight:700;color:white;margin-bottom:2px">${p.nombre}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.85)">📍 ${p.ubicacion||p.ciudad||'—'} · ${p.bloque}</div>
+      <div style="width:240px;font-family:'Segoe UI',sans-serif;margin:-13px -19px -13px -19px;overflow:hidden;border-radius:12px">
+        ${p.imgData?`<img src="${p.imgData}" style="width:100%;height:100px;object-fit:cover;display:block">`:``}
+        <div style="background:${color};padding:10px 14px">
+          <div style="font-size:13px;font-weight:700;color:white;margin-bottom:2px;line-height:1.3">${p.nombre}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.85)">📍 ${p.ubicacion||p.ciudad||'—'}</div>
         </div>
-        <div style="display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap">
-          <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:${color}22;color:${color};font-weight:600">${p.estado}</span>
-          ${p.tipo?`<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:#f0efe9;color:#666">${p.tipo}</span>`:''}
+        <div style="padding:10px 14px">
+          <div style="display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap">
+            <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:${color}22;color:${color};font-weight:600">${p.estado}</span>
+            <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:#f0efe9;color:#666">${p.bloque}</span>
+            ${p.tipo?`<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:#f0efe9;color:#666">${p.tipo}</span>`:''}
+          </div>
+          ${p.delegacion?`<div style="font-size:10px;color:#aaa;margin-bottom:8px">Delegación: ${p.delegacion}</div>`:''}
+          ${eco.tirPct?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">TIR</span><span style="font-size:16px;font-weight:800;color:#1a3a2a">${eco.tirPct}%</span></div>`:''}
+          ${eco.margenPct?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Margen</span><span style="font-size:13px;font-weight:700;color:#1a1a18">${eco.margenPct}%</span></div>`:''}
+          ${eco.ventaEur?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Ventas</span><span style="font-size:13px;font-weight:600;color:#1a1a18">${mfe(eco.ventaEur)}</span></div>`:''}
+          ${eco.sueloEur?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Suelo</span><span style="font-size:13px;font-weight:600;color:#1a1a18">${mfe(eco.sueloEur)}</span></div>`:''}
+          ${p.avance?`<div style="margin-top:8px;font-size:11px;color:#666;font-style:italic;border-top:1px solid #f0efe9;padding-top:8px;line-height:1.4">${p.avance.substring(0,80)}${p.avance.length>80?'…':''}</div>`:''}
+          <div style="margin-top:8px;font-size:10px;color:#bbb;text-align:center;border-top:1px solid #f0efe9;padding-top:8px">Doble clic → ficha completa</div>
         </div>
-        ${eco.tirPct?`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">TIR</span><span style="font-size:20px;font-weight:800;color:#1a3a2a">${eco.tirPct}%</span></div>`:''}
-        ${eco.margenPct?`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Margen</span><span style="font-size:14px;font-weight:700;color:#1a1a18">${eco.margenPct}%</span></div>`:''}
-        ${eco.ventaEur?`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Ventas</span><span style="font-size:14px;font-weight:600;color:#1a1a18">${eco.ventaEur} M€</span></div>`:''}
-        ${eco.sueloEur?`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-top:1px solid #f0efe9"><span style="font-size:11px;color:#aaa">Suelo</span><span style="font-size:14px;font-weight:600;color:#1a1a18">${eco.sueloEur} M€</span></div>`:''}
-        <div style="margin-top:8px;font-size:10px;color:#bbb;text-align:center;border-top:1px solid #f0efe9;padding-top:8px">Doble clic → ficha completa</div>
       </div>
-    `,{maxWidth:280,className:'mapa-popup'});
+    `,{maxWidth:260,className:'mapa-popup'});
     marker.on('dblclick', function(e){
       L.DomEvent.stop(e);
       navigateTo('tabla',{id:pid});
