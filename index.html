@@ -1781,40 +1781,6 @@ function renderDetail() {
   const bloqueOpts = BLOQUES_ORDER.map(b=>'<option value="'+b+'"'+(b===p.bloque?' selected':'')+'>'+b+'</option>').join('');
   const prioBtns = [1,2,3].map(v=>'<button class="prio-btn'+(p.prioridad===v?' active-'+v:'')+'" data-prio="'+v+'" onclick="savePrio('+p.id+','+v+');event.stopPropagation()">'+PRIO_LABELS[v]+'</button>').join('');
   let ecoSec = '';
-  if((p.bloque==='Pipeline'||p.bloque==='Pipeline') && p.eco) {
-    const c = calcEco(p);
-    ecoSec = '<div class="eco-section">'
-      +'<button class="eco-toggle" onclick="toggleEco(event)"><span class="eco-arrow" id="eco-arrow">▶</span> Datos económicos</button>'
-      +'<div class="eco-body" id="eco-body"><div class="eco-grid">'
-      +'<div class="eco-group-label">General</div>'
-      +'<div class="eco-item"><label>Edificabilidad m²</label>'+ecoInput(p.id,'edificabilidad',p.edificabilidad||'','ej. 8.500')+'</div>'
-      +'<div class="eco-item"><label>Nº viviendas</label>'+ecoInput(p.id,'nViviendas',p.nViviendas||'','ej. 120')+'</div>'
-      +'<div class="eco-item"></div><div class="eco-item"></div>'
-      +'<div class="eco-divider"></div>'
-      +'<div class="eco-group-label">Rentabilidad</div>'
-      +'<div class="eco-item"><label>TIR %</label>'+ecoInput(p.id,'tirPct',p.eco.tirPct||'','ej. 18,50')+'</div>'
-      +'<div class="eco-item"><label>TIR Alquiler %</label>'+ecoInput(p.id,'tirAlqPct',p.eco.tirAlqPct||'','ej. 5,20')+'</div>'
-      +'<div class="eco-item"><label>Margen €</label>'+ecoInput(p.id,'margenEur',p.eco.margenEur||'','ej. 2.500.000')+'</div>'
-      +'<div class="eco-item"><label>Margen %</label>'+ecoInput(p.id,'margenPct',p.eco.margenPct||'','ej. 22,00')+'</div>'
-      +'<div class="eco-divider"></div>'
-      +'<div class="eco-group-label">Suelo</div>'
-      +'<div class="eco-item"><label>Suelo €</label>'+ecoInput(p.id,'sueloEur',p.eco.sueloEur,'ej. 5.200.000')+'</div>'
-      +'<div class="eco-item"><label>Suelo €/m² <span style="color:#6b9e80;font-weight:400">(calc.)</span></label>'+calcField(c.sueloEurM2,'Suelo € ÷ Edificabilidad m²','calc-sm2-'+p.id)+'</div>'
-      +'<div class="eco-item"></div><div class="eco-item"></div>'
-      +'<div class="eco-divider"></div>'
-      +'<div class="eco-group-label">Construcción</div>'
-      +'<div class="eco-item"><label>Construcción €</label>'+ecoInput(p.id,'construccionEur',p.eco.construccionEur,'ej. 4.800.000')+'</div>'
-      +'<div class="eco-item"><label>Construcción €/m²</label>'+ecoInput(p.id,'construccionEurM2',p.eco.construccionEurM2,'ej. 1.450')+'</div>'
-      +'<div class="eco-item"><label>Plazo (meses)</label>'+ecoInput(p.id,'plazoMeses',p.eco.plazoMeses,'ej. 24')+'</div>'
-      +'<div class="eco-item"><label>Fecha entrega</label>'+ecoInput(p.id,'fechaEntrega',p.eco.fechaEntrega,'ej. T2 2028')+'</div>'
-      +'<div class="eco-divider"></div>'
-      +'<div class="eco-group-label">Venta</div>'
-      +'<div class="eco-item"><label>Venta €</label>'+ecoInput(p.id,'ventaEur',p.eco.ventaEur,'ej. 12.500.000')+'</div>'
-      +'<div class="eco-item"><label>Venta €/m²</label>'+ecoInput(p.id,'ventaEurM2',p.eco.ventaEurM2,'ej. 3.800')+'</div>'
-      +'<div class="eco-item"><label>Venta/unidad <span style="color:#6b9e80;font-weight:400">(calc.)</span></label>'+calcField(c.ventaPorUnidad,'Venta € ÷ Nº viviendas','calc-vun-'+p.id)+'</div>'
-      +'<div class="eco-item"></div>'
-      +'</div></div></div>';
-  }
 
   const fases=Array.isArray(p.fases)?p.fases:[];
   const pill=(fase)=>{
@@ -1833,7 +1799,7 @@ function renderDetail() {
 
     // ── Sección: Identificación ───────────────────────────────
     +'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Identificación</div>'
-    +'<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4px 14px;margin-bottom:10px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 14px;margin-bottom:10px">'
     +'<div class="d-item"><label>Proyecto</label><input class="d-input" style="font-weight:600" value="'+p.nombre+'" oninput="saveField('+p.id+',\'nombre\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"><label>Estado</label><div style="padding:4px 2px">'+estadoPill(p.estado)+'</div></div>'
     +'<div class="d-item"><label>Prioridad</label><div style="padding:4px 2px;display:flex;align-items:center;gap:6px;font-size:12px">'+pillP(p.prioridad)+'<span style="color:var(--text2)">'+['','Alta','Media','Baja'][p.prioridad]+'</span></div></div>'
@@ -6473,10 +6439,18 @@ function mapaEstadoFilt(f, btn){
 }
 
 function renderMapaHTML(){
+  // Inject mapa CSS once
   if(!document.getElementById('mapa-filter-css')){
     const s=document.createElement('style');
     s.id='mapa-filter-css';
-    s.textContent='.mapa-filter{font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:var(--font)}.mapa-filter-bloque.active{background:#1a3a2a;color:white;border-color:#1a3a2a}.mapa-filter-estado.active{background:var(--ac,#1a3a2a);color:white;border-color:var(--ac,#1a3a2a)}';
+    s.textContent=`
+      .mapa-filter{font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:var(--font);transition:all .15s}
+      .mapa-filter:hover{border-color:var(--border2)}
+      .mapa-filter-bloque.active{background:#1a3a2a!important;color:white!important;border-color:#1a3a2a!important}
+      .mapa-filter-estado.active{background:var(--ac,#1a3a2a)!important;color:white!important;border-color:var(--ac,#1a3a2a)!important}
+      @keyframes mapaRing{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.2);opacity:0}}
+      .mapa-pulse-ring{animation:mapaRing 1.8s ease-out infinite;position:absolute;border-radius:50%;pointer-events:none}
+    `;
     document.head.appendChild(s);
   }
   return `<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
@@ -6490,7 +6464,6 @@ function renderMapaHTML(){
           <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Pipeline',this)">Pipeline</button>
           <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Desinversión',this)">Desinv.</button>
           <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Clientes / Gestión',this)">Clientes</button>
-          <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Descartado/Cerrado',this)" style="--ac:#888">Desc./Cerr.</button>
         </div>
       </div>
 
@@ -6504,6 +6477,7 @@ function renderMapaHTML(){
           <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('analisis',this)" style="--ac:#d4a04a">En análisis</button>
           <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('recibido',this)" style="--ac:#7a9d8a">Recibido</button>
           <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('standby',this)" style="--ac:#aaa">Stand By</button>
+          <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('desccerr',this)" style="--ac:#c0392b">Desc./Cerr.</button>
         </div>
       </div>
 
@@ -6520,17 +6494,14 @@ function renderMapaHTML(){
 
       <span id="mapa-count" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
     </div>
-    <div id="mapa-leaflet" style="flex:1;min-height:0;position:relative"></div>
-    <!-- Panel KPIs flotante -->
-    <div id="mapa-kpi-panel" style="position:absolute;bottom:32px;left:12px;z-index:1000;background:white;border-radius:10px;border:1px solid #e0e0d8;box-shadow:0 4px 20px rgba(0,0,0,0.12);padding:10px 14px;min-width:180px;pointer-events:none">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:8px">Portfolio visible</div>
-      <div id="mapa-kpi-body" style="display:flex;flex-direction:column;gap:5px"></div>
+    <div style="flex:1;position:relative;min-height:0">
+      <div id="mapa-leaflet" style="width:100%;height:100%"></div>
+      <div id="mapa-kpi-panel" style="position:absolute;bottom:24px;left:12px;z-index:1000;background:white;border-radius:10px;border:1px solid #e0e0d8;box-shadow:0 6px 24px rgba(0,0,0,0.15);padding:12px 16px;min-width:200px;pointer-events:none">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:8px">Portfolio visible</div>
+        <div id="mapa-kpi-body" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
     </div>
-  </div>
-  <style>
-    @keyframes mapaRing{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.2);opacity:0}}
-    .mapa-pulse-ring{animation:mapaRing 1.8s ease-out infinite;position:absolute;border-radius:50%;pointer-events:none}
-  </style>`;
+  </div>`;
 }
 
 function updateMapaKpiPanel(){
@@ -6552,11 +6523,15 @@ function updateMapaKpiPanel(){
   const conTIR = visible.filter(p=>p.eco&&p.eco.tirPct);
   const tirMedia = conTIR.length ? (conTIR.reduce((a,p)=>a+parseFloat(p.eco.tirPct),0)/conTIR.length).toFixed(1) : null;
   const ventaTotal = visible.reduce((a,p)=>a+(parseFloat(String((p.eco&&p.eco.ventaEur)||'0').replace(/[^0-9.]/g,''))||0),0);
+  const sueloTotal = visible.reduce((a,p)=>a+(parseFloat(String((p.eco&&p.eco.sueloEur)||'0').replace(/[^0-9.]/g,''))||0),0);
+  const wip = visible.filter(p=>['WIP','Due diligence'].includes(p.estado)).length;
+  const analisis = visible.filter(p=>p.estado==='En análisis').length;
+  const recibido = visible.filter(p=>p.estado==='Recibido').length;
 
   panel.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between">
       <span style="font-size:10px;color:#aaa">Proyectos</span>
-      <span style="font-size:16px;font-weight:800;color:#1a3a2a">${total}</span>
+      <span style="font-size:18px;font-weight:800;color:#1a3a2a">${total}</span>
     </div>
     ${tirMedia?`<div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f0efe9;padding-top:5px;margin-top:2px">
       <span style="font-size:10px;color:#aaa">TIR media</span>
@@ -6564,42 +6539,48 @@ function updateMapaKpiPanel(){
     </div>`:''}
     ${ventaTotal>0?`<div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f0efe9;padding-top:5px;margin-top:2px">
       <span style="font-size:10px;color:#aaa">Ventas totales</span>
-      <span style="font-size:12px;font-weight:600;color:#1a1a18">${(ventaTotal/1000000).toFixed(0)} M€</span>
+      <span style="font-size:13px;font-weight:600;color:#1a1a18">${ventaTotal>=1000000?(ventaTotal/1000000).toFixed(0)+' M€':Math.round(ventaTotal/1000)+' k€'}</span>
     </div>`:''}
+    ${sueloTotal>0?`<div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f0efe9;padding-top:5px;margin-top:2px">
+      <span style="font-size:10px;color:#aaa">Suelo total</span>
+      <span style="font-size:13px;font-weight:600;color:#1a1a18">${sueloTotal>=1000000?(sueloTotal/1000000).toFixed(0)+' M€':Math.round(sueloTotal/1000)+' k€'}</span>
+    </div>`:''}
+    <div style="border-top:1px solid #f0efe9;padding-top:5px;margin-top:2px;display:flex;gap:6px;flex-wrap:wrap">
+      ${wip>0?`<span style="font-size:9px;padding:1px 7px;border-radius:20px;background:#3d705822;color:#3d7058;font-weight:600">WIP/DD ${wip}</span>`:''}
+      ${analisis>0?`<span style="font-size:9px;padding:1px 7px;border-radius:20px;background:#d4a04a22;color:#946818;font-weight:600">En análisis ${analisis}</span>`:''}
+      ${recibido>0?`<span style="font-size:9px;padding:1px 7px;border-radius:20px;background:#7a9d8a22;color:#3d7058;font-weight:600">Recibido ${recibido}</span>`:''}
+    </div>
   `;
 }
 
 function updateMapaMarkers(){
-  const estadoMap = {
-    'wip':['WIP','Due diligence'],
+  const GRUPOS = {
+    'wip':    ['WIP','Due diligence'],
     'analisis':['En análisis','Recibido en análisis'],
     'recibido':['Recibido'],
-    'standby':['Stand By']
+    'standby': ['Stand By'],
+    'desccerr':['Descartado','Cerrado']
   };
   const descCerr = ['Descartado','Cerrado'];
-  _mapaMarkers.forEach(m=>{
-    const p = m._proj;
-    let bloqueOk;
-    if(_mapaFilter==='todo') bloqueOk = !descCerr.includes(p.estado); // por defecto oculta desc/cerr
-    else if(_mapaFilter==='Descartado/Cerrado') bloqueOk = descCerr.includes(p.estado);
-    else bloqueOk = p.bloque===_mapaFilter && !descCerr.includes(p.estado);
-    const estadoOk = _mapaEstadoFilter==='todo' || (estadoMap[_mapaEstadoFilter]||[]).includes(p.estado);
-    const visible = bloqueOk && estadoOk;
-    if(m._icon) m._icon.style.opacity = visible ? '1' : '0.08';
-  });
-  const cnt = document.getElementById('mapa-count');
-  if(cnt){
-    const visible = _mapaMarkers.filter(m=>{
-      const p=m._proj;
-      let bloqueOk;
-      if(_mapaFilter==='todo') bloqueOk = !descCerr.includes(p.estado);
-      else if(_mapaFilter==='Descartado/Cerrado') bloqueOk = descCerr.includes(p.estado);
-      else bloqueOk = p.bloque===_mapaFilter && !descCerr.includes(p.estado);
-      const estadoOk=_mapaEstadoFilter==='todo'||(estadoMap[_mapaEstadoFilter]||[]).includes(p.estado);
-      return bloqueOk&&estadoOk;
-    });
-    cnt.textContent = visible.length+' proyecto'+(visible.length!==1?'s':'');
+
+  function isVisible(p){
+    // Filtro bloque
+    const bloqueOk = _mapaFilter==='todo' ? true : p.bloque===_mapaFilter;
+    // Filtro estado
+    let estadoOk;
+    if(_mapaEstadoFilter==='todo') estadoOk = !descCerr.includes(p.estado);
+    else estadoOk = (GRUPOS[_mapaEstadoFilter]||[]).includes(p.estado);
+    return bloqueOk && estadoOk;
   }
+
+  _mapaMarkers.forEach(m=>{
+    const vis = isVisible(m._proj);
+    if(m._icon) m._icon.style.opacity = vis ? '1' : '0.05';
+  });
+
+  const visCount = _mapaMarkers.filter(m=>isVisible(m._proj)).length;
+  const cnt = document.getElementById('mapa-count');
+  if(cnt) cnt.textContent = visCount+' proyecto'+(visCount!==1?'s':'');
   updateMapaKpiPanel();
 }
 
