@@ -1817,18 +1817,19 @@ function renderDetail() {
 
     // ── Sección: Ubicación ────────────────────────────────────
     +'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Ubicación</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 14px;margin-bottom:10px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 14px;margin-bottom:6px">'
     +'<div class="d-item"><label>Provincia</label><select class="d-select" onchange="saveField('+p.id+',\'ubicacion\',this.value)" onclick="event.stopPropagation()">'+UBICACIONES_OPTS.map(u=>'<option value="'+u+'"'+(u===(p.ubicacion||'')?'  selected':'')+'>'+u+'</option>').join('')+'</select></div>'
     +'<div class="d-item"><label>Ciudad</label><input class="d-input" value="'+(p.ciudad||'')+'" placeholder="ej. Madrid" oninput="saveField('+p.id+',\'ciudad\',this.value)" onclick="event.stopPropagation()"/></div>'
     +(p.bloque==='Pipeline'
       ? '<div class="d-item"><label>Delegación</label><select class="d-select" onchange="saveField('+p.id+',\'delegacion\',this.value)" onclick="event.stopPropagation()">'
           +['','Centro','Este','Norte','Sur','Internacional'].map(d=>'<option value="'+d+'"'+(d===(p.delegacion||'')?' selected':'')+'>'+(d||'—')+'</option>').join('')
         +'</select></div>'
-      : '<div></div>')
+      : '<div class="d-item"></div>')
     +'</div>'
-    +'<div style="display:grid;grid-template-columns:180px 180px;gap:4px 14px;margin-bottom:10px">'
+    +'<div style="display:grid;grid-template-columns:180px 180px 1fr;gap:6px 14px;margin-bottom:10px">'
     +'<div class="d-item"><label style="display:flex;align-items:center;gap:4px">Latitud <span style="font-size:9px;color:var(--text3);font-weight:400">(ej. 40.4168)</span></label><input class="d-input" type="text" inputmode="decimal" value="'+(p.lat||'')+'" placeholder="40.4168" onblur="saveField('+p.id+',\'lat\',parseFloat(this.value.replace(\',\',\'.\'))||null)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"><label style="display:flex;align-items:center;gap:4px">Longitud <span style="font-size:9px;color:var(--text3);font-weight:400">(ej. -3.7038)</span></label><input class="d-input" type="text" inputmode="decimal" value="'+(p.lon||'')+'" placeholder="-3.7038" onblur="saveField('+p.id+',\'lon\',parseFloat(this.value.replace(\',\',\'.\'))||null)" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"></div>'
     +'</div>'
     +(p.bloque!=='Pipeline'
       ? '<div class="d-item" onclick="event.stopPropagation()">'
@@ -1847,7 +1848,7 @@ function renderDetail() {
 
     // ── Sección: Contraparte ──────────────────────────────────
     +'<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:4px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--border)">Contraparte</div>'
-    +'<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4px 14px;margin-bottom:10px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 14px;margin-bottom:10px">'
     +'<div class="d-item"><label>'+contraparteLabel(p.bloque)+'</label><input class="d-input" value="'+(p.vendor||p.contraparte||'')+'" placeholder="—" oninput="saveField('+p.id+',\'vendor\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"><label>Broker / Agente</label><input class="d-input" value="'+(p.comprador||'')+'" placeholder="—" oninput="saveField('+p.id+',\'comprador\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'<div class="d-item"></div>'
@@ -1870,11 +1871,10 @@ function renderDetail() {
         +pill('Comité')
         +'</div>'
       :'')
-    // Full width fields
-    +'<div class="detail-grid" style="margin-bottom:6px">'
-    +'<div class="d-item d-full"><label>Notas / Último avance</label><textarea class="d-textarea" oninput="saveField('+p.id+',\'avance\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+p.avance+'</textarea></div>'
-    +'<div class="d-item d-full"><label>Seguimiento / Próximas acciones</label>'+renderAcciones(p)+'</div>'
-    
+    // Notas + Seguimiento en dos columnas iguales
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-bottom:10px">'
+    +'<div class="d-item"><label>Notas / Último avance</label><textarea class="d-textarea" style="min-height:80px" oninput="saveField('+p.id+',\'avance\',this.value);autoGrow(this)" onclick="event.stopPropagation()">'+p.avance+'</textarea></div>'
+    +'<div class="d-item"><label>Seguimiento / Próximas acciones</label>'+renderAcciones(p)+'</div>'
     +'</div>'
     + (p.bloque==='Pipeline'||p.bloque==='Pipeline' ? renderUbicSection(p) : '')
     + ecoSec
@@ -6413,6 +6413,7 @@ function clasificarTarea(t){
 // ── MAPA ────────────────────────────────────────────────────────
 let _mapaInstance = null;
 let _mapaMarkers = [];
+let _mapaCluster = null;
 let _mapaFilter = 'todo';
 let _mapaEstadoFilter = 'todo';
 
@@ -6564,9 +6565,7 @@ function updateMapaMarkers(){
   const descCerr = ['Descartado','Cerrado'];
 
   function isVisible(p){
-    // Filtro bloque
     const bloqueOk = _mapaFilter==='todo' ? true : p.bloque===_mapaFilter;
-    // Filtro estado
     let estadoOk;
     if(_mapaEstadoFilter==='todo') estadoOk = !descCerr.includes(p.estado);
     else estadoOk = (GRUPOS[_mapaEstadoFilter]||[]).includes(p.estado);
@@ -6575,7 +6574,15 @@ function updateMapaMarkers(){
 
   _mapaMarkers.forEach(m=>{
     const vis = isVisible(m._proj);
-    if(m._icon) m._icon.style.opacity = vis ? '1' : '0.05';
+    if(_mapaCluster){
+      // Con cluster: añadir/quitar del grupo
+      const inCluster = _mapaCluster.hasLayer(m);
+      if(vis && !inCluster) _mapaCluster.addLayer(m);
+      else if(!vis && inCluster) _mapaCluster.removeLayer(m);
+    } else {
+      // Sin cluster: cambiar opacidad
+      if(m._icon) m._icon.style.opacity = vis ? '1' : '0.05';
+    }
   });
 
   const visCount = _mapaMarkers.filter(m=>isVisible(m._proj)).length;
@@ -6604,7 +6611,7 @@ function initMapa(){
   }).addTo(_mapaInstance);
 
   // Cluster group
-  const clusterGroup = window.L.markerClusterGroup ? L.markerClusterGroup({
+  _mapaCluster = window.L.markerClusterGroup ? L.markerClusterGroup({
     maxClusterRadius:50,
     iconCreateFunction: function(cluster){
       const count = cluster.getChildCount();
@@ -6689,7 +6696,7 @@ function initMapa(){
       L.DomEvent.stop(e);
       navigateTo('tabla',{id:pid});
     });
-    if(clusterGroup){ clusterGroup.addLayer(marker); }
+    if(_mapaCluster){ _mapaCluster.addLayer(marker); }
     else { marker.addTo(_mapaInstance); }
     marker.on('add', function(){
       const el = marker.getElement();
@@ -6705,7 +6712,7 @@ function initMapa(){
     _mapaMarkers.push(marker);
   });
 
-  if(clusterGroup) _mapaInstance.addLayer(clusterGroup);
+  if(_mapaCluster) _mapaInstance.addLayer(_mapaCluster);
 
   if(!document.getElementById('mapa-filter-css')){
     const s=document.createElement('style');
