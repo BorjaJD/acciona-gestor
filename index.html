@@ -6572,18 +6572,31 @@ function updateMapaMarkers(){
     return bloqueOk && estadoOk;
   }
 
-  _mapaMarkers.forEach(m=>{
-    const vis = isVisible(m._proj);
-    if(_mapaCluster){
-      // Con cluster: añadir/quitar del grupo
-      const inCluster = _mapaCluster.hasLayer(m);
-      if(vis && !inCluster) _mapaCluster.addLayer(m);
-      else if(!vis && inCluster) _mapaCluster.removeLayer(m);
-    } else {
-      // Sin cluster: cambiar opacidad
-      if(m._icon) m._icon.style.opacity = vis ? '1' : '0.05';
-    }
-  });
+  if(_mapaCluster && _mapaInstance){
+    // Quitar cluster viejo del mapa
+    _mapaInstance.removeLayer(_mapaCluster);
+    // Crear cluster nuevo
+    _mapaCluster = L.markerClusterGroup({
+      maxClusterRadius:50,
+      iconCreateFunction: function(cluster){
+        const count = cluster.getChildCount();
+        return L.divIcon({
+          html:`<div style="width:38px;height:38px;border-radius:50%;background:#1a3a2a;border:3px solid white;box-shadow:0 3px 12px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:white">${count}</div>`,
+          className:'mapa-marker-div',iconSize:[38,38],iconAnchor:[19,19]
+        });
+      }
+    });
+    // Añadir solo los markers visibles
+    _mapaMarkers.forEach(m=>{
+      if(isVisible(m._proj)) _mapaCluster.addLayer(m);
+    });
+    _mapaInstance.addLayer(_mapaCluster);
+  } else {
+    // Sin cluster: opacidad
+    _mapaMarkers.forEach(m=>{
+      if(m._icon) m._icon.style.opacity = isVisible(m._proj) ? '1' : '0.05';
+    });
+  }
 
   const visCount = _mapaMarkers.filter(m=>isVisible(m._proj)).length;
   const cnt = document.getElementById('mapa-count');
@@ -6724,6 +6737,10 @@ function initMapa(){
   updateMapaMarkers();
   updateMapaKpiPanel();
   window._mapaGoTo = function(id){ navigateTo('tabla',{id:id}); };
+  // Refrescar markers tras zoom para evitar que desaparezcan con clusters
+  _mapaInstance.on('zoomend moveend', function(){
+    if(_mapaCluster) _mapaCluster.refreshClusters();
+  });
   [200,500,1000].forEach(t=>setTimeout(()=>{ if(_mapaInstance) _mapaInstance.invalidateSize(); },t));
 }
 
