@@ -919,6 +919,7 @@
           </select>
         </div>
         <div class="modal-field"><label>Responsable</label><input id="m-responsable" type="text" placeholder="Ej. TPN + BJD"/></div>
+        <div class="modal-field"><label>Fecha creación</label><input id="m-fechacreacion" type="date"/></div>
       </div>
       <div class="modal-row"><div class="modal-field full"><label>Último avance</label><textarea id="m-avance" placeholder="Estado actual…"></textarea></div></div>
       <div class="modal-row"><div class="modal-field full"><label>Próxima acción / To-do</label><textarea id="m-proxima" placeholder="Qué hay que hacer…"></textarea></div></div>
@@ -1088,7 +1089,7 @@ function ubicToCountry(u) {
   if(u==='Otros') return 'Otros';
   return 'España'; // all provinces = España
 }
-const ECO_MONEY = ['sueloEur','sueloEurM2','ventaEur','ventaEurM2','construccionEur','construccionEurM2','edificabilidad','nViviendas'];
+const ECO_MONEY = ['sueloEur','sueloEurM2','ventaEur','ventaEurM2','construccionEur','construccionEurM2','edificabilidad','nViviendas','margenEur'];
 
 // Always formats integers with thousand separators (es-ES) regardless of magnitude
 function fmtMiles(n) {
@@ -1845,6 +1846,7 @@ function renderDetail() {
     +'</div>'
     +'<div class="d-item"><label>Bloque</label><div style="padding:4px 2px;font-size:12px;color:var(--text2)">'+p.bloque+'</div></div>'
     +'<div class="d-item"><label>Responsable</label><input class="d-input" value="'+p.responsable+'" oninput="saveField('+p.id+',\'responsable\',this.value)" onclick="event.stopPropagation()"/></div>'
+    +'<div class="d-item"><label>Fecha creación</label><input class="d-input" type="date" value="'+(p.fechaCreacion||'')+'" onchange="saveField('+p.id+',\'fechaCreacion\',this.value)" onclick="event.stopPropagation()"/></div>'
     +'</div>'
 
     // ── Sección: Ubicación ────────────────────────────────────
@@ -3171,7 +3173,7 @@ function renderMobile() {
           <span class="mob-stats-active">${activos.length} <span class="mob-stats-lbl">activos</span></span>
         </div>
         <button class="mob-alta-toggle ${S.fPrio==='1'?'on':'off'}" onclick="S.fPrio=S.fPrio==='1'?'':'1';render()">🔴</button>
-        <button onclick="S.mobView=S.mobView==='tareas'?'':' tareas';render()" style="background:${S.mobView==='tareas'?'rgba(255,255,255,0.35)':'rgba(255,255,255,0.15)'};border:none;border-radius:20px;padding:4px 10px;color:white;font-size:13px;cursor:pointer;line-height:1" title="Mis tareas">✓</button>
+        <button onclick="S.mobView=S.mobView==='tareas'?'':'tareas';render()" style="background:${S.mobView==='tareas'?'rgba(255,255,255,0.35)':'rgba(255,255,255,0.15)'};border:none;border-radius:20px;padding:4px 10px;color:white;font-size:13px;cursor:pointer;line-height:1" title="Mis tareas">✓</button>
         <button onclick="location.reload(true)" style="background:rgba(255,255,255,0.15);border:none;border-radius:20px;padding:4px 10px;color:white;font-size:16px;cursor:pointer;line-height:1" title="Recargar">↻</button>
       </div>
     </div>
@@ -3577,21 +3579,21 @@ function render() {
       m.style.overflow='hidden';
       m.innerHTML=renderMapaHTML();
       setTimeout(function(){
-        // Calcular altura disponible y asignarla al contenedor
         const toolbar = document.getElementById('mapa-toolbar');
         const tbH = toolbar ? toolbar.offsetHeight : 50;
         const el = document.getElementById('mapa-leaflet');
-        if(el){
-          el.style.height = (m.offsetHeight - tbH) + 'px';
-          el.style.width = m.offsetWidth + 'px';
+        if(el){ el.style.height=(m.offsetHeight-tbH)+'px'; el.style.width=m.offsetWidth+'px'; }
+        function loadScript(src,cb){const s=document.createElement('script');s.src=src;s.onload=cb;document.head.appendChild(s);}
+        function loadCSS(href){const l=document.createElement('link');l.rel='stylesheet';l.href=href;document.head.appendChild(l);}
+        function doInit(){
+          if(!window.L.markerClusterGroup){
+            loadCSS('https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css');
+            loadCSS('https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css');
+            loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js',()=>setTimeout(initMapa,100));
+          } else { initMapa(); }
         }
-        if(window.L){ initMapa(); }
-        else{
-          const s=document.createElement('script');
-          s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-          s.onload=()=>setTimeout(initMapa,200);
-          document.head.appendChild(s);
-        }
+        if(window.L){ doInit(); }
+        else{ loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',()=>doInit()); }
       },100);
     }
 
@@ -6163,7 +6165,7 @@ function addProject(){
   errEl.style.display='none';
   const maxId=projects.reduce((m,p)=>Math.max(m,p.id),0);
   const isOps=bloque==='Pipeline'||bloque==='Pipeline';
-  const np={id:maxId+1,nombre,bloque,estado:document.getElementById('m-estado').value,prioridad:parseInt(document.getElementById('m-prioridad').value),tipo:document.getElementById('m-tipo').value.trim()||'—',contraparte:document.getElementById('m-contraparte').value.trim()||'—',avance:document.getElementById('m-avance').value.trim()||'—',proxima:document.getElementById('m-proxima').value.trim()||'—',responsable:document.getElementById('m-responsable').value.trim()||'—',notas:document.getElementById('m-notas').value.trim(),ubicacion:'',acciones:[],mapUrl:'',imgData:'',tracksEnabled:false,tracks:[],...(isOps?{edificabilidad:'',nViviendas:'',eco:{sueloEur:'',sueloEurM2:'',ventaEur:'',ventaEurM2:'',construccionEur:'',construccionEurM2:'',plazoMeses:'',fechaEntrega:'',tirPct:'',tirAlqPct:'',margenEur:'',margenPct:'',noi:'',yieldPct:'',costoTotal:''}}:{})};
+  const np={id:maxId+1,nombre,bloque,estado:document.getElementById('m-estado').value,prioridad:parseInt(document.getElementById('m-prioridad').value),tipo:document.getElementById('m-tipo').value.trim()||'—',contraparte:document.getElementById('m-contraparte').value.trim()||'—',avance:document.getElementById('m-avance').value.trim()||'—',proxima:document.getElementById('m-proxima').value.trim()||'—',responsable:document.getElementById('m-responsable').value.trim()||'—',fechaCreacion:document.getElementById('m-fechacreacion')?.value||new Date().toISOString().slice(0,10),notas:document.getElementById('m-notas').value.trim(),ubicacion:'',acciones:[],mapUrl:'',imgData:'',tracksEnabled:false,tracks:[],...(isOps?{edificabilidad:'',nViviendas:'',eco:{sueloEur:'',sueloEurM2:'',ventaEur:'',ventaEurM2:'',construccionEur:'',construccionEurM2:'',plazoMeses:'',fechaEntrega:'',tirPct:'',tirAlqPct:'',margenEur:'',margenPct:'',noi:'',yieldPct:'',costoTotal:''}}:{})};
   projects.push(np);persist();closeModal();S.selId=np.id;S.fBloque='';S.fEstado='';S.fSearch='';render();
   setTimeout(()=>{const row=document.querySelector('tr[data-id="'+np.id+'"]');if(row)row.scrollIntoView({behavior:'smooth',block:'center'});},100);
 }
@@ -6450,8 +6452,9 @@ let _mapaEstadoFilter = 'todo';
 
 function mapaEstadoColor(estado){
   if(['WIP','Due diligence'].includes(estado)) return '#3d7058';
-  if(estado==='En análisis') return '#d4a04a';
+  if(['En análisis','Recibido en análisis'].includes(estado)) return '#d4a04a';
   if(estado==='Recibido') return '#7a9d8a';
+  if(['Descartado','Cerrado'].includes(estado)) return '#c0392b';
   return '#aaa';
 }
 
@@ -6477,25 +6480,93 @@ function renderMapaHTML(){
     document.head.appendChild(s);
   }
   return `<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
-    <div id="mapa-toolbar" style="background:white;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
-      <span style="font-size:13px;font-weight:700;color:var(--text)">Mapa de proyectos</span>
-      <div style="display:flex;gap:4px;flex-wrap:wrap">
-        <button class="mapa-filter mapa-filter-bloque active" onclick="mapaFilter('todo',this)">Todo</button>
-        <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Pipeline',this)">Pipeline</button>
-        <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Desinversión',this)">Desinv.</button>
-        <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Clientes / Gestión',this)">Clientes</button>
+    <div id="mapa-toolbar" style="background:white;border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0">
+      <span style="font-size:13px;font-weight:700;color:var(--text)">Mapa</span>
+
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)">Bloque</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="mapa-filter mapa-filter-bloque active" onclick="mapaFilter('todo',this)">Todo</button>
+          <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Pipeline',this)">Pipeline</button>
+          <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Desinversión',this)">Desinv.</button>
+          <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Clientes / Gestión',this)">Clientes</button>
+          <button class="mapa-filter mapa-filter-bloque" onclick="mapaFilter('Descartado/Cerrado',this)" style="--ac:#888">Desc./Cerr.</button>
+        </div>
       </div>
-      <div style="display:flex;gap:4px;flex-wrap:wrap;border-left:1px solid var(--border);padding-left:8px">
-        <button class="mapa-filter mapa-filter-estado active" onclick="mapaEstadoFilt('todo',this)" style="--ac:#1a3a2a">Todos</button>
-        <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('wip',this)" style="--ac:#3d7058">WIP/DD</button>
-        <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('analisis',this)" style="--ac:#d4a04a">En análisis</button>
-        <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('recibido',this)" style="--ac:#7a9d8a">Recibido</button>
-        <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('standby',this)" style="--ac:#aaa">Stand By</button>
+
+      <div style="width:1px;height:32px;background:var(--border);flex-shrink:0"></div>
+
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)">Estado</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="mapa-filter mapa-filter-estado active" onclick="mapaEstadoFilt('todo',this)" style="--ac:#1a3a2a">Todos</button>
+          <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('wip',this)" style="--ac:#3d7058">WIP/DD</button>
+          <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('analisis',this)" style="--ac:#d4a04a">En análisis</button>
+          <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('recibido',this)" style="--ac:#7a9d8a">Recibido</button>
+          <button class="mapa-filter mapa-filter-estado" onclick="mapaEstadoFilt('standby',this)" style="--ac:#aaa">Stand By</button>
+        </div>
       </div>
+
+      <div style="width:1px;height:32px;background:var(--border);flex-shrink:0"></div>
+
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);width:100%">Leyenda</div>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:50%;background:#3d7058;display:inline-block;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>WIP/DD</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:50%;background:#d4a04a;display:inline-block;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>En análisis</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:50%;background:#7a9d8a;display:inline-block;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>Recibido</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:50%;background:#aaa;display:inline-block;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>Stand By</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:50%;background:#c0392b;display:inline-block;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>Desc./Cerrado</span>
+      </div>
+
       <span id="mapa-count" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
     </div>
-    <div id="mapa-leaflet" style="flex:1;min-height:0"></div>
-  </div>`;
+    <div id="mapa-leaflet" style="flex:1;min-height:0;position:relative"></div>
+    <!-- Panel KPIs flotante -->
+    <div id="mapa-kpi-panel" style="position:absolute;bottom:32px;left:12px;z-index:1000;background:white;border-radius:10px;border:1px solid #e0e0d8;box-shadow:0 4px 20px rgba(0,0,0,0.12);padding:10px 14px;min-width:180px;pointer-events:none">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:8px">Portfolio visible</div>
+      <div id="mapa-kpi-body" style="display:flex;flex-direction:column;gap:5px"></div>
+    </div>
+  </div>
+  <style>
+    @keyframes mapaRing{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.2);opacity:0}}
+    .mapa-pulse-ring{animation:mapaRing 1.8s ease-out infinite;position:absolute;border-radius:50%;pointer-events:none}
+  </style>`;
+}
+
+function updateMapaKpiPanel(){
+  const panel = document.getElementById('mapa-kpi-body');
+  if(!panel) return;
+  const descCerr = ['Descartado','Cerrado'];
+  const visible = _mapaMarkers.filter(m=>{
+    const p=m._proj;
+    let bloqueOk;
+    if(_mapaFilter==='todo') bloqueOk=!descCerr.includes(p.estado);
+    else if(_mapaFilter==='Descartado/Cerrado') bloqueOk=descCerr.includes(p.estado);
+    else bloqueOk=p.bloque===_mapaFilter&&!descCerr.includes(p.estado);
+    const estadoMap={'wip':['WIP','Due diligence'],'analisis':['En análisis'],'recibido':['Recibido'],'standby':['Stand By']};
+    const estadoOk=_mapaEstadoFilter==='todo'||(estadoMap[_mapaEstadoFilter]||[]).includes(p.estado);
+    return bloqueOk&&estadoOk;
+  }).map(m=>m._proj);
+
+  const total = visible.length;
+  const conTIR = visible.filter(p=>p.eco&&p.eco.tirPct);
+  const tirMedia = conTIR.length ? (conTIR.reduce((a,p)=>a+parseFloat(p.eco.tirPct),0)/conTIR.length).toFixed(1) : null;
+  const ventaTotal = visible.reduce((a,p)=>a+(parseFloat(String((p.eco&&p.eco.ventaEur)||'0').replace(/[^0-9.]/g,''))||0),0);
+
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:10px;color:#aaa">Proyectos</span>
+      <span style="font-size:16px;font-weight:800;color:#1a3a2a">${total}</span>
+    </div>
+    ${tirMedia?`<div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f0efe9;padding-top:5px;margin-top:2px">
+      <span style="font-size:10px;color:#aaa">TIR media</span>
+      <span style="font-size:14px;font-weight:700;color:#3d7058">${tirMedia}%</span>
+    </div>`:''}
+    ${ventaTotal>0?`<div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f0efe9;padding-top:5px;margin-top:2px">
+      <span style="font-size:10px;color:#aaa">Ventas totales</span>
+      <span style="font-size:12px;font-weight:600;color:#1a1a18">${(ventaTotal/1000000).toFixed(0)} M€</span>
+    </div>`:''}
+  `;
 }
 
 function updateMapaMarkers(){
@@ -6505,21 +6576,31 @@ function updateMapaMarkers(){
     'recibido':['Recibido'],
     'standby':['Stand By']
   };
+  const descCerr = ['Descartado','Cerrado'];
   _mapaMarkers.forEach(m=>{
     const p = m._proj;
-    const bloqueOk = _mapaFilter==='todo' || p.bloque===_mapaFilter;
+    let bloqueOk;
+    if(_mapaFilter==='todo') bloqueOk = !descCerr.includes(p.estado); // por defecto oculta desc/cerr
+    else if(_mapaFilter==='Descartado/Cerrado') bloqueOk = descCerr.includes(p.estado);
+    else bloqueOk = p.bloque===_mapaFilter && !descCerr.includes(p.estado);
     const estadoOk = _mapaEstadoFilter==='todo' || (estadoMap[_mapaEstadoFilter]||[]).includes(p.estado);
     const visible = bloqueOk && estadoOk;
-    if(m._icon) m._icon.style.opacity = visible ? '1' : '0.1';
-  });
-  const active = _mapaMarkers.filter(m=>{
-    const p=m._proj;
-    const bloqueOk=_mapaFilter==='todo'||p.bloque===_mapaFilter;
-    const estadoOk=_mapaEstadoFilter==='todo'||(estadoMap[_mapaEstadoFilter]||[]).includes(p.estado);
-    return bloqueOk&&estadoOk;
+    if(m._icon) m._icon.style.opacity = visible ? '1' : '0.08';
   });
   const cnt = document.getElementById('mapa-count');
-  if(cnt) cnt.textContent = active.length+' proyecto'+(active.length!==1?'s':'');
+  if(cnt){
+    const visible = _mapaMarkers.filter(m=>{
+      const p=m._proj;
+      let bloqueOk;
+      if(_mapaFilter==='todo') bloqueOk = !descCerr.includes(p.estado);
+      else if(_mapaFilter==='Descartado/Cerrado') bloqueOk = descCerr.includes(p.estado);
+      else bloqueOk = p.bloque===_mapaFilter && !descCerr.includes(p.estado);
+      const estadoOk=_mapaEstadoFilter==='todo'||(estadoMap[_mapaEstadoFilter]||[]).includes(p.estado);
+      return bloqueOk&&estadoOk;
+    });
+    cnt.textContent = visible.length+' proyecto'+(visible.length!==1?'s':'');
+  }
+  updateMapaKpiPanel();
 }
 
 function initMapa(){
@@ -6541,23 +6622,33 @@ function initMapa(){
     maxZoom:19,tileSize:512,zoomOffset:-1
   }).addTo(_mapaInstance);
 
+  // Cluster group
+  const clusterGroup = window.L.markerClusterGroup ? L.markerClusterGroup({
+    maxClusterRadius:50,
+    iconCreateFunction: function(cluster){
+      const count = cluster.getChildCount();
+      return L.divIcon({
+        html:`<div style="width:38px;height:38px;border-radius:50%;background:#1a3a2a;border:3px solid white;box-shadow:0 3px 12px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:white">${count}</div>`,
+        className:'mapa-marker-div',iconSize:[38,38],iconAnchor:[19,19]
+      });
+    }
+  }) : null;
+
   _mapaMarkers = [];
   const fmtM = v=>{ if(!v) return '—'; const n=parseFloat(String(v).replace(/[^0-9.-]/g,'')); if(isNaN(n)) return v; const fmt=x=>x.toLocaleString('es-ES'); if(n>=1000000) return (n/1000000).toFixed(1).replace('.',',').replace(',0','')+' M€'; if(n>=1000) return fmt(Math.round(n/1000))+' k€'; return fmt(n)+' €'; };
-  const active = projects.filter(p=>p.lat&&p.lon&&!['Descartado','Cerrado'].includes(p.estado));
-  const cnt = document.getElementById('mapa-count');
-  if(cnt) cnt.textContent = active.length+' proyecto'+(active.length!==1?'s':'');
+  const active = projects.filter(p=>p.lat&&p.lon);
 
   active.forEach(p=>{
     const color = mapaEstadoColor(p.estado);
     const eco = p.eco||{};
-    const tirStr = eco.tirPct?`<div style="font-size:16px;font-weight:800;color:#1a3a2a;margin-top:6px">TIR ${eco.tirPct}%</div>`:'';
-    const ventaStr = eco.ventaEur?`<div style="font-size:11px;color:#666;margin-top:2px">Ventas ${eco.ventaEur} M€</div>`:'';
     const pid = p.id;
+    const isWIP = ['WIP','Due diligence'].includes(p.estado);
 
-    // Icono con número o inicial
+    // Icono con pulso para WIP/DD
     const inicial = (p.nombre||'?')[0].toUpperCase();
+    const pulseHTML = isWIP ? `<div class="mapa-pulse-ring" style="width:32px;height:32px;background:${color};top:0;left:0"></div>` : '';
     const icon = L.divIcon({
-      html:`<div style="width:32px;height:32px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;font-family:'Segoe UI',sans-serif;cursor:pointer;pointer-events:all">${inicial}</div>`,
+      html:`<div style="position:relative;width:32px;height:32px">${pulseHTML}<div style="position:absolute;top:0;left:0;width:32px;height:32px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;font-family:'Segoe UI',sans-serif;cursor:pointer;pointer-events:all">${inicial}</div></div>`,
       className:'mapa-marker-div',iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-18]
     });
     const marker = L.marker([p.lat,p.lon],{icon});
@@ -6617,7 +6708,8 @@ function initMapa(){
       L.DomEvent.stop(e);
       navigateTo('tabla',{id:pid});
     });
-    marker.addTo(_mapaInstance);
+    if(clusterGroup){ clusterGroup.addLayer(marker); }
+    else { marker.addTo(_mapaInstance); }
     marker.on('add', function(){
       const el = marker.getElement();
       if(el){
@@ -6632,6 +6724,8 @@ function initMapa(){
     _mapaMarkers.push(marker);
   });
 
+  if(clusterGroup) _mapaInstance.addLayer(clusterGroup);
+
   if(!document.getElementById('mapa-filter-css')){
     const s=document.createElement('style');
     s.id='mapa-filter-css';
@@ -6640,6 +6734,7 @@ function initMapa(){
   }
 
   updateMapaMarkers();
+  updateMapaKpiPanel();
   window._mapaGoTo = function(id){ navigateTo('tabla',{id:id}); };
   [200,500,1000].forEach(t=>setTimeout(()=>{ if(_mapaInstance) _mapaInstance.invalidateSize(); },t));
 }
